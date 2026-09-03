@@ -1,149 +1,262 @@
-const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const GROQ_URL =
+  "https://api.groq.com/openai/v1/chat/completions";
+
+const {
+  requireAuth
+} = require("./_auth");
+
 
 module.exports = async function handler(req, res) {
-  res.setHeader('Cache-Control', 'no-store');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // CORS
-  if (req.method === 'OPTIONS') {
+  res.setHeader(
+    "Cache-Control",
+    "no-store"
+  );
+
+  res.setHeader(
+    "Access-Control-Allow-Origin",
+    "*"
+  );
+
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "POST, OPTIONS"
+  );
+
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type"
+  );
+
+
+  if (req.method === "OPTIONS") {
     return res.status(204).end();
   }
 
-  // POST فقط
-  if (req.method !== 'POST') {
+
+  if (req.method !== "POST") {
     return res.status(405).json({
       ok: false,
-      error: 'استخدم POST لهذا المسار.'
+      error:
+        "استخدم POST لهذا المسار."
     });
   }
 
-  // مفتاح Groq من Vercel
-  const apiKey = process.env.GROQ_API_KEY;
+
+  const user =
+    requireAuth(req, res);
+
+
+  if (!user) {
+    return;
+  }
+
+
+  const apiKey =
+    process.env.GROQ_API_KEY;
+
 
   if (!apiKey) {
     return res.status(500).json({
       ok: false,
-      error: 'GROQ_API_KEY غير موجود في Vercel.'
+      error:
+        "GROQ_API_KEY غير موجود في Vercel."
     });
   }
 
+
   try {
-    // قراءة البيانات
+
     const body =
-      typeof req.body === 'string'
-        ? JSON.parse(req.body || '{}')
+      typeof req.body === "string"
+        ? JSON.parse(req.body || "{}")
         : (req.body || {});
 
-    const messages = Array.isArray(body.messages)
-      ? body.messages
-      : [];
 
-    // تنظيف الرسائل
-    const cleaned = messages
-      .filter(
-        (m) =>
-          m &&
-          (m.role === 'user' || m.role === 'assistant') &&
-          typeof m.content === 'string'
-      )
-      .slice(-20)
-      .map((m) => ({
-        role: m.role,
-        content: m.content.trim().slice(0, 12000)
-      }))
-      .filter((m) => m.content);
+    const messages =
+      Array.isArray(body.messages)
+        ? body.messages
+        : [];
+
+
+    const cleaned =
+      messages
+
+        .filter(
+          (message) =>
+            message &&
+            (
+              message.role === "user" ||
+              message.role === "assistant"
+            ) &&
+            typeof message.content === "string"
+        )
+
+        .slice(-20)
+
+        .map(
+          (message) => ({
+            role: message.role,
+
+            content:
+              message.content
+                .trim()
+                .slice(0, 12000)
+          })
+        )
+
+        .filter(
+          (message) =>
+            message.content
+        );
+
 
     if (!cleaned.length) {
       return res.status(400).json({
         ok: false,
-        error: 'اكتب رسالة أولًا.'
+        error:
+          "اكتب رسالة أولًا."
       });
     }
 
-    // الموديل الجديد
-    const model = 'openai/gpt-oss-20b';
 
-    // إرسال الطلب إلى Groq
-    const response = await fetch(GROQ_URL, {
-      method: 'POST',
+    const model =
+      process.env.GROQ_MODEL ||
+      "llama-3.3-70b-versatile";
 
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`
-      },
 
-      body: JSON.stringify({
-        model: model,
+    const response =
+      await fetch(
+        GROQ_URL,
+        {
+          method: "POST",
 
-        messages: [
-          {
-            role: 'system',
-            content:
-              'أنت T.M.D AI، مساعد ذكاء اصطناعي عربي احترافي. أجب بوضوح وباختصار مفيد. ادعم العربية والإنجليزية. ساعد المستخدم في البرمجة والدراسة والكتابة والأسئلة العامة.'
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            Authorization:
+              `Bearer ${apiKey}`
           },
 
-          ...cleaned
-        ],
+          body: JSON.stringify({
 
-        temperature: 0.7,
-        max_tokens: 1200
-      })
-    });
+            model,
 
-    // قراءة استجابة Groq
-    const data = await response.json().catch(() => ({}));
+            messages: [
+              {
+                role: "system",
 
-    // خطأ من Groq
+                content:
+                  "أنت T.M.D AI، مساعد ذكاء اصطناعي عربي احترافي. أجب بوضوح وباختصار مفيد. ادعم العربية والإنجليزية. ساعد المستخدم في البرمجة والدراسة والكتابة والأسئلة العامة."
+              },
+
+              ...cleaned
+            ],
+
+            temperature: 0.7,
+
+            max_tokens: 1200
+
+          })
+        }
+      );
+
+
+    const data =
+      await response
+        .json()
+        .catch(() => ({}));
+
+
     if (!response.ok) {
+
       const message =
         data &&
         data.error &&
-        typeof data.error.message === 'string'
+        data.error.message
           ? data.error.message
           : `Groq returned HTTP ${response.status}`;
 
-      console.error('Groq API error:', data);
+
+      console.error(
+        "Groq API error:",
+        data
+      );
+
 
       return res.status(502).json({
         ok: false,
         error: message
       });
+
     }
 
-    // استخراج الرد
+
     const text =
       data &&
       data.choices &&
       data.choices[0] &&
       data.choices[0].message &&
-      typeof data.choices[0].message.content === 'string'
-        ? data.choices[0].message.content.trim()
-        : '';
+      typeof
+        data.choices[0].message.content ===
+        "string"
+
+        ? data.choices[0]
+            .message
+            .content
+            .trim()
+
+        : "";
+
 
     if (!text) {
-      console.error('Empty Groq response:', data);
+
+      console.error(
+        "Empty Groq response:",
+        data
+      );
+
 
       return res.status(502).json({
         ok: false,
-        error: 'لم تُرجع خدمة Groq نصًا.'
+        error:
+          "لم تُرجع خدمة Groq نصًا."
       });
+
     }
 
-    // إرسال الرد للموقع
+
     return res.status(200).json({
+
       ok: true,
+
       message: text,
-      model: model
+
+      model,
+
+      user: {
+        username: user.username,
+        role: user.role
+      }
+
     });
 
+
   } catch (error) {
-    console.error('TMD AI / Groq error:', error);
+
+    console.error(
+      "TMD AI / Groq error:",
+      error
+    );
+
 
     return res.status(500).json({
       ok: false,
-      error: 'حدث خطأ داخلي في الخادم.'
+      error:
+        "حدث خطأ داخلي في الخادم."
     });
+
   }
+
 };
