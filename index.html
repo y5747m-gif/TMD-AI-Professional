@@ -9,29 +9,40 @@
   >
 
   <meta
-    name="theme-color"
-    content="#c9a227"
+    name="description"
+    content="T.M.D AI - المساعد الذكي"
   >
 
   <title>T.M.D AI</title>
 
   <link
     rel="stylesheet"
-    href="/style.css"
+    href="style.css"
   >
 </head>
 
 <body>
 
-  <div id="overlay" class="overlay"></div>
+  <!-- =========================
+       Overlay
+  ========================== -->
 
-  <div class="app">
+  <div
+    id="overlay"
+    class="overlay"
+  ></div>
 
-    <!-- =========================
-         SIDEBAR
-    ========================== -->
 
-    <aside id="sidebar" class="sidebar">
+  <!-- =========================
+       القائمة الجانبية
+  ========================== -->
+
+  <aside
+    id="sidebar"
+    class="sidebar"
+  >
+
+    <div class="sidebar-header">
 
       <div class="brand">
 
@@ -42,316 +53,272 @@
           T
         </div>
 
-        <div class="brand-text">
+        <div class="brand-info">
 
           <strong id="siteName">
             T.M.D AI
           </strong>
 
-          <span id="siteDescription">
-            المساعد الذكي
+          <span>
+            مساعدك الذكي
           </span>
 
         </div>
 
       </div>
 
+      <button
+        id="menuBtn"
+        class="icon-button mobile-only"
+        type="button"
+        aria-label="إغلاق القائمة"
+      >
+        ✕
+      </button>
+
+    </div>
+
+
+    <!-- زر محادثة جديدة -->
+
+    <button
+      id="newChat"
+      class="new-chat-button"
+      type="button"
+    >
+      <span>＋</span>
+      <span>محادثة جديدة</span>
+    </button>
+
+
+    <!-- عناصر القائمة -->
+
+    <nav class="sidebar-nav">
 
       <button
-        id="newChat"
-        class="new-chat"
+        id="clearChat"
+        class="sidebar-item"
         type="button"
       >
-        ＋ محادثة جديدة
+        <span class="sidebar-item-icon">
+          🗑
+        </span>
+
+        <span>
+          مسح المحادثة
+        </span>
       </button>
 
 
-      <div class="quick-title">
-        أدوات سريعة
-      </div>
-
-
       <button
-        class="suggestion"
-        data-prompt="اشرح لي الذكاء الاصطناعي بطريقة بسيطة"
+        id="theme"
+        class="sidebar-item"
         type="button"
       >
-        🤖 شرح الذكاء الاصطناعي
+        <span class="sidebar-item-icon">
+          ☀
+        </span>
+
+        <span>
+          تغيير المظهر
+        </span>
       </button>
 
 
-      <button
-        class="suggestion"
-        data-prompt="اكتب لي كود HTML احترافي"
-        type="button"
-      >
-        💻 كتابة كود
-      </button>
-
+      <!-- لوحة المالك -->
 
       <button
-        class="suggestion"
-        data-prompt="حل لي هذه المسألة خطوة بخطوة"
+        id="ownerButton"
+        class="sidebar-item owner-item"
         type="button"
       >
-        🧮 حل مسألة
+
+        <span class="sidebar-item-icon">
+          ⚙
+        </span>
+
+        <span>
+          لوحة المالك
+        </span>
+
       </button>
 
-
-      <button
-        class="suggestion"
-        data-prompt="اشرح لي هذه المسألة الدينية مع ذكر المصادر المؤكدة فقط"
-        type="button"
-      >
-        📖 سؤال ديني
-      </button>
+    </nav>
 
 
-      <div class="sidebar-bottom">
+    <!-- معلومات المطور -->
 
-        <div class="status">
-          <i></i>
-          النظام يعمل
-        </div>
+    <div
+      id="developer"
+      class="developer"
+    >
+      المطور: ياسين عمرو عبد الرحيم
+    </div>
 
-
-        <div
-          id="developer"
-          class="developer"
-        >
-          المطور: ياسين عمرو عبد الرحيم
-        </div>
+  </aside>
 
 
-        <button
-          id="clearChat"
-          class="clear"
-          type="button"
-        >
-          🗑 مسح المحادثة
-        </button>
+  <!-- =========================
+       المحتوى الرئيسي
+  ========================== -->
 
+  <main class="main">
 
-        <button
-          id="ownerButton"
-          class="clear owner-button"
-          type="button"
-        >
-          ⚙️ لوحة المالك
-        </button>
+    <!-- Header -->
 
-      </div>
+    <header class="topbar">
 
-    </aside>
-
-
-    <!-- =========================
-         MAIN
-    ========================== -->
-
-    <main class="main">
-
-      <header class="topbar">
+      <div class="topbar-right">
 
         <button
           id="menuBtn"
-          class="icon-btn menu-btn"
+          class="icon-button desktop-hidden"
           type="button"
-          aria-label="القائمة"
+          aria-label="فتح القائمة"
         >
           ☰
         </button>
 
-
-        <div class="top-title">
-
-          <i></i>
-
-          <span id="topSiteName">
-            T.M.D AI
-          </span>
-
-        </div>
-
-
-        <button
-          id="theme"
-          class="icon-btn"
-          type="button"
-          aria-label="تغيير المظهر"
-        >
-          ☀
-        </button>
-
-      </header>
-
-
-      <!-- =========================
-           CHAT
-      ========================== -->
-
-      <section
-        id="chat"
-        class="chat"
-      >
-
-        <div
-          id="welcome"
-          class="welcome"
-        >
+        <div class="top-brand">
 
           <div
             id="welcomeLogo"
-            class="welcome-logo"
+            class="top-logo"
           >
             T
           </div>
 
+          <div>
 
-          <h1>
-            مرحبًا بك في
-            <span id="welcomeSiteName">
+            <strong id="topSiteName">
               T.M.D AI
+            </strong>
+
+            <span id="siteDescription">
+              المساعد الذكي
             </span>
-          </h1>
-
-
-          <p id="welcomeDescription">
-            مساعدك الذكي للبرمجة والدراسة والكتابة
-            والأسئلة العامة وتحليل الصور.
-          </p>
-
-
-          <div class="welcome-cards">
-
-            <button
-              data-prompt="اشرح لي الذكاء الاصطناعي بطريقة بسيطة"
-              type="button"
-            >
-              🤖 الذكاء الاصطناعي
-            </button>
-
-
-            <button
-              data-prompt="اكتب لي برنامجًا بسيطًا"
-              type="button"
-            >
-              💻 البرمجة
-            </button>
-
-
-            <button
-              data-prompt="ساعدني في حل هذه المسألة"
-              type="button"
-            >
-              🧮 الدراسة
-            </button>
-
-
-            <button
-              data-prompt="أريد معرفة معلومات دينية موثوقة مع ذكر المصادر"
-              type="button"
-            >
-              📖 الأسئلة الدينية
-            </button>
 
           </div>
 
         </div>
 
-      </section>
+      </div>
+
+    </header>
 
 
-      <!-- =========================
-           COMPOSER
-      ========================== -->
+    <!-- =========================
+         منطقة المحادثة
+    ========================== -->
 
-      <div class="composer-wrap">
+    <section
+      id="chat"
+      class="chat"
+      aria-live="polite"
+    >
 
-        <form
-          id="composer"
-          class="composer"
-        >
+      <!-- شاشة الترحيب -->
 
-          <!-- زر الصور + -->
+      <div
+        id="welcome"
+        class="welcome"
+      >
+
+        <div class="welcome-logo">
+          <span id="welcomeLogo">
+            T
+          </span>
+        </div>
+
+        <h1>
+          مرحبًا بك في
+          <span id="welcomeSiteName">
+            T.M.D AI
+          </span>
+        </h1>
+
+        <p id="welcomeDescription">
+          المساعد الذكي
+        </p>
+
+
+        <!-- الاقتراحات -->
+
+        <div class="welcome-cards">
 
           <button
-            id="plusButton"
+            class="suggestion"
             type="button"
-            class="plus-button"
-            aria-label="إضافة"
-            title="إضافة صورة"
+            data-prompt="اشرح لي هذا الموضوع بالتفصيل وبطريقة بسيطة."
           >
-            ＋
-          </button>
-
-
-          <textarea
-            id="input"
-            rows="1"
-            maxlength="12000"
-            placeholder="اكتب رسالتك هنا..."
-            autocomplete="off"
-          ></textarea>
-
-
-          <button
-            id="send"
-            type="submit"
-            aria-label="إرسال"
-            title="إرسال"
-          >
-            ➤
-          </button>
-
-        </form>
-
-
-        <!-- قائمة زر + -->
-
-        <div
-          id="plusMenu"
-          class="plus-menu"
-          aria-hidden="true"
-        >
-
-          <button
-            id="imageUploadButton"
-            type="button"
-          >
-            📷
-            <span>
-              رفع صورة وتحليلها
-            </span>
+            <span>💡</span>
+            <strong>شرح موضوع</strong>
+            <small>
+              احصل على شرح واضح ومفصل
+            </small>
           </button>
 
 
           <button
-            id="imageEditButton"
+            class="suggestion"
             type="button"
+            data-prompt="اكتب لي خطة احترافية لهذا المشروع."
           >
-            ✨
-            <span>
-              تعديل صورة
-            </span>
+            <span>📋</span>
+            <strong>إنشاء خطة</strong>
+            <small>
+              أنشئ خطة منظمة لمشروعك
+            </small>
+          </button>
+
+
+          <button
+            class="suggestion"
+            type="button"
+            data-prompt="ساعدني في كتابة نص احترافي."
+          >
+            <span>✍</span>
+            <strong>كتابة محتوى</strong>
+            <small>
+              كتابة وتعديل النصوص
+            </small>
+          </button>
+
+
+          <button
+            class="suggestion"
+            type="button"
+            data-prompt="ساعدني في حل هذه المسألة واشرح لي الحل خطوة بخطوة."
+          >
+            <span>🧠</span>
+            <strong>حل المسائل</strong>
+            <small>
+              حل مع شرح الخطوات
+            </small>
           </button>
 
         </div>
 
+      </div>
 
-        <input
-          id="imageInput"
-          type="file"
-          accept="image/png,image/jpeg,image/webp,image/gif"
-          hidden
-        />
+    </section>
 
 
-        <div
-          id="imagePreview"
-          class="image-preview"
-          hidden
-        >
+    <!-- =========================
+         منطقة الإدخال
+    ========================== -->
+
+    <div class="composer-area">
+
+      <!-- معاينة الصورة -->
+
+      <div
+        id="imagePreview"
+        class="image-preview"
+        hidden
+      >
+
+        <div class="image-preview-inner">
 
           <img
             id="previewImage"
@@ -361,28 +328,129 @@
 
           <button
             id="removeImage"
+            class="remove-image"
             type="button"
             aria-label="إزالة الصورة"
           >
-            ×
+            ✕
           </button>
 
         </div>
 
+      </div>
 
-        <div class="hint">
-          اضغط Enter للإرسال — Shift + Enter لسطر جديد
-        </div>
+
+      <!-- قائمة الإضافة -->
+
+      <div
+        id="plusMenu"
+        class="plus-menu"
+        aria-hidden="true"
+      >
+
+        <button
+          id="imageUploadButton"
+          type="button"
+          class="plus-menu-item"
+        >
+
+          <span class="plus-menu-icon">
+            🖼
+          </span>
+
+          <span>
+            تحليل صورة
+          </span>
+
+        </button>
+
+
+        <button
+          id="imageEditButton"
+          type="button"
+          class="plus-menu-item"
+        >
+
+          <span class="plus-menu-icon">
+            ✨
+          </span>
+
+          <span>
+            تعديل صورة
+          </span>
+
+        </button>
 
       </div>
 
-    </main>
 
-  </div>
+      <!-- إدخال الصورة المخفي -->
+
+      <input
+        id="imageInput"
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        hidden
+      >
+
+
+      <!-- نموذج الكتابة -->
+
+      <form
+        id="composer"
+        class="composer"
+      >
+
+        <!-- زر + -->
+
+        <button
+          id="plusButton"
+          class="plus-button"
+          type="button"
+          aria-label="إضافة"
+          aria-expanded="false"
+        >
+          ＋
+        </button>
+
+
+        <!-- مربع الكتابة -->
+
+        <textarea
+          id="input"
+          name="message"
+          rows="1"
+          placeholder="اكتب رسالتك هنا..."
+          autocomplete="off"
+          spellcheck="true"
+        ></textarea>
+
+
+        <!-- زر الإرسال -->
+
+        <button
+          id="send"
+          class="send-button"
+          type="submit"
+          aria-label="إرسال"
+        >
+          ➤
+        </button>
+
+      </form>
+
+
+      <div class="composer-note">
+        T.M.D AI • المطور: ياسين عمرو عبد الرحيم
+      </div>
+
+    </div>
+
+  </main>
 
 
   <!-- =========================
-       OWNER MODAL
+       لوحة المالك
   ========================== -->
 
   <div
@@ -391,67 +459,101 @@
     hidden
   >
 
-    <div class="modal-box">
+    <div
+      class="owner-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="ownerTitle"
+    >
 
-      <button
-        id="closeOwnerModal"
-        class="modal-close"
-        type="button"
-      >
-        ×
-      </button>
+      <!-- رأس اللوحة -->
+
+      <div class="owner-modal-header">
+
+        <div>
+
+          <h2 id="ownerTitle">
+            لوحة تحكم المالك
+          </h2>
+
+          <p>
+            التحكم في شكل وإعدادات الموقع
+          </p>
+
+        </div>
+
+        <button
+          id="closeOwnerModal"
+          class="modal-close"
+          type="button"
+          aria-label="إغلاق"
+        >
+          ✕
+        </button>
+
+      </div>
 
 
-      <!-- تسجيل دخول المالك -->
+      <!-- =========================
+           تسجيل دخول المالك
+      ========================== -->
 
       <section
         id="ownerLoginSection"
         class="owner-section"
       >
 
-        <div class="modal-icon">
+        <div class="owner-login-icon">
           🔐
         </div>
 
-        <h2>
-          لوحة المالك
-        </h2>
+        <h3>
+          دخول المالك
+        </h3>
 
         <p>
           هذه المنطقة مخصصة لمالك الموقع فقط.
         </p>
 
 
-        <form id="ownerLoginForm">
+        <form
+          id="ownerLoginForm"
+          class="owner-login-form"
+        >
+
+          <label for="ownerPassword">
+            كلمة مرور المالك
+          </label>
 
           <input
             id="ownerPassword"
             type="password"
-            placeholder="كلمة مرور المالك"
+            placeholder="أدخل كلمة المرور"
             autocomplete="current-password"
             required
           >
 
-
           <button
             type="submit"
-            class="owner-primary"
+            class="owner-primary-button"
           >
-            دخول المالك
+            دخول
           </button>
 
+          <div
+            id="ownerLoginError"
+            class="owner-error"
+            role="alert"
+          ></div>
+
         </form>
-
-
-        <div
-          id="ownerLoginError"
-          class="owner-error"
-        ></div>
 
       </section>
 
 
-      <!-- لوحة التحكم -->
+      <!-- =========================
+           لوحة الإعدادات
+      ========================== -->
 
       <section
         id="ownerPanelSection"
@@ -459,121 +561,225 @@
         hidden
       >
 
-        <h2>
-          ⚙️ إعدادات الموقع
-        </h2>
+        <div class="owner-panel-top">
 
+          <div>
+            <strong>
+              إعدادات الموقع
+            </strong>
 
-        <label>
-          اسم الموقع
-
-          <input
-            id="settingSiteName"
-            type="text"
-            placeholder="T.M.D AI"
-          >
-
-        </label>
-
-
-        <label>
-          وصف الموقع
-
-          <input
-            id="settingDescription"
-            type="text"
-            placeholder="المساعد الذكي"
-          >
-
-        </label>
-
-
-        <label>
-          اسم المطور
-
-          <input
-            id="settingDeveloper"
-            type="text"
-            placeholder="ياسين عمرو عبد الرحيم"
-          >
-
-        </label>
-
-
-        <label>
-          اللون الأساسي
-
-          <input
-            id="settingPrimaryColor"
-            type="color"
-            value="#c9a227"
-          >
-
-        </label>
-
-
-        <label>
-          لون الخلفية
-
-          <input
-            id="settingBackgroundColor"
-            type="color"
-            value="#faf8f1"
-          >
-
-        </label>
-
-
-        <label>
-          شعار الموقع
-
-          <input
-            id="settingLogoText"
-            type="text"
-            maxlength="3"
-            placeholder="T"
-          >
-
-        </label>
-
-
-        <label>
-          رابط صورة الخلفية
-
-          <input
-            id="settingBackgroundImage"
-            type="url"
-            placeholder="https://..."
-          >
-
-        </label>
-
-
-        <div class="owner-actions">
-
-          <button
-            id="saveSettings"
-            type="button"
-            class="owner-primary"
-          >
-            💾 حفظ الإعدادات
-          </button>
-
+            <p>
+              أي تغيير يتم حفظه في إعدادات الموقع.
+            </p>
+          </div>
 
           <button
             id="ownerLogout"
             type="button"
-            class="owner-secondary"
+            class="owner-logout-button"
           >
-            تسجيل خروج
+            تسجيل الخروج
           </button>
 
         </div>
 
 
+        <div class="settings-grid">
+
+
+          <!-- اسم الموقع -->
+
+          <div class="setting-field">
+
+            <label for="settingSiteName">
+              اسم الموقع
+            </label>
+
+            <input
+              id="settingSiteName"
+              type="text"
+              placeholder="T.M.D AI"
+            >
+
+          </div>
+
+
+          <!-- الوصف -->
+
+          <div class="setting-field">
+
+            <label for="settingDescription">
+              وصف الموقع
+            </label>
+
+            <input
+              id="settingDescription"
+              type="text"
+              placeholder="المساعد الذكي"
+            >
+
+          </div>
+
+
+          <!-- اسم المطور -->
+
+          <div class="setting-field">
+
+            <label for="settingDeveloper">
+              اسم المطور
+            </label>
+
+            <input
+              id="settingDeveloper"
+              type="text"
+              value="ياسين عمرو عبد الرحيم"
+            >
+
+          </div>
+
+
+          <!-- لون الموقع -->
+
+          <div class="setting-field">
+
+            <label for="settingPrimaryColor">
+              اللون الرئيسي
+            </label>
+
+            <div class="color-input">
+
+              <input
+                id="settingPrimaryColor"
+                type="color"
+                value="#c9a227"
+              >
+
+              <span>
+                اللون الذهبي
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <!-- لون الخلفية -->
+
+          <div class="setting-field">
+
+            <label for="settingBackgroundColor">
+              لون الخلفية
+            </label>
+
+            <div class="color-input">
+
+              <input
+                id="settingBackgroundColor"
+                type="color"
+                value="#faf8f1"
+              >
+
+              <span>
+                لون الخلفية
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <!-- شعار الموقع -->
+
+          <div class="setting-field">
+
+            <label for="settingLogoText">
+              رمز الموقع
+            </label>
+
+            <input
+              id="settingLogoText"
+              type="text"
+              maxlength="4"
+              value="T"
+              placeholder="T"
+            >
+
+          </div>
+
+
+          <!-- خلفية الموقع -->
+
+          <div class="setting-field full-width">
+
+            <label for="settingBackgroundImage">
+              رابط خلفية الموقع
+            </label>
+
+            <input
+              id="settingBackgroundImage"
+              type="url"
+              placeholder="https://example.com/background.jpg"
+            >
+
+            <small>
+              ضع رابط الصورة المباشر هنا.
+            </small>
+
+          </div>
+
+
+        </div>
+
+
+        <!-- معاينة الإعدادات -->
+
+        <div class="settings-preview">
+
+          <div class="settings-preview-title">
+            معاينة
+          </div>
+
+          <div class="preview-card">
+
+            <div
+              id="previewLogo"
+              class="preview-logo"
+            >
+              T
+            </div>
+
+            <div>
+
+              <strong>
+                معاينة الموقع
+              </strong>
+
+              <p>
+                ستظهر التغييرات هنا وعلى واجهة المستخدم.
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- حفظ -->
+
+        <button
+          id="saveSettings"
+          type="button"
+          class="owner-primary-button save-button"
+        >
+          حفظ الإعدادات
+        </button>
+
+
         <div
           id="settingsMessage"
           class="settings-message"
+          role="status"
         ></div>
 
       </section>
@@ -583,7 +789,11 @@
   </div>
 
 
-  <script src="/app.js"></script>
+  <!-- =========================
+       JavaScript
+  ========================== -->
+
+  <script src="app.js"></script>
 
 </body>
 </html>
