@@ -1,17 +1,62 @@
-# T.M.D AI Professional
+# T.M.D AI Professional — النسخة الجديدة
 
-## Vercel setup
-1. Upload the CONTENTS of this folder to the root of the GitHub repository.
-2. In Vercel set Root Directory to the folder that directly contains `index.html` and `api/`.
-3. Framework Preset: Other.
-4. Build Command: leave empty.
-5. Output Directory: leave empty.
-6. Add `OPENAI_API_KEY` as a Secret for Production and Preview.
-7. Optional: `OPENAI_MODEL=gpt-5.6-luna`.
-8. Redeploy with **Use existing Build Cache OFF** for the first clean deployment.
+هذه النسخة تعمل على:
 
-## Test
-Open `/api/health`. It must return JSON with `"ok": true`.
-Then open the main site and send a message.
+- Vercel
+- Groq API
+- Vercel Blob
+- JavaScript / HTML / CSS فقط في الواجهة
 
-Never put the OpenAI key in frontend JavaScript or GitHub.
+## المتطلبات
+
+أضف في Vercel Environment Variables:
+
+1. `GROQ_API_KEY`
+2. `GROQ_MODEL`
+3. `GROQ_VISION_MODEL`
+4. `OWNER_SECRET`
+5. `BLOB_READ_WRITE_TOKEN`
+
+القيم المقترحة:
+
+```text
+GROQ_MODEL=llama-3.3-70b-versatile
+GROQ_VISION_MODEL=qwen/qwen3.6-27b
+```
+
+## Vercel Blob
+
+من مشروع Vercel افتح Storage ثم أنشئ Blob Store، واربطه بالمشروع حتى تتم إضافة `BLOB_READ_WRITE_TOKEN` إلى البيئة.
+
+يستخدم المشروع Blob لحفظ:
+
+- إعدادات الموقع
+- شعار الموقع
+- خلفية الموقع
+
+## تسجيل المالك
+
+المستخدم العادي لا يحتاج تسجيل دخول.
+
+المالك يضغط:
+
+`⚙️ لوحة المالك`
+
+ثم يدخل قيمة `OWNER_SECRET`.
+
+لا تضع `OWNER_SECRET` داخل ملفات JavaScript.
+
+## الصور
+
+زر `+` بجوار خانة الكتابة يتيح:
+
+- تحليل صورة
+- اقتراح تعديلات على صورة
+
+التحليل يتم بواسطة نموذج Groq متعدد الوسائط.
+
+هذه النسخة لا تدّعي أنها تعدّل ملف الصورة فعليًا؛ وضع "اقتراح تعديلات" يعطي تعليمات دقيقة للتعديل. تنفيذ تعديل/توليد الصورة نفسها يحتاج خدمة صور إضافية.
+
+## ملاحظة عن المجانية
+
+Vercel Blob له حدود استخدام في خطة Hobby، وGroq له حدود/أسعار بحسب الحساب والنموذج. لذلك لا يوجد ضمان لاستخدام غير محدود مجانًا. هذه البنية لا تحتاج OpenAI API.
