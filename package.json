@@ -2,7 +2,7 @@
   "name": "tmd-ai-professional",
   "version": "3.0.0",
   "private": true,
-  "description": "T.M.D AI - AI assistant with owner dashboard and image analysis",
+  "description": "T.M.D AI - Vercel + Groq + Vercel Blob",
   "engines": {
     "node": ">=20"
   },
@@ -10,6 +10,6 @@
     "dev": "vercel dev"
   },
   "dependencies": {
-    "@vercel/blob": "^2.0.0"
+    "@vercel/blob": "^2.3.0"
   }
 }
