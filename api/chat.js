@@ -6,12 +6,12 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // التعامل مع طلبات CORS
+  // CORS
   if (req.method === 'OPTIONS') {
     return res.status(204).end();
   }
 
-  // السماح بـ POST فقط
+  // POST فقط
   if (req.method !== 'POST') {
     return res.status(405).json({
       ok: false,
@@ -19,7 +19,7 @@ module.exports = async function handler(req, res) {
     });
   }
 
-  // قراءة مفتاح Groq من Vercel
+  // مفتاح Groq الموجود في Vercel
   const apiKey = process.env.GROQ_API_KEY;
 
   if (!apiKey) {
@@ -30,7 +30,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    // قراءة البيانات القادمة من الموقع
+    // قراءة البيانات
     const body =
       typeof req.body === 'string'
         ? JSON.parse(req.body || '{}')
@@ -62,8 +62,8 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // الموديل المستخدم من Groq
-    const model = 'llama-3.3-70b-versatile';
+    // موديل Groq
+    const model = 'llama-3.1-8b-instant';
 
     // إرسال الطلب إلى Groq
     const response = await fetch(GROQ_URL, {
@@ -71,11 +71,11 @@ module.exports = async function handler(req, res) {
 
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`
+        'Authorization': `Bearer ${apiKey}`
       },
 
       body: JSON.stringify({
-        model,
+        model: model,
 
         messages: [
           {
@@ -83,7 +83,6 @@ module.exports = async function handler(req, res) {
             content:
               'أنت T.M.D AI، مساعد ذكاء اصطناعي عربي احترافي. أجب بوضوح وباختصار مفيد. ادعم العربية والإنجليزية. ساعد المستخدم في البرمجة والدراسة والكتابة والأسئلة العامة.'
           },
-
           ...cleaned
         ],
 
@@ -95,7 +94,7 @@ module.exports = async function handler(req, res) {
     // قراءة استجابة Groq
     const data = await response.json().catch(() => ({}));
 
-    // في حالة وجود خطأ من Groq
+    // خطأ من Groq
     if (!response.ok) {
       const message =
         data &&
@@ -112,7 +111,7 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // استخراج إجابة المساعد
+    // استخراج الإجابة
     const text =
       data &&
       data.choices &&
@@ -135,7 +134,7 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({
       ok: true,
       message: text,
-      model
+      model: model
     });
 
   } catch (error) {
