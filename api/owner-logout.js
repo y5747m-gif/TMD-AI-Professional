@@ -1,39 +1,78 @@
-module.exports = async function handler(req, res) {
-  res.setHeader(
-    "Cache-Control",
-    "no-store"
-  );
+"use strict";
 
-  res.setHeader(
-    "Access-Control-Allow-Origin",
-    "*"
-  );
 
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "POST, OPTIONS"
-  );
+module.exports =
+  async function handler(
+    req,
+    res
+  ) {
 
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Content-Type"
-  );
+    res.setHeader(
+      "Cache-Control",
+      "no-store"
+    );
 
-  if (req.method === "OPTIONS") {
-    return res.status(204).end();
-  }
 
-  if (req.method !== "POST") {
-    return res.status(405).json({
-      ok: false,
-      error:
-        "استخدم POST لهذا المسار."
-    });
-  }
+    res.setHeader(
+      "Access-Control-Allow-Origin",
+      "*"
+    );
 
-  return res.status(200).json({
-    ok: true,
-    message:
-      "تم تسجيل خروج المالك."
-  });
-};
+
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "POST, OPTIONS"
+    );
+
+
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Authorization"
+    );
+
+
+    if (
+      req.method ===
+      "OPTIONS"
+    ) {
+
+      return res
+        .status(204)
+        .end();
+
+    }
+
+
+    if (
+      req.method !==
+      "POST"
+    ) {
+
+      return res
+        .status(405)
+        .json({
+
+          ok:
+            false,
+
+          error:
+            "استخدم POST."
+
+        });
+
+    }
+
+
+    return res
+      .status(200)
+      .json({
+
+        ok:
+          true,
+
+        message:
+          "تم تسجيل خروج المالك."
+
+      });
+
+  };
