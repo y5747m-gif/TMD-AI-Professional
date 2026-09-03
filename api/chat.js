@@ -58,7 +58,7 @@ module.exports = async function handler(req, res) {
     }
 
     const model =
-      process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+      process.env.GROQ_MODEL || 'llama-3.1-8b-instant';
 
     const response = await fetch(GROQ_URL, {
       method: 'POST',
@@ -76,7 +76,8 @@ module.exports = async function handler(req, res) {
           },
           ...cleaned
         ],
-        max_tokens: 1200
+        max_tokens: 1200,
+        temperature: 0.7
       })
     });
 
@@ -84,8 +85,11 @@ module.exports = async function handler(req, res) {
 
     if (!response.ok) {
       const message =
-        data?.error?.message ||
-        `Groq returned HTTP ${response.status}`;
+        data &&
+        data.error &&
+        data.error.message
+          ? data.error.message
+          : `Groq returned HTTP ${response.status}`;
 
       return res.status(502).json({
         ok: false,
