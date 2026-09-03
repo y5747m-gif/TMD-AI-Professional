@@ -2,87 +2,202 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#070b14">
-  <meta name="description" content="T.M.D AI — مساعد ذكاء اصطناعي احترافي">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta
+    name="theme-color"
+    content="#0b0a07"
+  >
+
+  <meta
+    name="description"
+    content="T.M.D AI - مساعد ذكاء اصطناعي عربي احترافي"
+  >
+
   <title>T.M.D AI — المساعد الذكي</title>
-  <link rel="stylesheet" href="/style.css">
+
+  <link
+    rel="stylesheet"
+    href="/style.css"
+  >
 </head>
 
 <body>
 
   <div class="app-shell">
 
-    <!-- القائمة الجانبية -->
-    <aside class="sidebar" id="sidebar">
+    <!-- ================= SIDEBAR ================= -->
+
+    <aside
+      class="sidebar"
+      id="sidebar"
+    >
 
       <div class="brand">
-        <div class="brand-mark">T</div>
 
-        <div>
-          <strong>T.M.D AI</strong>
-          <span>المساعد الذكي</span>
+        <div class="brand-mark">
+          T
         </div>
+
+        <div class="brand-info">
+
+          <strong>
+            T.M.D AI
+          </strong>
+
+          <span>
+            المساعد الذكي
+          </span>
+
+        </div>
+
       </div>
 
-      <button id="newChat" class="new-chat">
-        <span>＋</span>
-        <span>محادثة جديدة</span>
+
+      <div class="developer-badge">
+
+        <span class="developer-icon">
+          ✦
+        </span>
+
+        <div>
+
+          <small>
+            المطور
+          </small>
+
+          <strong>
+            y5747m-gif
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <button
+        id="newChat"
+        class="new-chat"
+        type="button"
+      >
+
+        <span class="new-chat-icon">
+          ＋
+        </span>
+
+        <span>
+          محادثة جديدة
+        </span>
+
       </button>
+
 
       <div class="sidebar-label">
         ماذا تريد أن تفعل؟
       </div>
 
+
       <div class="quick-actions">
 
-        <button class="quick-action"
-          data-prompt="اشرح لي الذكاء الاصطناعي بطريقة بسيطة ومفهومة">
+        <button
+          class="quick-action"
+          data-prompt="اشرح لي الذكاء الاصطناعي بطريقة بسيطة ومفهومة"
+          type="button"
+        >
 
-          <span class="quick-icon">✦</span>
+          <span class="quick-icon">
+            ✦
+          </span>
 
           <span>
-            <b>شرح مفهوم</b>
-            <small>تبسيط أي موضوع</small>
+
+            <b>
+              شرح مفهوم
+            </b>
+
+            <small>
+              تبسيط أي موضوع
+            </small>
+
           </span>
 
         </button>
 
 
-        <button class="quick-action"
-          data-prompt="اكتب لي كود JavaScript احترافي واشرح طريقة استخدامه">
+        <button
+          class="quick-action"
+          data-prompt="اكتب لي كود JavaScript احترافي واشرح طريقة استخدامه"
+          type="button"
+        >
 
-          <span class="quick-icon">⌘</span>
+          <span class="quick-icon">
+            &lt;/&gt;
+          </span>
 
           <span>
-            <b>برمجة</b>
-            <small>اكتب وراجع الكود</small>
+
+            <b>
+              البرمجة
+            </b>
+
+            <small>
+              كتابة ومراجعة الأكواد
+            </small>
+
           </span>
 
         </button>
 
 
-        <button class="quick-action"
-          data-prompt="ساعدني في حل هذه المسألة خطوة بخطوة">
+        <button
+          class="quick-action"
+          data-prompt="ساعدني في حل هذه المسألة خطوة بخطوة"
+          type="button"
+        >
 
-          <span class="quick-icon">∑</span>
+          <span class="quick-icon">
+            ∑
+          </span>
 
           <span>
-            <b>حل مسألة</b>
-            <small>خطوات واضحة</small>
+
+            <b>
+              حل مسألة
+            </b>
+
+            <small>
+              حلول واضحة
+            </small>
+
           </span>
 
         </button>
 
 
-        <button class="quick-action"
-          data-prompt="ساعدني في إعداد خطة مذاكرة منظمة">
+        <button
+          class="quick-action"
+          data-prompt="ساعدني في إعداد خطة مذاكرة منظمة"
+          type="button"
+        >
 
-          <span class="quick-icon">▤</span>
+          <span class="quick-icon">
+            ▤
+          </span>
 
           <span>
-            <b>الدراسة</b>
-            <small>خطط ومراجعة</small>
+
+            <b>
+              الدراسة
+            </b>
+
+            <small>
+              خطط ومراجعة
+            </small>
+
           </span>
 
         </button>
@@ -93,11 +208,21 @@
       <div class="sidebar-footer">
 
         <div class="status">
+
           <span class="status-dot"></span>
-          <span>النظام متصل</span>
+
+          <span>
+            النظام متصل
+          </span>
+
         </div>
 
-        <button id="clearChat" class="clear-btn">
+
+        <button
+          id="clearChat"
+          class="clear-btn"
+          type="button"
+        >
           مسح المحادثة
         </button>
 
@@ -106,8 +231,34 @@
     </aside>
 
 
-    <!-- المحتوى الرئيسي -->
+    <!-- ================= MAIN ================= -->
+
     <main class="main">
+
+
+      <!-- خلفية عربية -->
+
+      <div class="arabic-background">
+
+        <div class="moon"></div>
+
+        <div class="star star-1"></div>
+        <div class="star star-2"></div>
+        <div class="star star-3"></div>
+        <div class="star star-4"></div>
+        <div class="star star-5"></div>
+
+        <div class="camel">
+          🐪
+        </div>
+
+        <div class="dune dune-one"></div>
+        <div class="dune dune-two"></div>
+
+      </div>
+
+
+      <!-- ================= TOPBAR ================= -->
 
       <header class="topbar">
 
@@ -116,17 +267,50 @@
           <button
             id="menuBtn"
             class="icon-btn"
-            aria-label="فتح القائمة">
+            type="button"
+            aria-label="فتح القائمة"
+          >
             ☰
           </button>
+
 
           <div class="mini-mark">
             T
           </div>
 
-          <strong>
-            T.M.D AI
-          </strong>
+
+          <div class="mobile-title">
+
+            <strong>
+              T.M.D AI
+            </strong>
+
+            <span>
+              AI Assistant
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div class="topbar-brand">
+
+          <div class="topbar-logo">
+            T
+          </div>
+
+          <div>
+
+            <strong>
+              T.M.D AI
+            </strong>
+
+            <span>
+              المساعد الذكي
+            </span>
+
+          </div>
 
         </div>
 
@@ -136,39 +320,70 @@
           <span class="online-dot"></span>
 
           <span>
-            مساعد T.M.D AI
+            T.M.D AI Assistant
           </span>
 
         </div>
 
 
-        <button
-          id="theme"
-          class="icon-btn"
-          aria-label="تغيير المظهر"
-          title="تغيير المظهر">
+        <div class="topbar-actions">
 
-          ☼
+          <div class="developer-top">
 
-        </button>
+            <span>
+              المطور
+            </span>
+
+            <strong>
+              y5747m-gif
+            </strong>
+
+          </div>
+
+
+          <button
+            id="theme"
+            class="icon-btn"
+            type="button"
+            aria-label="تغيير المظهر"
+            title="تغيير المظهر"
+          >
+            ☼
+          </button>
+
+        </div>
 
       </header>
 
 
-      <!-- المحادثة -->
-      <section id="chat" class="chat">
+      <!-- ================= CHAT ================= -->
 
-        <div id="welcome" class="welcome">
+      <section
+        id="chat"
+        class="chat"
+      >
 
-          <div class="hero-glow"></div>
+
+        <!-- ================= WELCOME ================= -->
+
+        <div
+          id="welcome"
+          class="welcome"
+        >
+
+          <div class="welcome-glow"></div>
+
 
           <div class="welcome-logo">
             T
           </div>
 
+
           <div class="eyebrow">
 
-            <span>✦</span>
+            <span>
+              ✦
+            </span>
 
             جاهز لمساعدتك
 
@@ -188,19 +403,27 @@
 
           <p>
 
-            مساعد ذكي للبرمجة والدراسة والكتابة وحل المشكلات
-            — بتجربة بسيطة وسريعة.
+            مساعدك الذكي للبرمجة والدراسة والكتابة
+            وحل المشكلات، بتجربة عربية احترافية وسريعة.
 
           </p>
+
+
+          <div class="gold-line">
+          </div>
 
 
           <div class="welcome-cards">
 
 
             <button
-              data-prompt="اكتب لي خطة برمجة لموقع احترافي">
+              data-prompt="اكتب لي خطة برمجة لموقع احترافي"
+              type="button"
+            >
 
-              <span>⌘</span>
+              <span class="card-icon">
+                &lt;/&gt;
+              </span>
 
               <b>
                 خطة برمجة
@@ -214,9 +437,13 @@
 
 
             <button
-              data-prompt="اشرح لي هذا المفهوم ببساطة مع مثال">
+              data-prompt="اشرح لي هذا المفهوم ببساطة مع مثال"
+              type="button"
+            >
 
-              <span>✦</span>
+              <span class="card-icon">
+                ✦
+              </span>
 
               <b>
                 شرح مفهوم
@@ -230,12 +457,16 @@
 
 
             <button
-              data-prompt="اكتب لي كود JavaScript احترافي">
+              data-prompt="اكتب لي كود JavaScript احترافي"
+              type="button"
+            >
 
-              <span>{ }</span>
+              <span class="card-icon">
+                JS
+              </span>
 
               <b>
-                كود JavaScript
+                JavaScript
               </b>
 
               <small>
@@ -247,32 +478,56 @@
 
           </div>
 
+
+          <div class="arabic-signature">
+
+            <span>
+              T.M.D AI
+            </span>
+
+            <i></i>
+
+            <span>
+              ذكاء • إبداع • تقنية
+            </span>
+
+          </div>
+
         </div>
 
       </section>
 
 
-      <!-- مربع الكتابة -->
+      <!-- ================= COMPOSER ================= -->
+
       <div class="composer-area">
 
-        <form id="composer" class="composer">
+
+        <form
+          id="composer"
+          class="composer"
+        >
+
+          <div class="input-decoration">
+            ✦
+          </div>
+
 
           <textarea
             id="input"
             rows="1"
             maxlength="12000"
             autocomplete="off"
-            placeholder="اكتب رسالتك هنا...">
-          </textarea>
+            placeholder="اكتب رسالتك هنا..."
+          ></textarea>
 
 
           <button
             id="send"
             type="submit"
-            aria-label="إرسال">
-
+            aria-label="إرسال"
+          >
             ➤
-
           </button>
 
         </form>
@@ -285,7 +540,7 @@
           </span>
 
           <span>
-            T.M.D AI
+            T.M.D AI • y5747m-gif
           </span>
 
         </div>
@@ -297,7 +552,12 @@
   </div>
 
 
-  <div id="overlay" class="overlay"></div>
+  <!-- ================= OVERLAY ================= -->
+
+  <div
+    id="overlay"
+    class="overlay"
+  ></div>
 
 
   <script src="/app.js"></script>
