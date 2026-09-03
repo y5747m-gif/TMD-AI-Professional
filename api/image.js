@@ -34,14 +34,10 @@ module.exports = async function handler(req, res) {
         : req.body || {};
 
     const image = String(body.image || "");
+
     const prompt =
       String(body.prompt || "").trim() ||
-      "حلل هذه الصورة بالتفصيل، واذكر ما يظهر فيها وأي نص يمكن قراءته.";
-
-    const mode =
-      body.mode === "edit"
-        ? "edit"
-        : "analyze";
+      "حلل هذه الصورة بالتفصيل، واشرح ما يظهر فيها، واقرأ أي نص واضح داخلها.";
 
     if (!image.startsWith("data:image/")) {
       return res.status(400).json({
@@ -50,42 +46,56 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    if (image.length > 8 * 1024 * 1024) {
+    /*
+     * Groq Vision currently supports image inputs
+     * up to 20MB for this model.
+     */
+
+    if (image.length > 20 * 1024 * 1024) {
       return res.status(413).json({
         ok: false,
-        error: "الصورة كبيرة جداً. استخدم صورة أصغر من 6MB تقريباً."
+        error: "الصورة كبيرة جدًا. استخدم صورة أصغر من 20MB."
       });
     }
 
-    const systemText =
-      mode === "edit"
-        ? "أنت مساعد متخصص في تحليل الصور واقتراح تعديلات احترافية. لا تدّعي أنك عدّلت الملف فعلياً. قدم وصفاً دقيقاً للتعديلات المطلوبة، مع الحفاظ على هوية الأشخاص وملامحهم إذا طلب المستخدم ذلك."
-        : "أنت مساعد متخصص في فهم الصور وOCR والوصف البصري. حلل الصورة بدقة ولا تخترع معلومات غير ظاهرة.";
-
     const response = await fetch(GROQ_URL, {
       method: "POST",
+
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`
+        "Authorization": `Bearer ${apiKey}`
       },
+
       body: JSON.stringify({
         model:
           process.env.GROQ_VISION_MODEL ||
           "qwen/qwen3.6-27b",
+
         messages: [
           {
             role: "system",
-            content: systemText
+
+            content:
+              "أنت T.M.D AI، مساعد ذكاء اصطناعي متخصص في فهم وتحليل الصور. " +
+              "قم بتحليل الصور بدقة، وصف العناصر الظاهرة، قراءة النصوص داخل الصور " +
+              "عند وضوحها، والإجابة عن أسئلة المستخدم المتعلقة بالصورة. " +
+              "لا تخترع معلومات غير موجودة في الصورة. " +
+              "لا تدّعي أنك أنشأت أو عدّلت الصورة. " +
+              "أنت تقوم بتحليل الصورة وإرجاع إجابة نصية فقط."
           },
+
           {
             role: "user",
+
             content: [
               {
                 type: "text",
                 text: prompt
               },
+
               {
                 type: "image_url",
+
                 image_url: {
                   url: image
                 }
@@ -93,14 +103,18 @@ module.exports = async function handler(req, res) {
             ]
           }
         ],
+
         temperature: 0.4,
+
         max_tokens: 1800
       })
     });
 
-    const data = await response.json().catch(() => ({}));
+    const data =
+      await response.json().catch(() => ({}));
 
     if (!response.ok) {
+
       const message =
         data &&
         data.error &&
@@ -133,12 +147,18 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({
       ok: true,
       message: text,
+
       model:
         process.env.GROQ_VISION_MODEL ||
         "qwen/qwen3.6-27b"
     });
+
   } catch (error) {
-    console.error("TMD AI image error:", error);
+
+    console.error(
+      "TMD AI image analysis error:",
+      error
+    );
 
     return res.status(500).json({
       ok: false,
