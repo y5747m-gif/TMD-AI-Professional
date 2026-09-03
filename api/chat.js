@@ -1,13 +1,23 @@
 "use strict";
 
-const OPENAI_URL =
-  "https://api.openai.com/v1/responses";
+/*
+  T.M.D AI
+  Gemini API Backend
+  Vercel Serverless Function
+*/
+
+const GEMINI_MODEL =
+  process.env.GEMINI_MODEL || "gemini-3.7-flash";
+
+const GEMINI_URL =
+  `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 
-module.exports = async function handler(
-  req,
-  res
-){
+module.exports = async function handler(req, res) {
+
+  // -----------------------------------------
+  // Headers
+  // -----------------------------------------
 
   res.setHeader(
     "Cache-Control",
@@ -30,308 +40,450 @@ module.exports = async function handler(
   );
 
 
-  if(req.method === "OPTIONS"){
+  // -----------------------------------------
+  // OPTIONS
+  // -----------------------------------------
 
+  if (req.method === "OPTIONS") {
     return res
       .status(204)
       .end();
-
   }
 
 
-  if(req.method !== "POST"){
+  // -----------------------------------------
+  // Only POST
+  // -----------------------------------------
+
+  if (req.method !== "POST") {
 
     return res
       .status(405)
       .json({
-
-        ok:false,
-
-        error:
-          "استخدم POST لهذا المسار."
-
+        ok: false,
+        error: "استخدم POST لهذا المسار."
       });
 
   }
 
 
+  // -----------------------------------------
+  // Gemini API Key
+  // -----------------------------------------
+
   const apiKey =
-    process.env.OPENAI_API_KEY;
+    process.env.GEMINI_API_KEY;
 
 
-  if(!apiKey){
+  if (!apiKey) {
 
     return res
       .status(500)
       .json({
-
-        ok:false,
-
+        ok: false,
         error:
-          "OPENAI_API_KEY غير موجود في Vercel."
-
+          "GEMINI_API_KEY غير موجود في إعدادات Vercel."
       });
 
   }
 
 
-  try{
+  try {
+
+    // -----------------------------------------
+    // Read request body
+    // -----------------------------------------
 
     const body =
       typeof req.body === "string"
-        ? JSON.parse(
-            req.body || "{}"
-          )
-        : (
-            req.body || {}
-          );
+        ? JSON.parse(req.body || "{}")
+        : (req.body || {});
 
+
+    // -----------------------------------------
+    // Messages
+    // -----------------------------------------
 
     const messages =
-      Array.isArray(
-        body.messages
-      )
+      Array.isArray(body.messages)
         ? body.messages
         : [];
 
 
     const cleaned =
       messages
-        .filter(
-          message =>
-            message &&
-            (
-              message.role === "user" ||
-              message.role === "assistant"
-            ) &&
-            typeof message.content === "string"
+        .filter(message =>
+          message &&
+          (
+            message.role === "user" ||
+            message.role === "assistant"
+          ) &&
+          typeof message.content === "string"
         )
         .slice(-20);
 
 
-    if(!cleaned.length){
+    if (!cleaned.length) {
 
       return res
         .status(400)
         .json({
-
-          ok:false,
-
-          error:
-            "اكتب رسالة أولًا."
-
+          ok: false,
+          error: "اكتب رسالة أولًا."
         });
 
     }
 
 
-    const input =
-      cleaned.map(
-        message => {
+    // -----------------------------------------
+    // Convert messages to Gemini format
+    // -----------------------------------------
 
-          const content = [];
-
-
-          if(message.image){
-
-            if(
-              typeof message.image !== "string" ||
-              !message.image.startsWith(
-                "data:image/"
-              )
-            ){
-
-              return {
-
-                role:
-                  message.role,
-
-                content:[
-                  {
-                    type:
-                      "input_text",
-
-                    text:
-                      message.content
-                  }
-                ]
-
-              };
-
-            }
+    const contents = [];
 
 
-            content.push({
+    for (const message of cleaned) {
 
-              type:
-                "input_image",
+      const parts = [];
 
-              image_url:
-                message.image
 
+      // ---------------------------------------
+      // Image
+      // ---------------------------------------
+
+      if (message.image) {
+
+        if (
+          typeof message.image === "string" &&
+          message.image.startsWith("data:image/")
+        ) {
+
+          const match =
+            message.image.match(
+              /^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/
+            );
+
+
+          if (match) {
+
+            const mimeType =
+              match[1];
+
+            const base64Data =
+              match[2];
+
+
+            parts.push({
+              inlineData: {
+                mimeType,
+                data: base64Data
+              }
             });
 
           }
 
-
-          content.push({
-
-            type:
-              "input_text",
-
-            text:
-              message.content
-                .trim()
-                .slice(
-                  0,
-                  12000
-                )
-
-          });
-
-
-          return {
-
-            role:
-              message.role,
-
-            content
-
-          };
-
         }
-      );
+
+      }
 
 
-    const model =
-      process.env.OPENAI_MODEL ||
-      "gpt-5.6-luna";
+      // ---------------------------------------
+      // Text
+      // ---------------------------------------
+
+      const text =
+        message.content
+          .trim()
+          .slice(0, 12000);
 
 
-    const response =
-      await fetch(
-        OPENAI_URL,
-        {
+      if (text) {
 
-          method:
-            "POST",
+        parts.push({
+          text
+        });
 
-          headers:
-            {
+      }
 
-              "Content-Type":
-                "application/json",
 
-              Authorization:
-                `Bearer ${apiKey}`
+      // ---------------------------------------
+      // Skip empty messages
+      // ---------------------------------------
 
-            },
+      if (!parts.length) {
+        continue;
+      }
 
-          body:
-            JSON.stringify({
 
-              model,
+      // Gemini uses:
+      // user
+      // model
 
-              instructions:
-                `
-أنت T.M.D AI، مساعد عربي احترافي.
+      contents.push({
+
+        role:
+          message.role === "assistant"
+            ? "model"
+            : "user",
+
+        parts
+
+      });
+
+    }
+
+
+    if (!contents.length) {
+
+      return res
+        .status(400)
+        .json({
+          ok: false,
+          error:
+            "لم يتم العثور على محتوى صالح."
+        });
+
+    }
+
+
+    // -----------------------------------------
+    // Gemini request
+    // -----------------------------------------
+
+    const requestBody = {
+
+      systemInstruction: {
+
+        parts: [
+
+          {
+            text: `
+أنت T.M.D AI، مساعد ذكاء اصطناعي عربي احترافي.
 
 أجب باللغة التي يستخدمها المستخدم.
 
-إذا أرسل المستخدم صورة، افحص الصورة بعناية وأجب بناءً على محتواها.
+إذا كان المستخدم يتحدث بالعربية، أجب بالعربية.
 
-إذا طلب المستخدم تعديل صورة أو اقتراح تعديلات، قدم اقتراحات واضحة.
+إذا أرسل المستخدم صورة:
+- افحص الصورة بعناية.
+- صف محتواها عند الحاجة.
+- أجب عن الأسئلة المتعلقة بها.
+- إذا طلب المستخدم تحليل الصورة، قدم تحليلًا واضحًا.
+- إذا طلب المستخدم اقتراح تعديلات على الصورة، قدم اقتراحات احترافية.
 
-لا تدّعي أنك عدلت الصورة فعليًا إذا لم يتم توفير أداة تعديل صور فعلية.
+إذا طلب المستخدم كتابة كود:
+- قدم كودًا جاهزًا للنسخ.
+- اذكر اسم لغة البرمجة عند الحاجة.
+- اجعل الكود منظمًا وواضحًا.
 
-كن واضحًا ومفيدًا ومنظمًا.
-                `.trim(),
+إذا طلب المستخدم شرحًا:
+- اشرح بطريقة سهلة ومنظمة.
+- استخدم أمثلة عند الحاجة.
 
-              input,
+لا تدّعي تنفيذ عملية لم تقم بها فعليًا.
 
-              max_output_tokens:
-                1600
+أنت تعمل داخل موقع اسمه:
+T.M.D AI
 
-            })
+كن مفيدًا، واضحًا، مباشرًا ومنظمًا.
+            `.trim()
+          }
+
+        ]
+
+      },
+
+
+      contents,
+
+
+      generationConfig: {
+
+        maxOutputTokens: 2000,
+
+        temperature: 0.7
+
+      }
+
+    };
+
+
+    // -----------------------------------------
+    // Send to Gemini
+    // -----------------------------------------
+
+    const response =
+      await fetch(
+        `${GEMINI_URL}?key=${encodeURIComponent(apiKey)}`,
+        {
+
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify(requestBody)
 
         }
       );
 
+
+    // -----------------------------------------
+    // Read response
+    // -----------------------------------------
 
     const data =
       await response
         .json()
-        .catch(
-          () => ({})
-        );
+        .catch(() => ({}));
 
 
-    if(!response.ok){
+    // -----------------------------------------
+    // Gemini Error
+    // -----------------------------------------
 
-      const message =
+    if (!response.ok) {
+
+      console.error(
+        "Gemini API error:",
+        data
+      );
+
+
+      let errorMessage =
+        "حدث خطأ أثناء الاتصال بـ Gemini.";
+
+
+      if (
         data &&
         data.error &&
         data.error.message
+      ) {
 
-          ? data.error.message
+        errorMessage =
+          data.error.message;
 
-          : `OpenAI returned HTTP ${response.status}`;
+      }
 
 
       return res
         .status(502)
         .json({
 
-          ok:false,
+          ok: false,
 
           error:
-            message
+            errorMessage
 
         });
 
     }
 
 
-    const text =
-      typeof data.output_text === "string"
-        ? data.output_text.trim()
-        : "";
+    // -----------------------------------------
+    // Extract Gemini text
+    // -----------------------------------------
+
+    let text = "";
 
 
-    if(!text){
+    if (
+      data &&
+      Array.isArray(data.candidates)
+    ) {
+
+      for (
+        const candidate
+        of data.candidates
+      ) {
+
+        if (
+          candidate &&
+          candidate.content &&
+          Array.isArray(
+            candidate.content.parts
+          )
+        ) {
+
+          for (
+            const part
+            of candidate.content.parts
+          ) {
+
+            if (
+              part &&
+              typeof part.text === "string"
+            ) {
+
+              text += part.text;
+
+            }
+
+          }
+
+        }
+
+      }
+
+    }
+
+
+    text =
+      text.trim();
+
+
+    // -----------------------------------------
+    // Empty response
+    // -----------------------------------------
+
+    if (!text) {
+
+      console.error(
+        "Gemini returned no text:",
+        JSON.stringify(data)
+      );
+
 
       return res
         .status(502)
         .json({
 
-          ok:false,
+          ok: false,
 
           error:
-            "لم تُرجع خدمة الذكاء الاصطناعي نصًا."
+            "لم تُرجع Gemini نصًا."
 
         });
 
     }
 
+
+    // -----------------------------------------
+    // Success
+    // -----------------------------------------
 
     return res
       .status(200)
       .json({
 
-        ok:true,
+        ok: true,
 
         message:
           text,
 
-        model
+        model:
+          GEMINI_MODEL
 
       });
 
 
-  }catch(error){
+  } catch (error) {
 
     console.error(
-      "TMD AI error:",
+      "TMD Gemini error:",
       error
     );
 
@@ -340,7 +492,7 @@ module.exports = async function handler(
       .status(500)
       .json({
 
-        ok:false,
+        ok: false,
 
         error:
           "حدث خطأ داخلي في الخادم."
