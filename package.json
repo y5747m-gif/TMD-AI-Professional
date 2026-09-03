@@ -1,12 +1,15 @@
 {
   "name": "tmd-ai-professional",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "private": true,
-  "description": "T.M.D AI - Professional Arabic AI Assistant",
+  "description": "T.M.D AI - AI assistant with owner dashboard and image analysis",
   "engines": {
-    "node": "24.x"
+    "node": ">=20"
   },
   "scripts": {
     "dev": "vercel dev"
+  },
+  "dependencies": {
+    "@vercel/blob": "^2.0.0"
   }
 }
