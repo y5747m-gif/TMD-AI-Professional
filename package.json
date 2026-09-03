@@ -1,12 +1,12 @@
 {
   "name": "tmd-ai-professional",
-  "version": "2.2.0",
+  "version": "1.0.0",
   "private": true,
-  "description": "T.M.D AI - Professional Groq AI assistant",
+  "description": "T.M.D AI Professional",
   "engines": {
     "node": "24.x"
   },
   "scripts": {
-    "dev": "vercel dev"
+    "start": "node server.js"
   }
 }
