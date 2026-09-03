@@ -1,319 +1,228 @@
-"use strict";
-
-
 const DEFAULT_SETTINGS = {
+  siteName: "T.M.D AI",
+  siteDescription: "المساعد الذكي",
+  developerName: "ياسين عمرو عبد الرحيم",
 
-  siteName:
-    "T.M.D AI",
+  primaryColor: "#c9a227",
+  secondaryColor: "#ffffff",
+  backgroundColor: "#faf8f1",
 
-  siteDescription:
-    "المساعد الذكي",
+  logoText: "T",
+  logoUrl: "",
+  faviconUrl: "",
+  backgroundImage: "",
 
-  developerName:
-    "ياسين عمرو عبد الرحيم",
+  showWelcome: true,
+  showSuggestions: true,
+  showDeveloper: true,
 
-  logoText:
-    "T",
+  enableImageTools: true,
 
-  logoUrl:
-    "",
-
-  faviconUrl:
-    "",
-
-  backgroundImage:
-    "",
-
-  primaryColor:
-    "#c9a227",
-
-  textColor:
-    "#f5f7fb",
-
-  backgroundColor:
-    "#080b12",
-
-  panelColor:
-    "#0d111b",
-
-  borderColor:
-    "#202a3b",
-
-  iconColor:
-    "#c9a227",
-
-  showWelcome:
-    true,
-
-  showSuggestions:
-    true,
-
-  showDeveloper:
-    true,
-
-  enableImageTools:
-    true
-
+  suggestions: [
+    {
+      title: "شرح الذكاء الاصطناعي",
+      icon: "🤖",
+      prompt: "اشرح لي الذكاء الاصطناعي بطريقة بسيطة"
+    },
+    {
+      title: "اكتب كود",
+      icon: "💻",
+      prompt: "اكتب لي كود HTML احترافي"
+    },
+    {
+      title: "حل مسألة",
+      icon: "🧮",
+      prompt: "حل لي هذه المسألة خطوة بخطوة"
+    },
+    {
+      title: "سؤال ديني",
+      icon: "📖",
+      prompt: "اشرح لي هذه المسألة الدينية مع ذكر المصادر المؤكدة فقط"
+    }
+  ]
 };
 
 
-/*
-  ملاحظة مهمة:
+// =====================================================
+// كلمة مرور المالك
+// يمكنك تغييرها من هنا
+// =====================================================
 
-  Vercel Serverless Functions لا توفر
-  تخزينًا دائمًا داخل ملفات المشروع.
-
-  لذلك هذا الملف يحاول قراءة الإعدادات
-  من Environment Variable إذا كانت موجودة.
-
-  والواجهة نفسها تحتفظ بنسخة محلية
-  على جهاز المالك.
-*/
+const OWNER_PASSWORD = "TMD2026@Owner";
 
 
-function getSettings(){
+// =====================================================
+// قراءة إعدادات الموقع
+// =====================================================
 
-  const raw =
-    process.env.TMD_SETTINGS;
+function getSettings() {
+  const raw = process.env.TMD_SETTINGS;
 
-
-  if(!raw){
-
-    return {
-      ...DEFAULT_SETTINGS
-    };
-
+  if (!raw) {
+    return DEFAULT_SETTINGS;
   }
 
-
-  try{
-
-    const parsed =
-      JSON.parse(raw);
-
+  try {
+    const parsed = JSON.parse(raw);
 
     return {
-
       ...DEFAULT_SETTINGS,
-
       ...parsed
-
     };
 
-  }catch{
+  } catch (error) {
 
-    return {
-      ...DEFAULT_SETTINGS
-    };
+    console.error(
+      "TMD_SETTINGS error:",
+      error
+    );
 
+    return DEFAULT_SETTINGS;
   }
-
 }
 
 
-/*
-  فحص المالك.
-*/
+// =====================================================
+// التحقق من المالك
+// =====================================================
 
-function isOwner(req){
+function isOwner(req) {
 
-  const secret =
-    process.env.OWNER_PASSWORD;
+  const header =
+    req.headers.authorization || "";
 
-
-  if(!secret){
-
+  if (!header.startsWith("Bearer ")) {
     return false;
-
   }
 
+  const token =
+    header.slice(7).trim();
 
-  const authorization =
-    req.headers.authorization ||
-    "";
-
-
-  if(
-    !authorization.startsWith(
-      "Bearer "
-    )
-  ){
-
-    return false;
-
-  }
-
-
-  /*
-    الواجهة تستخدم توكن جلسة،
-    لذلك في النسخة المجانية الحالية
-    نسمح فقط بوجود Authorization.
-    
-    التخزين المركزي الحقيقي يحتاج
-    قاعدة بيانات / KV / Blob.
-  */
-
-  return true;
-
+  return token === OWNER_PASSWORD;
 }
 
 
-module.exports =
-  async function handler(
-    req,
-    res
-  ){
+// =====================================================
+// API
+// =====================================================
 
-    res.setHeader(
-      "Cache-Control",
-      "no-store"
-    );
+module.exports = async function handler(req, res) {
 
+  res.setHeader(
+    "Cache-Control",
+    "no-store"
+  );
 
-    res.setHeader(
-      "Access-Control-Allow-Origin",
-      "*"
-    );
+  res.setHeader(
+    "Access-Control-Allow-Origin",
+    "*"
+  );
 
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, OPTIONS"
+  );
 
-    res.setHeader(
-      "Access-Control-Allow-Methods",
-      "GET, POST, OPTIONS"
-    );
-
-
-    res.setHeader(
-      "Access-Control-Allow-Headers",
-      "Content-Type, Authorization"
-    );
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
 
 
-    if(
-      req.method === "OPTIONS"
-    ){
+  // ---------------------------------------------------
+  // OPTIONS
+  // ---------------------------------------------------
 
-      return res
-        .status(204)
-        .end();
-
-    }
+  if (req.method === "OPTIONS") {
+    return res.status(204).end();
+  }
 
 
-    if(
-      req.method === "GET"
-    ){
+  // ---------------------------------------------------
+  // GET
+  // ---------------------------------------------------
 
-      return res
-        .status(200)
-        .json({
+  if (req.method === "GET") {
 
-          ok:true,
+    return res.status(200).json({
+      ok: true,
+      settings: getSettings()
+    });
 
-          settings:
-            getSettings()
-
-        });
-
-    }
+  }
 
 
-    if(
-      req.method === "POST"
-    ){
+  // ---------------------------------------------------
+  // POST
+  // ---------------------------------------------------
 
-      if(!isOwner(req)){
+  if (req.method === "POST") {
 
-        return res
-          .status(401)
-          .json({
+    // التحقق من كلمة مرور المالك
 
-            ok:false,
+    if (!isOwner(req)) {
 
-            error:
-              "غير مصرح."
-
-          });
-
-      }
-
-
-      try{
-
-        const body =
-          typeof req.body === "string"
-            ? JSON.parse(
-                req.body || "{}"
-              )
-            : (
-                req.body || {}
-              );
-
-
-        const updated = {
-
-          ...getSettings(),
-
-          ...body
-
-        };
-
-
-        /*
-          Vercel لا يسمح بتعديل Environment Variables
-          أثناء تشغيل Serverless Function.
-
-          لذلك نعيد الإعدادات للواجهة.
-        */
-
-
-        return res
-          .status(200)
-          .json({
-
-            ok:true,
-
-            settings:
-              updated,
-
-            message:
-              "تم استقبال الإعدادات."
-
-          });
-
-
-      }catch(error){
-
-        console.error(
-          "Settings error:",
-          error
-        );
-
-
-        return res
-          .status(400)
-          .json({
-
-            ok:false,
-
-            error:
-              "بيانات الإعدادات غير صحيحة."
-
-          });
-
-      }
-
-    }
-
-
-    return res
-      .status(405)
-      .json({
-
-        ok:false,
-
-        error:
-          "الطريقة غير مدعومة."
-
+      return res.status(401).json({
+        ok: false,
+        error: "كلمة مرور المالك غير صحيحة."
       });
 
-  };
+    }
+
+
+    try {
+
+      const body =
+        typeof req.body === "string"
+          ? JSON.parse(req.body || "{}")
+          : req.body || {};
+
+
+      const current =
+        getSettings();
+
+
+      const updated = {
+        ...current,
+        ...body
+      };
+
+
+      return res.status(200).json({
+        ok: true,
+        settings: updated,
+        message:
+          "تم حفظ إعدادات الموقع بنجاح."
+      });
+
+
+    } catch (error) {
+
+      console.error(
+        "Settings error:",
+        error
+      );
+
+
+      return res.status(400).json({
+        ok: false,
+        error:
+          "بيانات الإعدادات غير صحيحة."
+      });
+
+    }
+
+  }
+
+
+  // ---------------------------------------------------
+  // طريقة غير مدعومة
+  // ---------------------------------------------------
+
+  return res.status(405).json({
+    ok: false,
+    error:
+      "الطريقة غير مدعومة."
+  });
+
+};
