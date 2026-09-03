@@ -1,23 +1,45 @@
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap');
 
+
 :root {
-  --bg: #070b14;
-  --panel: #0b111d;
-  --panel-2: #0f1726;
-  --panel-3: #121c2d;
+
+  --bg: #080704;
+
+  --bg-soft: #0d0b07;
+
+  --panel: #11100c;
+
+  --panel-2: #17140c;
+
+  --panel-3: #1d190e;
+
+  --gold: #d6a84f;
+
+  --gold-light: #f3d48a;
+
+  --gold-dark: #9d7124;
+
+  --gold-glow: rgba(214,168,79,.25);
+
+  --white: #fffdf8;
+
+  --text: #f8f4ea;
+
+  --muted: #aaa18f;
+
+  --muted-2: #766f61;
 
   --border: rgba(255,255,255,.08);
-  --border-strong: rgba(122,145,255,.25);
 
-  --text: #f7f9ff;
-  --muted: #8995ab;
+  --border-gold: rgba(214,168,79,.30);
 
-  --accent: #7183ff;
-  --accent-2: #9b6cff;
+  --user: #29200f;
 
-  --user: #182746;
+  --danger: #ff7777;
 
-  --shadow: 0 25px 80px rgba(0,0,0,.35);
+  --shadow:
+    0 25px 80px rgba(0,0,0,.45);
+
 }
 
 
@@ -28,54 +50,77 @@
 
 html,
 body {
-  margin: 0;
+
   width: 100%;
   height: 100%;
 
-  font-family: "Cairo", Arial, sans-serif;
+  margin: 0;
 
-  background: var(--bg);
-  color: var(--text);
+  font-family:
+    "Cairo",
+    Arial,
+    sans-serif;
+
+  background:
+    var(--bg);
+
+  color:
+    var(--text);
+
 }
 
 
 body {
+
   overflow: hidden;
+
 }
 
 
 button,
 textarea {
+
   font: inherit;
+
 }
 
 
 button {
+
   cursor: pointer;
+
 }
 
 
 button:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+
+  outline:
+    2px solid var(--gold);
+
+  outline-offset:
+    2px;
+
 }
 
 
-/* التطبيق */
+/* ================= APP ================= */
 
 .app-shell {
+
   height: 100vh;
 
   display: grid;
 
-  grid-template-columns: 292px minmax(0, 1fr);
+  grid-template-columns:
+    292px minmax(0, 1fr);
 
   direction: ltr;
+
 }
 
 
-/* القائمة */
+/* ================= SIDEBAR ================= */
 
 .sidebar {
 
@@ -85,20 +130,56 @@ textarea:focus-visible {
 
   flex-direction: column;
 
-  padding: 22px 16px 18px;
+  padding:
+    22px 16px 18px;
 
   background:
+
     linear-gradient(
       180deg,
-      #0b111d 0%,
-      #080d17 100%
+      #12100b 0%,
+      #090806 100%
     );
 
-  border-right: 1px solid var(--border);
+  border-right:
+    1px solid var(--border);
 
-  z-index: 20;
+  position: relative;
+
+  z-index: 30;
+
+  overflow: hidden;
+
 }
 
+
+.sidebar::before {
+
+  content: "";
+
+  position: absolute;
+
+  top: -120px;
+
+  left: -120px;
+
+  width: 280px;
+
+  height: 280px;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(214,168,79,.13),
+      transparent 70%
+    );
+
+  pointer-events: none;
+
+}
+
+
+/* ================= BRAND ================= */
 
 .brand {
 
@@ -108,44 +189,45 @@ textarea:focus-visible {
 
   gap: 12px;
 
-  padding: 3px 5px 22px;
-}
+  padding:
+    3px 5px 18px;
 
-
-.brand-mark,
-.welcome-logo,
-.mini-mark {
-
-  display: grid;
-
-  place-items: center;
-
-  color: #fff;
-
-  font-weight: 800;
-
-  background:
-    linear-gradient(
-      135deg,
-      var(--accent),
-      var(--accent-2)
-    );
-
-  box-shadow:
-    0 14px 45px
-    rgba(113,131,255,.28);
 }
 
 
 .brand-mark {
 
-  width: 46px;
+  width: 48px;
 
-  height: 46px;
+  height: 48px;
+
+  flex:
+    0 0 48px;
+
+  display: grid;
+
+  place-items: center;
 
   border-radius: 15px;
 
-  font-size: 23px;
+  font-size: 24px;
+
+  font-weight: 800;
+
+  color: #1b1306;
+
+  background:
+
+    linear-gradient(
+      135deg,
+      #f4d88d,
+      #c9973d
+    );
+
+  box-shadow:
+    0 12px 40px
+    rgba(214,168,79,.24);
+
 }
 
 
@@ -153,7 +235,10 @@ textarea:focus-visible {
 
   display: block;
 
+  color: var(--white);
+
   font-size: 16px;
+
 }
 
 
@@ -166,10 +251,86 @@ textarea:focus-visible {
   font-size: 11px;
 
   margin-top: 2px;
+
 }
 
 
-/* زر محادثة جديدة */
+/* ================= DEVELOPER ================= */
+
+.developer-badge {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  padding:
+    10px 11px;
+
+  margin-bottom: 13px;
+
+  border:
+    1px solid var(--border-gold);
+
+  border-radius: 13px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(214,168,79,.09),
+      rgba(214,168,79,.025)
+    );
+
+}
+
+
+.developer-icon {
+
+  width: 34px;
+
+  height: 34px;
+
+  display: grid;
+
+  place-items: center;
+
+  border-radius: 10px;
+
+  color:
+    var(--gold-light);
+
+  background:
+    rgba(214,168,79,.10);
+
+}
+
+
+.developer-badge small {
+
+  display: block;
+
+  color:
+    var(--muted-2);
+
+  font-size: 9px;
+
+}
+
+
+.developer-badge strong {
+
+  display: block;
+
+  color:
+    var(--gold-light);
+
+  font-size: 11px;
+
+}
+
+
+/* ================= NEW CHAT ================= */
 
 .new-chat {
 
@@ -181,66 +342,83 @@ textarea:focus-visible {
 
   justify-content: center;
 
-  gap: 8px;
+  gap: 9px;
 
   padding: 12px 14px;
 
   border:
-    1px solid
-    var(--border-strong);
+    1px solid var(--border-gold);
 
   border-radius: 13px;
 
-  color: #fff;
+  color:
+    #241806;
 
   background:
+
     linear-gradient(
       135deg,
-      rgba(113,131,255,.18),
-      rgba(155,108,255,.10)
+      #f0cf82,
+      #c9973d
     );
 
-  transition: .2s;
+  font-weight: 700;
+
+  transition:
+    .2s;
+
+  box-shadow:
+    0 8px 25px
+    rgba(214,168,79,.13);
+
 }
 
 
 .new-chat:hover {
 
-  transform: translateY(-1px);
+  transform:
+    translateY(-1px);
 
-  background:
-    linear-gradient(
-      135deg,
-      rgba(113,131,255,.27),
-      rgba(155,108,255,.17)
-    );
+  box-shadow:
+    0 12px 35px
+    rgba(214,168,79,.20);
+
 }
 
 
-/* العنوان */
+.new-chat-icon {
+
+  font-size: 20px;
+
+}
+
+
+/* ================= SIDEBAR LABEL ================= */
 
 .sidebar-label {
 
-  color: #68758b;
+  color:
+    var(--muted-2);
 
-  font-size: 11px;
+  font-size: 10px;
 
   font-weight: 700;
 
   margin:
-    27px
-    7px
-    7px;
+    25px 7px 8px;
+
 }
 
 
-/* الاختصارات */
+/* ================= QUICK ACTIONS ================= */
 
 .quick-actions {
 
-  display: grid;
+  display:
+    grid;
 
   gap: 5px;
+
 }
 
 
@@ -248,394 +426,967 @@ textarea:focus-visible {
 
   width: 100%;
 
-  display: flex;
+  display:
+    flex;
 
-  align-items: center;
+  align-items:
+    center;
 
   gap: 11px;
 
-  text-align: right;
+  text-align:
+    right;
 
-  padding: 10px 8px;
+  padding:
+    10px 8px;
 
-  border: 1px solid transparent;
+  border:
+    1px solid transparent;
 
-  border-radius: 12px;
+  border-radius:
+    12px;
 
-  color: #dce3ef;
+  color:
+    #ddd6c8;
 
-  background: transparent;
+  background:
+    transparent;
 
-  transition: .18s;
+  transition:
+    .18s;
+
 }
 
 
 .quick-action:hover {
 
   background:
-    rgba(255,255,255,.045);
+    rgba(214,168,79,.055);
 
-  border-color: var(--border);
+  border-color:
+    var(--border-gold);
+
 }
 
 
 .quick-action b {
 
-  display: block;
+  display:
+    block;
 
-  font-size: 12px;
+  font-size:
+    12px;
+
 }
 
 
 .quick-action small {
 
-  display: block;
+  display:
+    block;
 
-  color: #69768d;
+  color:
+    var(--muted-2);
 
-  font-size: 10px;
+  font-size:
+    9px;
 
-  margin-top: 1px;
+  margin-top:
+    2px;
+
 }
 
 
 .quick-icon {
 
-  width: 34px;
+  width:
+    35px;
 
-  height: 34px;
+  height:
+    35px;
 
-  flex: 0 0 34px;
+  flex:
+    0 0 35px;
 
-  border-radius: 10px;
+  display:
+    grid;
 
-  display: grid;
+  place-items:
+    center;
 
-  place-items: center;
+  border-radius:
+    10px;
 
-  color: #aeb9ff;
+  color:
+    var(--gold-light);
 
-  background: #141e31;
+  background:
+    #1a150b;
 
   border:
     1px solid
-    rgba(113,131,255,.12);
+    rgba(214,168,79,.12);
+
 }
 
 
-/* أسفل القائمة */
+/* ================= FOOTER ================= */
 
 .sidebar-footer {
 
-  margin-top: auto;
+  margin-top:
+    auto;
+
 }
 
 
 .status {
 
-  display: flex;
+  display:
+    flex;
 
-  align-items: center;
+  align-items:
+    center;
 
-  gap: 7px;
+  gap:
+    7px;
 
-  color: #78859b;
+  color:
+    var(--muted);
 
-  font-size: 11px;
+  font-size:
+    10px;
 
-  padding: 8px 6px;
+  padding:
+    8px 6px;
+
 }
 
 
 .status-dot,
 .online-dot {
 
-  width: 7px;
+  width:
+    7px;
 
-  height: 7px;
+  height:
+    7px;
 
-  border-radius: 50%;
+  border-radius:
+    50%;
 
-  background: #3be08e;
+  background:
+    #45d998;
 
   box-shadow:
     0 0 12px
-    rgba(59,224,142,.55);
+    rgba(69,217,152,.55);
+
 }
 
 
 .clear-btn {
 
-  width: 100%;
+  width:
+    100%;
 
-  padding: 9px;
-
-  border-radius: 10px;
+  padding:
+    9px;
 
   border:
-    1px solid
-    var(--border);
+    1px solid var(--border);
 
-  color: #aab4c6;
+  border-radius:
+    10px;
+
+  color:
+    #aaa18f;
 
   background:
     rgba(255,255,255,.025);
 
-  font-size: 11px;
+  font-size:
+    10px;
+
 }
 
 
 .clear-btn:hover {
 
   background:
-    rgba(255,255,255,.055);
+    rgba(214,168,79,.05);
+
+  border-color:
+    var(--border-gold);
+
 }
 
 
-/* المحتوى */
+/* ================= MAIN ================= */
 
 .main {
 
-  direction: rtl;
+  direction:
+    rtl;
 
-  min-width: 0;
+  min-width:
+    0;
 
-  height: 100vh;
+  height:
+    100vh;
 
-  display: flex;
+  display:
+    flex;
 
-  flex-direction: column;
+  flex-direction:
+    column;
 
-  position: relative;
+  position:
+    relative;
+
+  overflow:
+    hidden;
 
   background:
 
     radial-gradient(
-      circle at 55% -10%,
-      rgba(113,131,255,.13),
-      transparent 33%
+      circle at 50% -10%,
+      rgba(214,168,79,.12),
+      transparent 34%
     ),
 
-    radial-gradient(
-      circle at 90% 70%,
-      rgba(155,108,255,.05),
-      transparent 28%
-    ),
+    linear-gradient(
+      180deg,
+      #0a0906,
+      #070604
+    );
 
-    var(--bg);
 }
 
 
-/* الشريط العلوي */
+/* ================= ARABIC BACKGROUND ================= */
+
+.arabic-background {
+
+  position:
+    absolute;
+
+  inset:
+    0;
+
+  overflow:
+    hidden;
+
+  pointer-events:
+    none;
+
+  opacity:
+    .42;
+
+}
+
+
+.arabic-background::before {
+
+  content:
+    "✦  ۞  ✦  ◇  ✦  ۞  ✦";
+
+  position:
+    absolute;
+
+  top:
+    15%;
+
+  left:
+    5%;
+
+  width:
+    90%;
+
+  text-align:
+    center;
+
+  color:
+    rgba(214,168,79,.07);
+
+  font-size:
+    70px;
+
+  letter-spacing:
+    35px;
+
+}
+
+
+.moon {
+
+  position:
+    absolute;
+
+  top:
+    90px;
+
+  left:
+    9%;
+
+  width:
+    95px;
+
+  height:
+    95px;
+
+  border-radius:
+    50%;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f5d98b,
+      #c9973d
+    );
+
+  box-shadow:
+    0 0 70px
+    rgba(214,168,79,.16);
+
+}
+
+
+.moon::after {
+
+  content:
+    "";
+
+  position:
+    absolute;
+
+  width:
+    95px;
+
+  height:
+    95px;
+
+  top:
+    -14px;
+
+  left:
+    25px;
+
+  border-radius:
+    50%;
+
+  background:
+    #0a0906;
+
+}
+
+
+.star {
+
+  position:
+    absolute;
+
+  width:
+    3px;
+
+  height:
+    3px;
+
+  border-radius:
+    50%;
+
+  background:
+    var(--gold-light);
+
+  box-shadow:
+    0 0 9px
+    rgba(243,212,138,.7);
+
+}
+
+
+.star-1 {
+  top: 15%;
+  left: 25%;
+}
+
+.star-2 {
+  top: 20%;
+  left: 43%;
+}
+
+.star-3 {
+  top: 11%;
+  left: 65%;
+}
+
+.star-4 {
+  top: 28%;
+  left: 78%;
+}
+
+.star-5 {
+  top: 17%;
+  left: 87%;
+}
+
+
+.camel {
+
+  position:
+    absolute;
+
+  bottom:
+    10%;
+
+  left:
+    8%;
+
+  font-size:
+    120px;
+
+  opacity:
+    .055;
+
+  filter:
+    grayscale(1);
+
+}
+
+
+.dune {
+
+  position:
+    absolute;
+
+  bottom:
+    -150px;
+
+  width:
+    75%;
+
+  height:
+    300px;
+
+  border-radius:
+    50% 50% 0 0;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(214,168,79,.09),
+      rgba(214,168,79,.015)
+    );
+
+}
+
+
+.dune-one {
+
+  left:
+    -15%;
+
+}
+
+
+.dune-two {
+
+  right:
+    -25%;
+
+  bottom:
+    -190px;
+
+  opacity:
+    .65;
+
+}
+
+
+/* ================= TOPBAR ================= */
 
 .topbar {
 
-  height: 68px;
+  height:
+    72px;
 
-  flex: 0 0 68px;
+  flex:
+    0 0 72px;
 
-  display: flex;
+  display:
+    flex;
 
-  align-items: center;
+  align-items:
+    center;
 
-  justify-content: space-between;
+  justify-content:
+    space-between;
 
-  padding: 0 28px;
+  padding:
+    0 28px;
 
   border-bottom:
-    1px solid
-    var(--border);
+    1px solid var(--border);
 
   background:
-    rgba(7,11,20,.62);
+    rgba(8,7,4,.74);
 
-  backdrop-filter: blur(18px);
+  backdrop-filter:
+    blur(18px);
 
-  z-index: 10;
+  position:
+    relative;
+
+  z-index:
+    20;
+
+}
+
+
+/* ================= TOP BRAND ================= */
+
+.topbar-brand {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    10px;
+
+}
+
+
+.topbar-logo {
+
+  width:
+    38px;
+
+  height:
+    38px;
+
+  display:
+    grid;
+
+  place-items:
+    center;
+
+  border-radius:
+    12px;
+
+  color:
+    #1c1406;
+
+  font-weight:
+    800;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f2d68c,
+      #c9973d
+    );
+
+}
+
+
+.topbar-brand strong {
+
+  display:
+    block;
+
+  font-size:
+    14px;
+
+}
+
+
+.topbar-brand span {
+
+  display:
+    block;
+
+  color:
+    var(--muted);
+
+  font-size:
+    9px;
+
 }
 
 
 .topbar-center {
 
-  display: flex;
+  display:
+    flex;
 
-  align-items: center;
+  align-items:
+    center;
 
-  gap: 8px;
+  gap:
+    8px;
 
-  color: #aeb8c9;
+  color:
+    #bdb4a2;
 
-  font-size: 12px;
+  font-size:
+    11px;
 
-  font-weight: 600;
+  font-weight:
+    600;
+
+}
+
+
+.topbar-actions {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    13px;
+
+}
+
+
+.developer-top {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    6px;
+
+  font-size:
+    9px;
+
+  color:
+    var(--muted-2);
+
+}
+
+
+.developer-top strong {
+
+  color:
+    var(--gold-light);
+
+  font-size:
+    10px;
+
 }
 
 
 .icon-btn {
 
-  width: 40px;
+  width:
+    40px;
 
-  height: 40px;
+  height:
+    40px;
 
   border:
-    1px solid
-    var(--border);
+    1px solid var(--border);
 
-  border-radius: 11px;
+  border-radius:
+    11px;
 
-  color: #dce4f2;
+  color:
+    #ddd4c2;
 
-  background: #0d1522;
+  background:
+    #100e09;
 
-  transition: .18s;
+  transition:
+    .18s;
+
 }
 
 
 .icon-btn:hover {
 
-  background: #141e2e;
+  background:
+    #1a150c;
 
   border-color:
-    var(--border-strong);
+    var(--border-gold);
+
+  color:
+    var(--gold-light);
+
 }
 
 
+/* ================= MOBILE BRAND ================= */
+
 .mobile-brand {
 
-  display: none;
+  display:
+    none;
 
-  align-items: center;
+  align-items:
+    center;
 
-  gap: 8px;
+  gap:
+    8px;
+
 }
 
 
 .mini-mark {
 
-  width: 32px;
+  width:
+    32px;
 
-  height: 32px;
+  height:
+    32px;
 
-  border-radius: 10px;
+  display:
+    grid;
 
-  font-size: 16px;
+  place-items:
+    center;
+
+  border-radius:
+    10px;
+
+  color:
+    #1c1406;
+
+  font-weight:
+    800;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f2d68c,
+      #c9973d
+    );
+
 }
 
 
-/* منطقة المحادثة */
+.mobile-title strong {
+
+  display:
+    block;
+
+  font-size:
+    12px;
+
+}
+
+
+.mobile-title span {
+
+  display:
+    block;
+
+  color:
+    var(--muted);
+
+  font-size:
+    8px;
+
+}
+
+
+/* ================= CHAT ================= */
 
 .chat {
 
-  flex: 1;
+  flex:
+    1;
 
-  overflow-y: auto;
+  overflow-y:
+    auto;
 
   padding:
-    34px
-    20px
-    190px;
+    34px 20px 190px;
 
-  scroll-behavior: smooth;
+  scroll-behavior:
+    smooth;
+
+  position:
+    relative;
+
+  z-index:
+    5;
+
 }
 
 
 .chat::-webkit-scrollbar {
 
-  width: 8px;
+  width:
+    8px;
+
 }
 
 
 .chat::-webkit-scrollbar-thumb {
 
-  background: #1c2739;
+  background:
+    #2a2417;
 
-  border-radius: 20px;
+  border-radius:
+    20px;
+
 }
 
 
-/* الترحيب */
+/* ================= WELCOME ================= */
 
 .welcome {
 
-  min-height: 58vh;
+  min-height:
+    58vh;
 
-  display: flex;
+  display:
+    flex;
 
-  flex-direction: column;
+  flex-direction:
+    column;
 
-  align-items: center;
+  align-items:
+    center;
 
-  justify-content: center;
+  justify-content:
+    center;
 
-  text-align: center;
+  text-align:
+    center;
 
-  position: relative;
+  position:
+    relative;
 
-  gap: 8px;
+  gap:
+    8px;
+
 }
 
 
-.hero-glow {
+.welcome-glow {
 
-  position: absolute;
+  position:
+    absolute;
 
-  width: 360px;
+  width:
+    400px;
 
-  height: 250px;
+  height:
+    300px;
 
-  border-radius: 50%;
+  border-radius:
+    50%;
 
-  filter: blur(65px);
+  filter:
+    blur(70px);
 
   background:
-    rgba(113,131,255,.10);
+    rgba(214,168,79,.10);
 
-  pointer-events: none;
+  pointer-events:
+    none;
+
 }
 
 
 .welcome-logo {
 
-  width: 74px;
+  width:
+    82px;
 
-  height: 74px;
+  height:
+    82px;
 
-  border-radius: 23px;
+  display:
+    grid;
 
-  font-size: 32px;
+  place-items:
+    center;
 
-  margin-bottom: 4px;
+  border-radius:
+    25px;
 
-  position: relative;
+  position:
+    relative;
+
+  color:
+    #211704;
+
+  font-size:
+    36px;
+
+  font-weight:
+    800;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f6dc95,
+      #c69439
+    );
+
+  box-shadow:
+    0 18px 55px
+    rgba(214,168,79,.24);
+
+  border:
+    1px solid
+    rgba(255,255,255,.2);
+
 }
 
 
 .eyebrow {
 
-  color: #9da9ff;
+  color:
+    var(--gold-light);
 
-  font-size: 11px;
+  font-size:
+    10px;
 
-  font-weight: 700;
+  font-weight:
+    700;
 
-  display: flex;
+  display:
+    flex;
 
-  gap: 5px;
+  align-items:
+    center;
 
-  align-items: center;
+  gap:
+    5px;
+
+  margin-top:
+    4px;
+
 }
 
 
 .welcome h1 {
 
   font-size:
-    clamp(28px,4vw,44px);
+    clamp(29px,4vw,46px);
 
-  line-height: 1.25;
+  line-height:
+    1.25;
 
-  margin: 4px 0 0;
+  margin:
+    4px 0 0;
 
-  letter-spacing: -1px;
+  letter-spacing:
+    -1px;
+
 }
 
 
@@ -644,632 +1395,1015 @@ textarea:focus-visible {
   background:
     linear-gradient(
       90deg,
-      #91a0ff,
-      #b18bff
+      #f3d48a,
+      #b9822b
     );
 
-  -webkit-background-clip: text;
+  -webkit-background-clip:
+    text;
 
-  background-clip: text;
+  background-clip:
+    text;
 
-  color: transparent;
+  color:
+    transparent;
+
 }
 
 
 .welcome > p {
 
-  max-width: 620px;
+  max-width:
+    650px;
 
-  color: var(--muted);
+  color:
+    var(--muted);
 
-  font-size: 13px;
+  font-size:
+    12px;
 
-  line-height: 2;
+  line-height:
+    2;
 
-  margin: 0;
+  margin:
+    0;
+
 }
 
 
-/* البطاقات */
+.gold-line {
+
+  width:
+    80px;
+
+  height:
+    1px;
+
+  margin:
+    10px 0 5px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      var(--gold),
+      transparent
+    );
+
+}
+
+
+/* ================= WELCOME CARDS ================= */
 
 .welcome-cards {
 
-  display: grid;
+  display:
+    grid;
 
   grid-template-columns:
     repeat(3,1fr);
 
-  gap: 10px;
+  gap:
+    10px;
 
-  width: min(760px,100%);
+  width:
+    min(760px,100%);
 
-  margin-top: 22px;
+  margin-top:
+    18px;
+
 }
 
 
 .welcome-cards button {
 
-  text-align: right;
+  text-align:
+    right;
 
-  padding: 15px;
+  padding:
+    16px;
 
   border:
-    1px solid
-    var(--border);
+    1px solid var(--border);
 
-  border-radius: 15px;
+  border-radius:
+    16px;
 
-  color: #dfe5f0;
+  color:
+    #e8e0d0;
 
   background:
-    rgba(13,20,33,.78);
+    rgba(17,14,8,.76);
 
-  transition: .2s;
+  transition:
+    .2s;
+
+  backdrop-filter:
+    blur(10px);
+
 }
 
 
 .welcome-cards button:hover {
 
-  transform: translateY(-2px);
+  transform:
+    translateY(-3px);
 
   border-color:
-    var(--border-strong);
+    var(--border-gold);
 
-  background: #111b2b;
+  background:
+    rgba(31,24,12,.9);
 
-  box-shadow: var(--shadow);
+  box-shadow:
+    var(--shadow);
+
 }
 
 
-.welcome-cards button > span {
+.card-icon {
 
-  display: grid;
+  width:
+    35px;
 
-  place-items: center;
+  height:
+    35px;
 
-  width: 32px;
+  display:
+    grid;
 
-  height: 32px;
+  place-items:
+    center;
 
-  border-radius: 9px;
+  border-radius:
+    10px;
 
-  background: #17223a;
+  color:
+    var(--gold-light);
 
-  color: #9eacff;
+  background:
+    rgba(214,168,79,.08);
 
-  margin-bottom: 9px;
+  border:
+    1px solid
+    rgba(214,168,79,.13);
 
-  font-size: 13px;
+  margin-bottom:
+    9px;
+
+  font-size:
+    12px;
+
 }
 
 
 .welcome-cards b {
 
-  display: block;
+  display:
+    block;
 
-  font-size: 12px;
+  font-size:
+    12px;
+
 }
 
 
 .welcome-cards small {
 
-  display: block;
+  display:
+    block;
 
-  color: #6f7c91;
+  color:
+    var(--muted-2);
 
-  font-size: 10px;
+  font-size:
+    9px;
 
-  margin-top: 3px;
+  margin-top:
+    3px;
+
 }
 
 
-/* الرسائل */
+/* ================= SIGNATURE ================= */
+
+.arabic-signature {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    9px;
+
+  color:
+    var(--muted-2);
+
+  font-size:
+    8px;
+
+  margin-top:
+    18px;
+
+}
+
+
+.arabic-signature span:first-child {
+
+  color:
+    var(--gold);
+
+  font-weight:
+    700;
+
+}
+
+
+.arabic-signature i {
+
+  width:
+    25px;
+
+  height:
+    1px;
+
+  background:
+    var(--gold-dark);
+
+}
+
+
+/* ================= MESSAGES ================= */
 
 .message-row {
 
-  display: flex;
+  display:
+    flex;
 
-  gap: 10px;
+  gap:
+    10px;
 
-  max-width: 900px;
+  align-items:
+    flex-start;
+
+  width:
+    min(900px,100%);
 
   margin:
-    0 auto 18px;
-
-  animation:
-    appear .22s ease;
-}
-
-
-@keyframes appear {
-
-  from {
-
-    opacity: 0;
-
-    transform:
-      translateY(5px);
-
-  }
-
-  to {
-
-    opacity: 1;
-
-    transform: none;
-
-  }
+    0 auto 16px;
 
 }
 
 
 .message-row.user {
 
-  justify-content: flex-start;
+  justify-content:
+    flex-start;
+
 }
 
 
 .message-row.assistant {
 
-  justify-content: flex-end;
+  justify-content:
+    flex-start;
+
 }
 
 
 .avatar {
 
-  width: 35px;
+  width:
+    36px;
 
-  height: 35px;
+  height:
+    36px;
 
-  flex: 0 0 35px;
+  flex:
+    0 0 36px;
 
-  border-radius: 11px;
+  display:
+    grid;
 
-  display: grid;
+  place-items:
+    center;
 
-  place-items: center;
+  border-radius:
+    12px;
 
-  color: #aebaff;
-
-  background:
-    linear-gradient(
-      145deg,
-      #16223a,
-      #111a2b
-    );
-
-  border:
-    1px solid
-    var(--border);
-}
-
-
-.user .avatar {
+  color:
+    #211704;
 
   background:
     linear-gradient(
-      145deg,
-      #233b69,
-      #182b4d
+      135deg,
+      #f1d486,
+      #b9812c
     );
 
-  color: #d9e3ff;
+  font-size:
+    10px;
+
+  font-weight:
+    800;
+
+  box-shadow:
+    0 8px 22px
+    rgba(214,168,79,.15);
+
 }
 
 
 .bubble {
 
   max-width:
-    min(78%,760px);
+    min(76%,720px);
 
   padding:
     12px 15px;
 
   border:
-    1px solid
-    var(--border);
+    1px solid var(--border);
 
-  border-radius: 16px;
+  border-radius:
+    16px;
 
-  line-height: 1.85;
+  color:
+    #eee8db;
 
-  font-size: 13px;
+  background:
+    rgba(18,15,9,.88);
 
-  white-space: pre-wrap;
+  font-size:
+    12px;
 
-  word-break: break-word;
+  line-height:
+    1.9;
+
+  white-space:
+    pre-wrap;
+
+  word-break:
+    break-word;
 
   box-shadow:
-    0 7px 30px
-    rgba(0,0,0,.12);
+    0 8px 30px
+    rgba(0,0,0,.13);
+
 }
 
 
 .user .bubble {
 
-  background: var(--user);
+  background:
+    linear-gradient(
+      135deg,
+      #2b210f,
+      #21190b
+    );
 
   border-color:
-    rgba(86,126,205,.25);
+    rgba(214,168,79,.20);
 
-  border-top-right-radius: 5px;
+  color:
+    #f5ead1;
+
 }
 
 
 .assistant .bubble {
 
-  background: #0e1624;
+  border-color:
+    rgba(255,255,255,.07);
 
-  border-top-left-radius: 5px;
 }
 
 
 .error .bubble {
 
-  border-color: #753448;
+  color:
+    #ffb0b0;
 
-  color: #ffbdc8;
+  border-color:
+    rgba(255,100,100,.28);
+
+  background:
+    rgba(80,20,20,.20);
+
 }
 
 
-/* الكتابة */
+/* ================= TYPING ================= */
 
 .typing {
 
-  display: inline-flex;
+  display:
+    flex;
 
-  align-items: center;
+  align-items:
+    center;
 
-  gap: 4px;
+  gap:
+    5px;
 
-  min-width: 58px;
+  min-width:
+    60px;
+
 }
 
 
 .typing span {
 
-  width: 6px;
+  width:
+    6px;
 
-  height: 6px;
+  height:
+    6px;
 
-  border-radius: 50%;
+  border-radius:
+    50%;
 
-  background: #8e9bff;
+  background:
+    var(--gold);
 
   animation:
-    bounce .9s infinite alternate;
+    typing 1.1s infinite ease-in-out;
+
 }
 
 
 .typing span:nth-child(2) {
 
-  animation-delay: .15s;
+  animation-delay:
+    .15s;
+
 }
 
 
 .typing span:nth-child(3) {
 
-  animation-delay: .3s;
+  animation-delay:
+    .30s;
+
 }
 
 
-@keyframes bounce {
+@keyframes typing {
 
-  to {
+  0%,
+  60%,
+  100% {
+
+    transform:
+      translateY(0);
+
+    opacity:
+      .4;
+
+  }
+
+  30% {
 
     transform:
       translateY(-4px);
 
-    opacity: .4;
+    opacity:
+      1;
 
   }
 
 }
 
 
-/* مربع الإدخال */
+/* ================= COMPOSER ================= */
 
 .composer-area {
 
-  position: absolute;
+  position:
+    absolute;
 
-  left: 0;
+  left:
+    0;
 
-  right: 0;
+  right:
+    0;
 
-  bottom: 0;
+  bottom:
+    0;
 
   padding:
-    13px
-    20px
-    17px;
+    10px 20px 15px;
 
   background:
     linear-gradient(
+      180deg,
       transparent,
-      rgba(7,11,20,.93) 30%,
-      rgba(7,11,20,.99) 100%
+      rgba(7,6,4,.93) 35%
     );
 
-  z-index: 5;
+  z-index:
+    15;
+
 }
 
 
 .composer {
 
-  width: min(900px,100%);
+  width:
+    min(900px,100%);
 
-  margin: 0 auto;
+  margin:
+    0 auto;
 
-  display: flex;
+  min-height:
+    64px;
 
-  align-items: flex-end;
+  display:
+    flex;
 
-  gap: 8px;
+  align-items:
+    flex-end;
 
-  padding: 7px;
+  gap:
+    10px;
+
+  padding:
+    8px;
 
   border:
     1px solid
-    rgba(130,150,255,.19);
+    rgba(214,168,79,.25);
 
-  border-radius: 18px;
+  border-radius:
+    19px;
 
   background:
-    rgba(13,21,34,.92);
+    rgba(18,15,9,.94);
+
+  backdrop-filter:
+    blur(20px);
 
   box-shadow:
-    0 18px 60px
-    rgba(0,0,0,.32);
+    0 18px 70px
+    rgba(0,0,0,.45);
 
-  backdrop-filter: blur(15px);
+}
+
+
+.input-decoration {
+
+  width:
+    40px;
+
+  height:
+    40px;
+
+  flex:
+    0 0 40px;
+
+  display:
+    grid;
+
+  place-items:
+    center;
+
+  border-radius:
+    12px;
+
+  color:
+    var(--gold-light);
+
+  background:
+    rgba(214,168,79,.07);
+
+  border:
+    1px solid
+    rgba(214,168,79,.10);
+
+  margin-bottom:
+    2px;
+
 }
 
 
 textarea {
 
-  flex: 1;
+  flex:
+    1;
 
-  min-height: 45px;
+  min-width:
+    0;
 
-  max-height: 170px;
+  min-height:
+    44px;
 
-  resize: none;
+  max-height:
+    170px;
 
-  border: 0;
+  resize:
+    none;
 
-  outline: 0;
+  border:
+    0;
 
-  background: transparent;
+  outline:
+    0;
 
-  color: var(--text);
+  background:
+    transparent;
+
+  color:
+    var(--text);
 
   padding:
-    10px 12px;
+    11px 2px;
 
-  line-height: 1.7;
+  font-size:
+    12px;
+
+  line-height:
+    1.7;
+
 }
 
 
 textarea::placeholder {
 
-  color: #657289;
+  color:
+    #696254;
+
 }
 
 
 #send {
 
-  width: 46px;
+  width:
+    46px;
 
-  height: 46px;
+  height:
+    46px;
 
-  flex: 0 0 46px;
+  flex:
+    0 0 46px;
 
-  border: 0;
+  border:
+    0;
 
-  border-radius: 13px;
+  border-radius:
+    14px;
 
-  color: #fff;
+  color:
+    #1d1506;
 
   background:
     linear-gradient(
       135deg,
-      var(--accent),
-      var(--accent-2)
+      #f2d58b,
+      #c49337
     );
 
-  font-size: 19px;
+  font-size:
+    19px;
+
+  font-weight:
+    800;
 
   box-shadow:
     0 8px 25px
-    rgba(113,131,255,.25);
+    rgba(214,168,79,.22);
 
-  transition: .18s;
+  transition:
+    .18s;
+
 }
 
 
 #send:hover:not(:disabled) {
 
   transform:
-    translateY(-1px);
+    translateY(-2px);
+
+  box-shadow:
+    0 12px 32px
+    rgba(214,168,79,.30);
+
 }
 
 
 #send:disabled {
 
-  opacity: .5;
+  opacity:
+    .5;
 
-  cursor: not-allowed;
+  cursor:
+    not-allowed;
+
 }
 
 
 .composer-bottom {
 
-  width: min(900px,100%);
+  width:
+    min(900px,100%);
 
-  margin: 6px auto 0;
+  margin:
+    6px auto 0;
 
-  display: flex;
+  display:
+    flex;
 
-  justify-content: space-between;
+  justify-content:
+    space-between;
 
-  color: #59667a;
+  color:
+    #5f594e;
 
-  font-size: 9px;
+  font-size:
+    8px;
 
-  padding: 0 4px;
+  padding:
+    0 4px;
+
 }
 
 
-/* الوضع الفاتح */
+/* ================= OVERLAY ================= */
+
+.overlay {
+
+  display:
+    none;
+
+}
+
+
+/* ================= LIGHT MODE ================= */
 
 body.light {
 
-  --bg: #f4f6fb;
+  --bg:
+    #f5f1e7;
 
-  --panel: #fff;
+  --bg-soft:
+    #fffdf8;
 
-  --panel-2: #f7f9fc;
+  --panel:
+    #ffffff;
 
-  --panel-3: #eef2f8;
+  --panel-2:
+    #faf7ef;
 
-  --border: rgba(25,42,70,.11);
+  --text:
+    #201b12;
 
-  --border-strong: rgba(82,101,210,.28);
+  --muted:
+    #756d5e;
 
-  --text: #172033;
+  --muted-2:
+    #928a7b;
 
-  --muted: #657086;
+  --border:
+    rgba(70,55,30,.12);
 
-  --user: #e7edff;
-}
+  --border-gold:
+    rgba(160,112,25,.35);
 
+  --user:
+    #f4e8c7;
 
-body.light .sidebar {
-
-  background: #fff;
 }
 
 
 body.light .main {
 
   background:
+
     radial-gradient(
-      circle at 55% -10%,
-      rgba(113,131,255,.13),
-      transparent 33%
+      circle at 50% -10%,
+      rgba(214,168,79,.18),
+      transparent 34%
     ),
-    #f4f6fb;
+
+    #f5f1e7;
+
+}
+
+
+body.light .sidebar {
+
+  background:
+    linear-gradient(
+      180deg,
+      #fffdf8,
+      #f4efe4
+    );
+
 }
 
 
 body.light .topbar {
 
   background:
-    rgba(244,246,251,.78);
+    rgba(255,253,248,.82);
+
 }
 
 
-body.light .icon-btn,
-body.light .clear-btn,
-body.light .welcome-cards button,
-body.light .composer {
+body.light .topbar-brand strong,
+body.light .mobile-title strong {
 
-  background: #fff;
+  color:
+    #241d11;
 
-  color: var(--text);
+}
+
+
+body.light .icon-btn {
+
+  color:
+    #594c36;
+
+  background:
+    #fffdf8;
+
+}
+
+
+body.light .clear-btn {
+
+  color:
+    #756d5e;
+
+  background:
+    #fffdf8;
+
 }
 
 
 body.light .quick-action {
 
-  color: #273148;
+  color:
+    #433b2d;
+
 }
 
 
-body.light .assistant .bubble {
+body.light .quick-icon {
 
-  background: #fff;
+  background:
+    #f8f0df;
+
+}
+
+
+body.light .welcome-cards button {
+
+  color:
+    #3a3021;
+
+  background:
+    rgba(255,255,255,.75);
+
+}
+
+
+body.light .bubble {
+
+  color:
+    #332a1c;
+
+  background:
+    #fffdf8;
+
 }
 
 
 body.light .user .bubble {
 
-  background: var(--user);
+  color:
+    #3c2b10;
+
+  background:
+    #f4e8c7;
+
+}
+
+
+body.light .composer {
+
+  background:
+    rgba(255,253,248,.94);
+
 }
 
 
 body.light textarea {
 
-  color: var(--text);
+  color:
+    #241d11;
+
 }
 
 
-body.light .new-chat {
+body.light .composer-area {
 
-  color: #26304a;
+  background:
+    linear-gradient(
+      180deg,
+      transparent,
+      rgba(245,241,231,.95) 35%
+    );
+
 }
 
 
-/* الهاتف */
+body.light .arabic-background::before {
 
-@media(max-width:850px) {
+  color:
+    rgba(155,113,36,.08);
+
+}
+
+
+body.light .moon::after {
+
+  background:
+    #f5f1e7;
+
+}
+
+
+/* ================= MOBILE ================= */
+
+@media (max-width: 850px) {
 
   .app-shell {
 
-    display: block;
+    display:
+      block;
+
   }
 
 
   .sidebar {
 
-    position: fixed;
+    position:
+      fixed;
 
-    top: 0;
+    top:
+      0;
 
-    bottom: 0;
+    bottom:
+      0;
 
-    right: -310px;
+    right:
+      -310px;
 
-    width: 292px;
+    width:
+      292px;
 
     transition:
       right .25s ease;
 
     box-shadow:
       -20px 0 60px
-      rgba(0,0,0,.3);
+      rgba(0,0,0,.4);
+
   }
 
 
   .sidebar.open {
 
-    right: 0;
+    right:
+      0;
+
   }
 
 
   .overlay {
 
-    position: fixed;
+    position:
+      fixed;
 
-    inset: 0;
+    inset:
+      0;
 
     background:
-      rgba(0,0,0,.45);
+      rgba(0,0,0,.55);
 
-    z-index: 15;
+    z-index:
+      25;
+
   }
 
 
   .overlay.show {
 
-    display: block;
-  }
+    display:
+      block;
 
-
-  .mobile-brand {
-
-    display: flex;
   }
 
 
@@ -1277,102 +2411,200 @@ body.light .new-chat {
 
     padding:
       0 14px;
+
+  }
+
+
+  .topbar-brand {
+
+    display:
+      none;
+
+  }
+
+
+  .mobile-brand {
+
+    display:
+      flex;
+
   }
 
 
   .topbar-center {
 
-    font-size: 11px;
+    display:
+      none;
+
+  }
+
+
+  .developer-top {
+
+    display:
+      none;
+
   }
 
 
   .chat {
 
     padding:
-      25px
-      12px
-      180px;
+      25px 12px 180px;
+
   }
 
 
   .welcome {
 
-    min-height: 62vh;
+    min-height:
+      62vh;
+
   }
 
 
   .welcome-cards {
 
-    grid-template-columns: 1fr;
+    grid-template-columns:
+      1fr;
 
-    max-width: 480px;
+    max-width:
+      480px;
+
   }
 
 
   .welcome-cards button {
 
-    padding: 12px;
+    padding:
+      12px;
+
   }
 
 
   .bubble {
 
-    max-width: 88%;
+    max-width:
+      86%;
 
-    font-size: 12px;
+    font-size:
+      11px;
+
   }
 
 
   .composer-area {
 
     padding:
-      10px
-      10px
-      13px;
+      10px 10px 13px;
+
   }
 
 
   .composer-bottom span:last-child {
 
-    display: none;
+    display:
+      none;
+
+  }
+
+
+  .arabic-background {
+
+    opacity:
+      .25;
+
+  }
+
+
+  .camel {
+
+    left:
+      2%;
+
+    bottom:
+      15%;
+
   }
 
 }
 
 
-@media(max-width:480px) {
+/* ================= SMALL PHONES ================= */
 
-  .topbar-center {
-
-    display: none;
-  }
-
+@media (max-width: 480px) {
 
   .welcome h1 {
 
-    font-size: 28px;
+    font-size:
+      28px;
+
   }
 
 
   .welcome > p {
 
-    font-size: 11px;
+    font-size:
+      11px;
 
-    max-width: 340px;
+    max-width:
+      340px;
+
   }
 
 
   .welcome-logo {
 
-    width: 64px;
+    width:
+      66px;
 
-    height: 64px;
+    height:
+      66px;
+
+    border-radius:
+      20px;
+
+    font-size:
+      29px;
+
   }
 
 
   .bubble {
 
-    max-width: 84%;
+    max-width:
+      83%;
+
+  }
+
+
+  .input-decoration {
+
+    display:
+      none;
+
+  }
+
+
+  .composer {
+
+    border-radius:
+      16px;
+
+  }
+
+
+  #send {
+
+    width:
+      43px;
+
+    height:
+      43px;
+
+    flex-basis:
+      43px;
+
   }
 
 }
