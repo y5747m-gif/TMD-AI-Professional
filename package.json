@@ -3,6 +3,8 @@
   "version": "2.0.0",
   "private": true,
   "description": "T.M.D AI - Vercel Node.js AI assistant",
-  "engines": { "node": ">=20" },
+ "engines": {
+  "node": "20.x"
+},
   "scripts": { "dev": "vercel dev" }
 }
