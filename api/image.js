@@ -1,97 +1,17 @@
-const MAX_IMAGE_SIZE = 8 * 1024 * 1024;
-
-const ALLOWED_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/gif"
-];
-
-
-function getBody(req) {
-  if (!req.body) {
-    return {};
-  }
-
-  if (typeof req.body === "string") {
-    try {
-      return JSON.parse(req.body);
-    } catch {
-      return {};
-    }
-  }
-
-  return req.body;
-}
-
-
-function normalizeImage(image) {
-  if (!image) {
-    return null;
-  }
-
-  if (typeof image === "string") {
-    return image;
-  }
-
-  if (
-    typeof image.data === "string" &&
-    image.data.length > 0
-  ) {
-    return image.data;
-  }
-
-  return null;
-}
-
-
-function detectMimeType(data) {
-  const match =
-    data.match(
-      /^data:(image\/[a-zA-Z0-9.+-]+);base64,/
-    );
-
-  return match
-    ? match[1]
-    : "";
-}
-
-
-function getBase64(data) {
-  return data.replace(
-    /^data:image\/[a-zA-Z0-9.+-]+;base64,/,
-    ""
-  );
-}
-
+const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 
 module.exports = async function handler(req, res) {
-
-  res.setHeader(
-    "Cache-Control",
-    "no-store"
-  );
-
-  res.setHeader(
-    "Access-Control-Allow-Origin",
-    "*"
-  );
-
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "POST, OPTIONS"
-  );
-
+  res.setHeader("Cache-Control", "no-store");
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader(
     "Access-Control-Allow-Headers",
     "Content-Type"
   );
 
-
   if (req.method === "OPTIONS") {
     return res.status(204).end();
   }
-
 
   if (req.method !== "POST") {
     return res.status(405).json({
@@ -100,193 +20,162 @@ module.exports = async function handler(req, res) {
     });
   }
 
-
-  const apiKey =
-    process.env.OPENAI_API_KEY;
-
+  const apiKey = process.env.GROQ_API_KEY;
 
   if (!apiKey) {
     return res.status(500).json({
       ok: false,
-      error:
-        "OPENAI_API_KEY غير موجود في Vercel."
+      error: "GROQ_API_KEY غير موجود في Vercel."
     });
   }
 
-
   try {
-
     const body =
-      getBody(req);
+      typeof req.body === "string"
+        ? JSON.parse(req.body || "{}")
+        : req.body || {};
 
+    const image = body.image;
+    const prompt =
+      typeof body.prompt === "string" && body.prompt.trim()
+        ? body.prompt.trim().slice(0, 12000)
+        : "حلل هذه الصورة واشرح محتواها بالتفصيل باللغة العربية.";
 
-    const image =
-      normalizeImage(body.image);
-
-
-    if (!image) {
+    if (!image || typeof image !== "string") {
       return res.status(400).json({
         ok: false,
         error: "لم يتم إرسال صورة."
       });
     }
 
+    /*
+     * يجب أن تكون الصورة بصيغة Data URL:
+     * data:image/jpeg;base64,...
+     */
 
-    const mimeType =
-      detectMimeType(image);
-
-
-    if (
-      !ALLOWED_TYPES.includes(mimeType)
-    ) {
+    if (!image.startsWith("data:image/")) {
       return res.status(400).json({
         ok: false,
-        error:
-          "نوع الصورة غير مدعوم. استخدم JPG أو PNG أو WEBP أو GIF."
+        error: "صيغة الصورة غير صحيحة."
       });
     }
 
+    /*
+     * حماية بسيطة من الصور الضخمة جدًا.
+     * الحد هنا حوالي 10MB كنص Base64.
+     */
 
-    const base64 =
-      getBase64(image);
-
-
-    const size =
-      Buffer.byteLength(
-        base64,
-        "base64"
-      );
-
-
-    if (size > MAX_IMAGE_SIZE) {
-      return res.status(400).json({
+    if (image.length > 14000000) {
+      return res.status(413).json({
         ok: false,
-        error:
-          "حجم الصورة كبير جدًا. الحد الأقصى 8MB."
+        error: "حجم الصورة كبير جدًا. استخدم صورة أصغر."
       });
     }
 
+    const response = await fetch(GROQ_URL, {
+      method: "POST",
 
-    const userPrompt =
-      typeof body.prompt === "string" &&
-      body.prompt.trim()
-        ? body.prompt.trim()
-        : "حلل هذه الصورة بالتفصيل واذكر أهم العناصر والمعلومات الموجودة فيها.";
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`
+      },
 
+      body: JSON.stringify({
+        model: "meta-llama/llama-4-scout-17b-16e-instruct",
 
-    const model =
-      process.env.OPENAI_MODEL ||
-      "gpt-4o-mini";
-
-
-    const response =
-      await fetch(
-        "https://api.openai.com/v1/chat/completions",
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-
-            Authorization:
-              `Bearer ${apiKey}`
+        messages: [
+          {
+            role: "system",
+            content:
+              "أنت T.M.D AI، مساعد ذكاء اصطناعي عربي احترافي. حلل الصور بدقة. إذا كانت الصورة تحتوي على نص فاستخرج النص واشرحه. إذا كانت تحتوي على سؤال دراسي فساعد المستخدم في حله. أجب باللغة العربية بشكل واضح ومنظم، ويمكنك استخدام الإنجليزية عند الحاجة."
           },
 
-          body: JSON.stringify({
-            model,
+          {
+            role: "user",
 
-            messages: [
+            content: [
               {
-                role: "system",
-
-                content:
-                  "أنت T.M.D AI، مساعد ذكاء اصطناعي احترافي. حلل الصور بدقة، وأجب باللغة العربية إذا كان المستخدم يكتب بالعربية."
+                type: "text",
+                text: prompt
               },
 
               {
-                role: "user",
+                type: "image_url",
 
-                content: [
-                  {
-                    type: "text",
-
-                    text:
-                      userPrompt
-                  },
-
-                  {
-                    type: "image_url",
-
-                    image_url: {
-                      url: image
-                    }
-                  }
-                ]
+                image_url: {
+                  url: image
+                }
               }
-            ],
+            ]
+          }
+        ],
 
-            max_tokens: 1500
-          })
-        }
-      );
+        temperature: 0.4,
 
+        max_tokens: 2000
+      })
+    });
 
-    const data =
-      await response
-        .json()
-        .catch(() => ({}));
-
+    const data = await response
+      .json()
+      .catch(() => ({}));
 
     if (!response.ok) {
-
       console.error(
-        "OpenAI image error:",
+        "Groq image API error:",
+        data
+      );
+
+      const message =
+        data &&
+        data.error &&
+        data.error.message
+          ? data.error.message
+          : `Groq returned HTTP ${response.status}`;
+
+      return res.status(502).json({
+        ok: false,
+        error: message
+      });
+    }
+
+    const text =
+      data &&
+      data.choices &&
+      data.choices[0] &&
+      data.choices[0].message &&
+      typeof data.choices[0].message.content === "string"
+        ? data.choices[0].message.content.trim()
+        : "";
+
+    if (!text) {
+      console.error(
+        "Empty Groq image response:",
         data
       );
 
       return res.status(502).json({
         ok: false,
-        error:
-          data?.error?.message ||
-          `OpenAI returned HTTP ${response.status}`
+        error: "لم تُرجع خدمة Groq نتيجة لتحليل الصورة."
       });
     }
-
-
-    const text =
-      data?.choices?.[0]?.message?.content
-        ?.trim() || "";
-
-
-    if (!text) {
-      return res.status(502).json({
-        ok: false,
-        error:
-          "لم تُرجع خدمة الذكاء الاصطناعي نتيجة."
-      });
-    }
-
 
     return res.status(200).json({
       ok: true,
       message: text,
-      model
+      model:
+        "meta-llama/llama-4-scout-17b-16e-instruct"
     });
 
-
   } catch (error) {
-
     console.error(
-      "TMD image error:",
+      "TMD AI image error:",
       error
     );
 
-
     return res.status(500).json({
       ok: false,
-      error:
-        "حدث خطأ داخلي أثناء تحليل الصورة."
+      error: "حدث خطأ داخلي أثناء تحليل الصورة."
     });
   }
 };
