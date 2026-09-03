@@ -6,10 +6,12 @@ module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
+  // التعامل مع طلبات CORS
   if (req.method === 'OPTIONS') {
     return res.status(204).end();
   }
 
+  // السماح بـ POST فقط
   if (req.method !== 'POST') {
     return res.status(405).json({
       ok: false,
@@ -17,6 +19,7 @@ module.exports = async function handler(req, res) {
     });
   }
 
+  // قراءة مفتاح Groq من Vercel
   const apiKey = process.env.GROQ_API_KEY;
 
   if (!apiKey) {
@@ -27,6 +30,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
+    // قراءة البيانات القادمة من الموقع
     const body =
       typeof req.body === 'string'
         ? JSON.parse(req.body || '{}')
@@ -36,6 +40,7 @@ module.exports = async function handler(req, res) {
       ? body.messages
       : [];
 
+    // تنظيف الرسائل
     const cleaned = messages
       .filter(
         (m) =>
@@ -56,31 +61,41 @@ module.exports = async function handler(req, res) {
         error: 'اكتب رسالة أولًا.'
       });
     }
-const model = 'llama-3.3-70b-versatile';
-   
+
+    // الموديل المستخدم من Groq
+    const model = 'llama-3.3-70b-versatile';
+
+    // إرسال الطلب إلى Groq
     const response = await fetch(GROQ_URL, {
       method: 'POST',
+
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`
       },
+
       body: JSON.stringify({
         model,
+
         messages: [
           {
             role: 'system',
             content:
-              'أنت T.M.D AI، مساعد عربي احترافي. أجب بوضوح وباختصار مفيد، وادعم العربية والإنجليزية.'
+              'أنت T.M.D AI، مساعد ذكاء اصطناعي عربي احترافي. أجب بوضوح وباختصار مفيد. ادعم العربية والإنجليزية. ساعد المستخدم في البرمجة والدراسة والكتابة والأسئلة العامة.'
           },
+
           ...cleaned
         ],
-        max_tokens: 1200,
-        temperature: 0.7
+
+        temperature: 0.7,
+        max_tokens: 1200
       })
     });
 
+    // قراءة استجابة Groq
     const data = await response.json().catch(() => ({}));
 
+    // في حالة وجود خطأ من Groq
     if (!response.ok) {
       const message =
         data &&
@@ -89,22 +104,34 @@ const model = 'llama-3.3-70b-versatile';
           ? data.error.message
           : `Groq returned HTTP ${response.status}`;
 
+      console.error('Groq API error:', data);
+
       return res.status(502).json({
         ok: false,
         error: message
       });
     }
 
+    // استخراج إجابة المساعد
     const text =
-      data?.choices?.[0]?.message?.content?.trim() || '';
+      data &&
+      data.choices &&
+      data.choices[0] &&
+      data.choices[0].message &&
+      typeof data.choices[0].message.content === 'string'
+        ? data.choices[0].message.content.trim()
+        : '';
 
     if (!text) {
+      console.error('Empty Groq response:', data);
+
       return res.status(502).json({
         ok: false,
-        error: 'لم تُرجع خدمة الذكاء الاصطناعي نصًا.'
+        error: 'لم تُرجع خدمة Groq نصًا.'
       });
     }
 
+    // إرسال الإجابة للموقع
     return res.status(200).json({
       ok: true,
       message: text,
@@ -112,7 +139,7 @@ const model = 'llama-3.3-70b-versatile';
     });
 
   } catch (error) {
-    console.error('TMD AI error:', error);
+    console.error('TMD AI / Groq error:', error);
 
     return res.status(500).json({
       ok: false,
