@@ -1,61 +1,40 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
+
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0d0b08">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta
+    name="theme-color"
+    content="#ffffff"
+  >
+
+  <meta
+    name="description"
+    content="T.M.D AI - مساعدك الذكي للبرمجة والدراسة والكتابة والأسئلة الدينية"
+  >
+
   <title>T.M.D AI — المساعد الذكي</title>
+
   <link rel="stylesheet" href="/style.css">
 </head>
 
+
 <body>
 
-  <!-- LOGIN -->
-  <div id="loginScreen" class="auth-screen">
-    <div class="auth-card">
-
-      <div class="brand-mark">T</div>
-
-      <h1>T.M.D AI</h1>
-
-      <p>سجّل الدخول للمتابعة</p>
-
-      <form id="loginForm">
-
-        <input
-          id="loginUser"
-          autocomplete="username"
-          placeholder="اسم المستخدم"
-          required
-        >
-
-        <input
-          id="loginPass"
-          type="password"
-          autocomplete="current-password"
-          placeholder="كلمة المرور"
-          required
-        >
-
-        <button type="submit">
-          تسجيل الدخول
-        </button>
-
-        <div id="loginError" class="form-error"></div>
-
-      </form>
-
-      <small>© 2026 T.M.D AI</small>
-
-    </div>
-  </div>
+  <div class="app">
 
 
-  <!-- APPLICATION -->
-  <div id="app" class="app hidden">
+    <!-- ================================= -->
+    <!-- القائمة الجانبية -->
+    <!-- ================================= -->
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
 
       <div class="brand">
 
@@ -63,24 +42,33 @@
           T
         </div>
 
-        <div>
-          <strong>T.M.D AI</strong>
-          <span>المساعد الذكي</span>
+        <div class="brand-text">
+
+          <strong>
+            T.M.D AI
+          </strong>
+
+          <span>
+            المساعد الذكي
+          </span>
+
         </div>
 
       </div>
 
 
-      <div class="developer">
-        تطوير:
-        <b>ياسين عمرو عبد الرحيم</b>
-      </div>
-
-
-      <button id="newChat" class="new-chat">
+      <button
+        id="newChat"
+        class="new-chat"
+        type="button"
+      >
         ＋ محادثة جديدة
       </button>
 
+
+      <!-- ================================= -->
+      <!-- الاقتراحات -->
+      <!-- ================================= -->
 
       <div class="quick-title">
         اقتراحات سريعة
@@ -90,6 +78,7 @@
       <button
         class="suggestion"
         data-prompt="اشرح لي الذكاء الاصطناعي بطريقة بسيطة"
+        type="button"
       >
         🤖 شرح الذكاء الاصطناعي
       </button>
@@ -98,6 +87,7 @@
       <button
         class="suggestion"
         data-prompt="اكتب لي كود HTML احترافي"
+        type="button"
       >
         💻 اكتب كود احترافي
       </button>
@@ -106,6 +96,7 @@
       <button
         class="suggestion"
         data-prompt="حل لي هذه المسألة خطوة بخطوة"
+        type="button"
       >
         🧮 حل مسألة
       </button>
@@ -114,37 +105,56 @@
       <button
         class="suggestion"
         data-prompt="ساعدني في الدراسة"
+        type="button"
       >
         📚 ساعدني في الدراسة
       </button>
 
 
+      <button
+        class="suggestion"
+        data-prompt="اشرح لي هذه الفتوى أو المسألة الدينية مع ذكر المصدر إن كان مؤكدًا"
+        type="button"
+      >
+        📖 سؤال ديني
+      </button>
+
+
+      <button
+        class="suggestion"
+        data-prompt="قارن بين موقف الإسلام والمسيحية واليهودية من هذا الموضوع"
+        type="button"
+      >
+        ⚖️ مقارنة الأديان
+      </button>
+
+
+      <!-- ================================= -->
+      <!-- أسفل القائمة -->
+      <!-- ================================= -->
+
       <div class="sidebar-bottom">
 
-        <div id="userBadge" class="user-badge"></div>
+        <div class="status">
+
+          <i></i>
+
+          النظام جاهز
+
+        </div>
 
 
-        <button
-          id="ownerBtn"
-          class="owner-btn hidden"
-        >
-          👑 لوحة المالك
-        </button>
+        <div class="developer">
+          المطور: ياسين عمرو عبد الرحيم
+        </div>
 
 
         <button
           id="clearChat"
           class="clear"
+          type="button"
         >
           مسح المحادثة
-        </button>
-
-
-        <button
-          id="logout"
-          class="clear logout"
-        >
-          تسجيل الخروج
         </button>
 
       </div>
@@ -152,29 +162,43 @@
     </aside>
 
 
-    <!-- MAIN -->
+    <!-- ================================= -->
+    <!-- المحتوى الرئيسي -->
+    <!-- ================================= -->
+
     <main class="main">
+
+
+      <!-- ================================= -->
+      <!-- الشريط العلوي -->
+      <!-- ================================= -->
 
       <header class="topbar">
 
-        <div>
+        <button
+          id="menuBtn"
+          class="icon-btn menu-btn"
+          type="button"
+          aria-label="فتح القائمة"
+        >
+          ☰
+        </button>
 
-          <span class="top-title">
-            T.M.D AI
-            <i></i>
-          </span>
 
-          <small>
-            تطوير: ياسين عمرو عبد الرحيم
-          </small>
+        <span class="top-title">
 
-        </div>
+          T.M.D AI
+
+          <i></i>
+
+        </span>
 
 
         <button
           id="theme"
           class="icon-btn"
           type="button"
+          aria-label="تغيير المظهر"
         >
           ☼
         </button>
@@ -182,22 +206,45 @@
       </header>
 
 
-      <!-- CHAT -->
-      <section id="chat" class="chat">
+      <!-- ================================= -->
+      <!-- منطقة المحادثة -->
+      <!-- ================================= -->
 
-        <div id="welcome" class="welcome">
+      <section
+        id="chat"
+        class="chat"
+        aria-live="polite"
+      >
+
+
+        <!-- ================================= -->
+        <!-- شاشة الترحيب -->
+        <!-- ================================= -->
+
+        <div
+          id="welcome"
+          class="welcome"
+        >
 
           <div class="welcome-logo">
             T
           </div>
 
+
           <h1>
+
             مرحبًا بك في
-            <span>T.M.D AI</span>
+
+            <span>
+              T.M.D AI
+            </span>
+
           </h1>
 
+
           <p>
-            مساعدك الذكي للبرمجة، الدراسة، الكتابة وحل المشكلات.
+            مساعدك الذكي للبرمجة، الدراسة،
+            الكتابة والأسئلة العامة والدينية.
           </p>
 
 
@@ -205,20 +252,33 @@
 
             <button
               data-prompt="اكتب لي خطة برمجة لموقع احترافي"
+              type="button"
             >
               خطة برمجة
             </button>
 
+
             <button
               data-prompt="اشرح لي هذا المفهوم ببساطة"
+              type="button"
             >
               شرح مفهوم
             </button>
 
+
             <button
               data-prompt="اكتب لي كود JavaScript"
+              type="button"
             >
               JavaScript
+            </button>
+
+
+            <button
+              data-prompt="اشرح لي هذه المسألة الدينية مع ذكر المصادر المؤكدة فقط"
+              type="button"
+            >
+              سؤال ديني
             </button>
 
           </div>
@@ -228,22 +288,32 @@
       </section>
 
 
-      <!-- COMPOSER -->
+      <!-- ================================= -->
+      <!-- صندوق الكتابة -->
+      <!-- ================================= -->
+
       <div class="composer-wrap">
 
-        <form id="composer" class="composer">
+
+        <form
+          id="composer"
+          class="composer"
+        >
 
           <textarea
             id="input"
             rows="1"
             maxlength="12000"
             placeholder="اكتب رسالتك هنا..."
+            autocomplete="off"
+            aria-label="رسالتك"
           ></textarea>
 
 
           <button
             id="send"
             type="submit"
+            aria-label="إرسال"
           >
             ➤
           </button>
@@ -255,6 +325,7 @@
           Enter للإرسال · Shift + Enter لسطر جديد
         </div>
 
+
       </div>
 
     </main>
@@ -262,81 +333,22 @@
   </div>
 
 
-  <!-- OWNER PANEL -->
-  <div id="ownerModal" class="modal hidden">
+  <!-- ================================= -->
+  <!-- طبقة الهاتف -->
+  <!-- ================================= -->
 
-    <div class="modal-card">
-
-      <button
-        id="closeOwner"
-        class="modal-close"
-        type="button"
-      >
-        ×
-      </button>
+  <div
+    id="overlay"
+    class="overlay"
+  ></div>
 
 
-      <h2>
-        👑 لوحة المالك
-      </h2>
-
-
-      <p>
-        تحكم محلي في مظهر الواجهة.
-      </p>
-
-
-      <label>
-        لون ذهبي
-
-        <input
-          id="goldPicker"
-          type="color"
-          value="#d4af37"
-        >
-      </label>
-
-
-      <label>
-        لون الخلفية
-
-        <input
-          id="bgPicker"
-          type="color"
-          value="#0d0b08"
-        >
-      </label>
-
-
-      <label class="switch">
-
-        <input
-          id="desertToggle"
-          type="checkbox"
-          checked
-        >
-
-        <span>
-          خلفية الصحراء العربية
-        </span>
-
-      </label>
-
-
-      <button
-        id="saveOwner"
-        class="save-settings"
-        type="button"
-      >
-        حفظ الإعدادات
-      </button>
-
-    </div>
-
-  </div>
-
+  <!-- ================================= -->
+  <!-- JavaScript -->
+  <!-- ================================= -->
 
   <script src="/app.js"></script>
 
 </body>
+
 </html>
