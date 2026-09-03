@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080b12">
+<title>T.M.D AI — المساعد الذكي</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand"><div class="brand-icon">T</div><div><strong>T.M.D AI</strong><span>المساعد الذكي</span></div></div>
+  <button id="newChat" class="new-chat">＋ محادثة جديدة</button>
+  <div class="quick-title">اقتراحات سريعة</div>
+  <button class="suggestion" data-prompt="اشرح لي الذكاء الاصطناعي بطريقة بسيطة">🤖 شرح الذكاء الاصطناعي</button>
+  <button class="suggestion" data-prompt="اكتب لي كود HTML احترافي">💻 اكتب كود احترافي</button>
+  <button class="suggestion" data-prompt="حل لي هذه المسألة خطوة بخطوة">🧮 حل مسألة</button>
+  <button class="suggestion" data-prompt="ساعدني في الدراسة">📚 ساعدني في الدراسة</button>
+  <div class="sidebar-bottom"><div class="status"><i></i> النظام جاهز</div><button id="clearChat" class="clear">مسح المحادثة</button></div>
+</aside>
+<main class="main">
+  <header class="topbar"><span class="top-title">T.M.D AI <i></i></span><button id="theme" class="icon-btn">☼</button></header>
+  <section id="chat" class="chat">
+    <div id="welcome" class="welcome">
+      <div class="welcome-logo">T</div>
+      <h1>مرحبًا بك في <span>T.M.D AI</span></h1>
+      <p>مساعدك الذكي للبرمجة، الدراسة، الكتابة وحل المشكلات.</p>
+      <div class="welcome-cards">
+        <button data-prompt="اكتب لي خطة برمجة لموقع احترافي">خطة برمجة</button>
+        <button data-prompt="اشرح لي هذا المفهوم ببساطة">شرح مفهوم</button>
+        <button data-prompt="اكتب لي كود JavaScript">JavaScript</button>
+      </div>
+    </div>
+  </section>
+  <div class="composer-wrap">
+    <form id="composer" class="composer">
+      <textarea id="input" rows="1" maxlength="12000" placeholder="اكتب رسالتك هنا..."></textarea>
+      <button id="send" type="submit">➤</button>
+    </form>
+    <div class="hint">Enter للإرسال · Shift + Enter لسطر جديد</div>
+  </div>
+</main>
+</div>
+<script src="/app.js"></script>
+</body>
+</html>
