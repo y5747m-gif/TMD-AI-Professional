@@ -1,90 +1,57 @@
 const state = {
-  messages: loadMessages(),
-  busy: false
+  messages: JSON.parse(
+    localStorage.getItem("tmd_messages") || "[]"
+  ),
+  busy: false,
+  user: null
 };
 
 
-/* ================= ELEMENTS ================= */
-
-const chat = document.getElementById("chat");
-const input = document.getElementById("input");
-const composer = document.getElementById("composer");
-const send = document.getElementById("send");
-const welcome = document.getElementById("welcome");
-
-const sidebar = document.getElementById("sidebar");
-const overlay = document.getElementById("overlay");
-
-const themeButton = document.getElementById("theme");
+const $ = (id) =>
+  document.getElementById(id);
 
 
-/* ================= STORAGE ================= */
+const chat = $("chat");
+const input = $("input");
+const composer = $("composer");
+const send = $("send");
+const welcome = $("welcome");
 
-function loadMessages() {
-  try {
+const loginScreen = $("loginScreen");
+const app = $("app");
 
-    const saved =
-      localStorage.getItem("tmd_messages");
+const loginForm = $("loginForm");
+const loginUser = $("loginUser");
+const loginPass = $("loginPass");
+const loginError = $("loginError");
 
-    if (!saved) {
-      return [];
-    }
+const ownerBtn = $("ownerBtn");
+const ownerModal = $("ownerModal");
+const userBadge = $("userBadge");
 
-    const parsed =
-      JSON.parse(saved);
 
-    return Array.isArray(parsed)
-      ? parsed
-      : [];
+/* =========================
+   STORAGE
+========================= */
 
-  } catch (error) {
-
-    console.warn(
-      "Unable to load saved messages.",
-      error
-    );
-
-    return [];
-  }
+function saveMessages() {
+  localStorage.setItem(
+    "tmd_messages",
+    JSON.stringify(state.messages)
+  );
 }
 
-
-function save() {
-
-  try {
-
-    localStorage.setItem(
-      "tmd_messages",
-      JSON.stringify(state.messages)
-    );
-
-  } catch (error) {
-
-    console.warn(
-      "Unable to save messages.",
-      error
-    );
-
-  }
-
-}
-
-
-/* ================= SCROLL ================= */
 
 function scrollBottom() {
-
   requestAnimationFrame(() => {
-
-    chat.scrollTop =
-      chat.scrollHeight;
-
+    chat.scrollTop = chat.scrollHeight;
   });
-
 }
 
 
-/* ================= ADD MESSAGE ================= */
+/* =========================
+   MESSAGES
+========================= */
 
 function addMessage(
   role,
@@ -102,8 +69,7 @@ function addMessage(
   const avatar =
     document.createElement("div");
 
-  avatar.className =
-    "avatar";
+  avatar.className = "avatar";
 
   avatar.textContent =
     role === "user"
@@ -114,11 +80,9 @@ function addMessage(
   const bubble =
     document.createElement("div");
 
-  bubble.className =
-    "bubble";
+  bubble.className = "bubble";
 
-  bubble.textContent =
-    String(text || "");
+  bubble.textContent = text;
 
 
   if (role === "user") {
@@ -143,156 +107,104 @@ function addMessage(
   scrollBottom();
 
   return row;
-
 }
 
-
-/* ================= RENDER ================= */
 
 function render() {
 
   chat
     .querySelectorAll(".message-row")
-    .forEach((element) => {
-
-      element.remove();
-
-    });
+    .forEach((element) =>
+      element.remove()
+    );
 
 
   welcome.style.display =
     state.messages.length
       ? "none"
-      : "flex";
+      : "grid";
 
 
-  state.messages.forEach((message) => {
+  state.messages.forEach(
+    (message) => {
 
-    if (
-      !message ||
-      !message.role ||
-      typeof message.content !== "string"
-    ) {
-      return;
+      addMessage(
+        message.role,
+        message.content
+      );
+
     }
-
-
-    addMessage(
-      message.role,
-      message.content
-    );
-
-  });
-
-
-  scrollBottom();
+  );
 
 }
 
 
-/* ================= BUSY ================= */
+/* =========================
+   BUSY
+========================= */
 
 function setBusy(value) {
 
-  state.busy =
-    Boolean(value);
+  state.busy = value;
 
-
-  send.disabled =
-    state.busy;
-
+  send.disabled = value;
 
   send.textContent =
-    state.busy
+    value
       ? "…"
       : "➤";
 
 }
 
 
-/* ================= SIDEBAR ================= */
-
-function closeSidebar() {
-
-  sidebar.classList.remove("open");
-
-  overlay.classList.remove("show");
-
-}
-
-
-function openSidebar() {
-
-  sidebar.classList.add("open");
-
-  overlay.classList.add("show");
-
-}
-
-
-/* ================= NEW CHAT ================= */
+/* =========================
+   CHAT
+========================= */
 
 function newChat() {
 
   state.messages = [];
 
-  save();
+  saveMessages();
 
   render();
-
-  input.value = "";
-
-  input.style.height =
-    "auto";
 
   input.focus();
 
 }
 
 
-/* ================= SEND MESSAGE ================= */
-
 async function sendMessage(text) {
 
   const message =
-    String(text || "").trim();
+    text.trim();
 
 
   if (
     !message ||
     state.busy
   ) {
-
     return;
-
   }
 
 
   state.messages.push({
-
     role: "user",
-
     content: message
-
   });
 
 
-  save();
+  saveMessages();
 
   render();
 
 
-  input.value =
-    "";
+  input.value = "";
 
-  input.style.height =
-    "auto";
-
+  input.style.height = "auto";
 
   setBusy(true);
 
-
-  /* ================= TYPING ================= */
 
   const typing =
     document.createElement("div");
@@ -303,18 +215,15 @@ async function sendMessage(text) {
 
 
   typing.innerHTML =
+    `
+      <div class="avatar">T</div>
 
-    '<div class="avatar">T</div>' +
-
-    '<div class="bubble typing">' +
-
-    "<span></span>" +
-
-    "<span></span>" +
-
-    "<span></span>" +
-
-    "</div>";
+      <div class="bubble typing">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    `;
 
 
   chat.appendChild(typing);
@@ -335,11 +244,12 @@ async function sendMessage(text) {
               "application/json"
           },
 
-          body:
-            JSON.stringify({
-              messages:
-                state.messages
-            })
+          credentials: "include",
+
+          body: JSON.stringify({
+            messages:
+              state.messages
+          })
         }
       );
 
@@ -355,49 +265,24 @@ async function sendMessage(text) {
 
     if (
       !response.ok ||
-      !data ||
-      data.ok !== true
+      !data.ok
     ) {
 
       throw new Error(
-
-        data &&
-        typeof data.error === "string"
-
-          ? data.error
-
-          : `HTTP ${response.status}`
-
-      );
-
-    }
-
-
-    const answer =
-      typeof data.message === "string"
-        ? data.message.trim()
-        : "";
-
-
-    if (!answer) {
-
-      throw new Error(
-        "لم تصل إجابة من الخادم."
+        data.error ||
+        `HTTP ${response.status}`
       );
 
     }
 
 
     state.messages.push({
-
       role: "assistant",
-
-      content: answer
-
+      content: data.message
     });
 
 
-    save();
+    saveMessages();
 
     render();
 
@@ -407,23 +292,13 @@ async function sendMessage(text) {
     typing.remove();
 
 
-    const errorMessage =
-      error &&
-      error.message
-
-        ? error.message
-
-        : "تعذر الاتصال بالخادم.";
-
-
     addMessage(
-
       "assistant",
-
-      `حدث خطأ: ${errorMessage}`,
-
+      `حدث خطأ: ${
+        error.message ||
+        "تعذر الاتصال بالخادم."
+      }`,
       true
-
     );
 
   } finally {
@@ -437,7 +312,252 @@ async function sendMessage(text) {
 }
 
 
-/* ================= FORM ================= */
+/* =========================
+   LOGIN
+========================= */
+
+loginForm.addEventListener(
+  "submit",
+  async (event) => {
+
+    event.preventDefault();
+
+    loginError.textContent = "";
+
+    const username =
+      loginUser.value.trim();
+
+    const password =
+      loginPass.value;
+
+
+    if (
+      !username ||
+      !password
+    ) {
+      loginError.textContent =
+        "أدخل اسم المستخدم وكلمة المرور.";
+
+      return;
+    }
+
+
+    const button =
+      loginForm.querySelector("button");
+
+    button.disabled = true;
+
+    button.textContent =
+      "جارٍ تسجيل الدخول...";
+
+
+    try {
+
+      const response =
+        await fetch(
+          "/api/login",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json"
+            },
+
+            credentials: "include",
+
+            body: JSON.stringify({
+              username,
+              password
+            })
+          }
+        );
+
+
+      const data =
+        await response
+          .json()
+          .catch(() => ({}));
+
+
+      if (
+        !response.ok ||
+        !data.ok
+      ) {
+
+        throw new Error(
+          data.error ||
+          "فشل تسجيل الدخول."
+        );
+
+      }
+
+
+      state.user =
+        data.user;
+
+
+      showApp();
+
+    } catch (error) {
+
+      loginError.textContent =
+        error.message ||
+        "حدث خطأ أثناء تسجيل الدخول.";
+
+    } finally {
+
+      button.disabled = false;
+
+      button.textContent =
+        "تسجيل الدخول";
+
+    }
+
+  }
+);
+
+
+/* =========================
+   SESSION
+========================= */
+
+async function checkSession() {
+
+  try {
+
+    const response =
+      await fetch(
+        "/api/me",
+        {
+          credentials: "include",
+          cache: "no-store"
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if (
+      data.ok &&
+      data.authenticated &&
+      data.user
+    ) {
+
+      state.user =
+        data.user;
+
+      showApp();
+
+      return;
+
+    }
+
+  } catch (_) {
+    // عرض شاشة الدخول
+  }
+
+
+  showLogin();
+
+}
+
+
+function showLogin() {
+
+  loginScreen.classList.remove(
+    "hidden"
+  );
+
+  app.classList.add(
+    "hidden"
+  );
+
+}
+
+
+function showApp() {
+
+  loginScreen.classList.add(
+    "hidden"
+  );
+
+  app.classList.remove(
+    "hidden"
+  );
+
+
+  userBadge.textContent =
+    `👤 ${state.user.username}`;
+
+
+  if (
+    state.user.role === "owner"
+  ) {
+
+    ownerBtn.classList.remove(
+      "hidden"
+    );
+
+  } else {
+
+    ownerBtn.classList.add(
+      "hidden"
+    );
+
+  }
+
+
+  render();
+
+  input.focus();
+
+}
+
+
+/* =========================
+   LOGOUT
+========================= */
+
+$("logout").addEventListener(
+  "click",
+  async () => {
+
+    try {
+
+      await fetch(
+        "/api/logout",
+        {
+          method: "POST",
+          credentials: "include"
+        }
+      );
+
+    } catch (_) {}
+
+
+    state.user = null;
+
+    state.messages = [];
+
+    saveMessages();
+
+    loginUser.value = "";
+    loginPass.value = "";
+
+    showLogin();
+
+    loginUser.focus();
+
+  }
+);
+
+
+/* =========================
+   SUBMIT
+========================= */
 
 composer.addEventListener(
   "submit",
@@ -453,7 +573,9 @@ composer.addEventListener(
 );
 
 
-/* ================= ENTER ================= */
+/* =========================
+   ENTER
+========================= */
 
 input.addEventListener(
   "keydown",
@@ -474,7 +596,9 @@ input.addEventListener(
 );
 
 
-/* ================= TEXTAREA ================= */
+/* =========================
+   TEXTAREA
+========================= */
 
 input.addEventListener(
   "input",
@@ -482,7 +606,6 @@ input.addEventListener(
 
     input.style.height =
       "auto";
-
 
     input.style.height =
       Math.min(
@@ -494,166 +617,266 @@ input.addEventListener(
 );
 
 
-/* ================= QUICK PROMPTS ================= */
+/* =========================
+   QUICK PROMPTS
+========================= */
 
 document
-  .querySelectorAll("[data-prompt]")
-  .forEach((button) => {
+  .querySelectorAll(
+    "[data-prompt]"
+  )
+  .forEach(
+    (button) => {
 
-    button.addEventListener(
-      "click",
-      () => {
+      button.addEventListener(
+        "click",
+        () => {
 
-        input.value =
-          button.dataset.prompt || "";
+          input.value =
+            button.dataset.prompt ||
+            "";
 
+          input.focus();
 
-        input.focus();
+          input.dispatchEvent(
+            new Event("input")
+          );
 
-
-        input.dispatchEvent(
-          new Event("input")
-        );
-
-      }
-    );
-
-  });
-
-
-/* ================= NEW CHAT ================= */
-
-const newChatButton =
-  document.getElementById(
-    "newChat"
-  );
-
-
-if (newChatButton) {
-
-  newChatButton.addEventListener(
-    "click",
-    () => {
-
-      newChat();
-
-      closeSidebar();
+        }
+      );
 
     }
   );
 
-}
+
+/* =========================
+   NEW CHAT
+========================= */
+
+$("newChat").addEventListener(
+  "click",
+  newChat
+);
 
 
-/* ================= CLEAR CHAT ================= */
+/* =========================
+   CLEAR CHAT
+========================= */
 
-const clearChatButton =
-  document.getElementById(
-    "clearChat"
-  );
-
-
-if (clearChatButton) {
-
-  clearChatButton.addEventListener(
-    "click",
-    () => {
-
-      newChat();
-
-    }
-  );
-
-}
+$("clearChat").addEventListener(
+  "click",
+  newChat
+);
 
 
-/* ================= THEME ================= */
+/* =========================
+   THEME
+========================= */
 
-function applyTheme(theme) {
-
-  document.body.classList.toggle(
-    "light",
-    theme === "light"
-  );
-
-}
-
-
-themeButton.addEventListener(
+$("theme").addEventListener(
   "click",
   () => {
 
-    const isLight =
-      document.body.classList.contains(
-        "light"
-      );
-
-
-    const newTheme =
-      isLight
-        ? "dark"
-        : "light";
-
-
-    applyTheme(
-      newTheme
+    document.body.classList.toggle(
+      "light"
     );
 
 
     localStorage.setItem(
       "tmd_theme",
-      newTheme
+
+      document.body.classList.contains(
+        "light"
+      )
+        ? "light"
+        : "dark"
     );
 
   }
 );
 
 
-/* ================= MOBILE MENU ================= */
+/* =========================
+   OWNER PANEL
+========================= */
 
-const menuButton =
-  document.getElementById(
-    "menuBtn"
-  );
+function applySettings() {
+
+  const settings =
+    JSON.parse(
+      localStorage.getItem(
+        "tmd_owner_settings"
+      ) || "{}"
+    );
 
 
-if (menuButton) {
+  if (settings.gold) {
 
-  menuButton.addEventListener(
-    "click",
-    openSidebar
-  );
+    document.documentElement
+      .style.setProperty(
+        "--gold",
+        settings.gold
+      );
+
+  }
+
+
+  if (settings.gold2) {
+
+    document.documentElement
+      .style.setProperty(
+        "--gold2",
+        settings.gold2
+      );
+
+  }
+
+
+  if (settings.bg) {
+
+    document.documentElement
+      .style.setProperty(
+        "--bg",
+        settings.bg
+      );
+
+  }
+
+
+  if (
+    settings.desert === false
+  ) {
+
+    document.body.classList.add(
+      "no-desert"
+    );
+
+  } else {
+
+    document.body.classList.remove(
+      "no-desert"
+    );
+
+  }
 
 }
 
 
-overlay.addEventListener(
+ownerBtn.addEventListener(
   "click",
-  closeSidebar
+  () => {
+
+    if (
+      state.user?.role !== "owner"
+    ) {
+      return;
+    }
+
+
+    const settings =
+      JSON.parse(
+        localStorage.getItem(
+          "tmd_owner_settings"
+        ) || "{}"
+      );
+
+
+    $("goldPicker").value =
+      settings.gold ||
+      "#d4af37";
+
+
+    $("bgPicker").value =
+      settings.bg ||
+      "#0d0b08";
+
+
+    $("desertToggle").checked =
+      settings.desert !== false;
+
+
+    ownerModal.classList.remove(
+      "hidden"
+    );
+
+  }
 );
 
 
-/* ================= SAVED THEME ================= */
+$("closeOwner").addEventListener(
+  "click",
+  () => {
 
-const savedTheme =
+    ownerModal.classList.add(
+      "hidden"
+    );
+
+  }
+);
+
+
+$("saveOwner").addEventListener(
+  "click",
+  () => {
+
+    if (
+      state.user?.role !== "owner"
+    ) {
+      return;
+    }
+
+
+    localStorage.setItem(
+      "tmd_owner_settings",
+
+      JSON.stringify({
+        gold:
+          $("goldPicker").value,
+
+        gold2:
+          $("goldPicker").value,
+
+        bg:
+          $("bgPicker").value,
+
+        desert:
+          $("desertToggle").checked
+      })
+    );
+
+
+    applySettings();
+
+
+    ownerModal.classList.add(
+      "hidden"
+    );
+
+  }
+);
+
+
+/* =========================
+   THEME RESTORE
+========================= */
+
+if (
   localStorage.getItem(
     "tmd_theme"
+  ) === "light"
+) {
+
+  document.body.classList.add(
+    "light"
   );
-
-
-if (savedTheme === "light") {
-
-  applyTheme("light");
-
-} else {
-
-  applyTheme("dark");
 
 }
 
 
-/* ================= START ================= */
+/* =========================
+   START
+========================= */
 
-render();
+applySettings();
 
-input.focus();
+checkSession();
