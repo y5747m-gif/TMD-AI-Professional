@@ -2,312 +2,82 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
-
-  <meta
-    name="theme-color"
-    content="#c9a227"
-  >
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#c9a227">
   <title>T.M.D AI — المساعد الذكي</title>
-
+  <link id="favicon" rel="icon" href="">
   <link rel="stylesheet" href="/style.css">
 </head>
 
 <body>
+  <div id="overlay" class="overlay"></div>
 
-<div id="overlay" class="overlay"></div>
-
-<div class="app">
-
-  <!-- =========================
-       الشريط الجانبي
-  ========================== -->
-
-  <aside id="sidebar" class="sidebar">
-
-    <div class="brand">
-
-      <div id="brandIcon" class="brand-icon">
-        T
+  <div class="app">
+    <aside id="sidebar" class="sidebar">
+      <div class="brand">
+        <div id="brandIcon" class="brand-icon">T</div>
+        <div>
+          <strong id="siteName">T.M.D AI</strong>
+          <span id="siteDescription">المساعد الذكي</span>
+        </div>
       </div>
 
-      <div class="brand-text">
+      <button id="newChat" class="new-chat">＋ محادثة جديدة</button>
 
-        <strong id="siteName">
-          T.M.D AI
-        </strong>
+      <div class="quick-title">اقتراحات سريعة</div>
+      <div id="suggestions"></div>
 
-        <span id="siteDescription">
-          المساعد الذكي
-        </span>
-
-      </div>
-
-    </div>
-
-
-    <button
-      id="newChat"
-      class="new-chat"
-      type="button"
-    >
-      ＋ محادثة جديدة
-    </button>
-
-
-    <div class="quick-title">
-      اقتراحات سريعة
-    </div>
-
-
-    <div
-      id="sidebarSuggestions"
-      class="suggestions"
-    >
-
-      <button
-        class="suggestion"
-        data-prompt="اشرح لي الذكاء الاصطناعي بطريقة بسيطة"
-      >
-        🤖 شرح الذكاء الاصطناعي
-      </button>
-
-      <button
-        class="suggestion"
-        data-prompt="اكتب لي كود HTML احترافي"
-      >
-        💻 اكتب كود احترافي
-      </button>
-
-      <button
-        class="suggestion"
-        data-prompt="حل لي هذه المسألة خطوة بخطوة"
-      >
-        🧮 حل مسألة
-      </button>
-
-      <button
-        class="suggestion"
-        data-prompt="ساعدني في الدراسة"
-      >
-        📚 ساعدني في الدراسة
-      </button>
-
-    </div>
-
-
-    <div class="sidebar-spacer"></div>
-
-
-    <div class="sidebar-actions">
-
-      <button
-        id="ownerButton"
-        class="owner-button"
-        type="button"
-      >
-        👑 لوحة المالك
-      </button>
-
-      <button
-        id="theme"
-        class="theme-button"
-        type="button"
-      >
-        ☼ تغيير المظهر
-      </button>
-
-      <button
-        id="clearChat"
-        class="clear"
-        type="button"
-      >
-        🗑 مسح المحادثة
-      </button>
-
-    </div>
-
-
-    <div class="status">
-      <i></i>
-      النظام جاهز
-    </div>
-
-
-    <div
-      id="developer"
-      class="developer"
-    >
-      المطور: ياسين عمرو عبد الرحيم
-    </div>
-
-  </aside>
-
-
-  <!-- =========================
-       المحتوى الرئيسي
-  ========================== -->
-
-  <main class="main">
-
-    <header class="topbar">
-
-      <button
-        id="menuBtn"
-        class="mobile-menu"
-        type="button"
-        aria-label="القائمة"
-      >
-        ☰
-      </button>
-
-
-      <div class="top-title">
-
-        <span id="topSiteName">
-          T.M.D AI
-        </span>
-
-        <i></i>
-
-      </div>
-
-
-      <button
-        id="topOwnerButton"
-        class="top-owner"
-        type="button"
-        title="لوحة المالك"
-      >
-        👑
-      </button>
-
-    </header>
-
-
-    <!-- =========================
-         المحادثة
-    ========================== -->
-
-    <section
-      id="chat"
-      class="chat"
-    >
-
-      <div
-        id="welcome"
-        class="welcome"
-      >
-
-        <div
-          id="welcomeLogo"
-          class="welcome-logo"
-        >
-          T
+      <div class="sidebar-bottom">
+        <div class="status">
+          <i></i>
+          النظام جاهز
         </div>
 
-
-        <h1>
-
-          مرحبًا بك في
-
-          <span id="welcomeSiteName">
-            T.M.D AI
-          </span>
-
-        </h1>
-
-
-        <p id="welcomeDescription">
-          مساعدك الذكي للبرمجة، الدراسة، الكتابة وحل المشكلات.
-        </p>
-
-
-        <div
-          id="welcomeCards"
-          class="welcome-cards"
-        >
-
-          <button
-            data-prompt="اكتب لي خطة برمجة لموقع احترافي"
-            type="button"
-          >
-            خطة برمجة
-          </button>
-
-          <button
-            data-prompt="اشرح لي هذا المفهوم ببساطة"
-            type="button"
-          >
-            شرح مفهوم
-          </button>
-
-          <button
-            data-prompt="اكتب لي كود JavaScript"
-            type="button"
-          >
-            JavaScript
-          </button>
-
-          <button
-            data-prompt="ساعدني في تحليل هذه المشكلة"
-            type="button"
-          >
-            تحليل مشكلة
-          </button>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- =========================
-         منطقة الكتابة
-    ========================== -->
-
-    <div class="composer-wrap">
-
-      <!-- معاينة الصورة -->
-
-      <div
-        id="imagePreview"
-        class="image-preview"
-        hidden
-      >
-
-        <img
-          id="previewImage"
-          src=""
-          alt="معاينة الصورة"
-        >
-
-        <button
-          id="removeImage"
-          type="button"
-          title="إزالة الصورة"
-        >
-          ×
+        <button id="ownerButton" class="sidebar-action">
+          ⚙️ لوحة المالك
         </button>
 
+        <button id="theme" class="sidebar-action">
+          ☼ تغيير المظهر
+        </button>
+
+        <button id="clearChat" class="clear">
+          مسح المحادثة
+        </button>
       </div>
+    </aside>
 
+    <main class="main">
+      <header class="topbar">
+        <button id="menuBtn" class="icon-btn mobile-only">☰</button>
 
-      <form
-        id="composer"
-        class="composer"
-      >
+        <span class="top-title">
+          <span id="topSiteName">T.M.D AI</span>
+          <i></i>
+        </span>
 
-        <!-- زر + -->
+        <button id="topTheme" class="icon-btn">☼</button>
+      </header>
 
-        <div class="plus-wrapper">
+      <section id="chat" class="chat">
+        <div id="welcome" class="welcome">
+          <div id="welcomeLogo" class="welcome-logo">T</div>
 
+          <h1>
+            مرحبًا بك في
+            <span id="welcomeSiteName">T.M.D AI</span>
+          </h1>
+
+          <p id="welcomeDescription">
+            مساعدك الذكي للبرمجة، الدراسة، الكتابة وحل المشكلات.
+          </p>
+
+          <div id="welcomeCards" class="welcome-cards"></div>
+        </div>
+      </section>
+
+      <div class="composer-wrap">
+        <form id="composer" class="composer">
           <button
             id="plusButton"
             class="plus-button"
@@ -318,440 +88,213 @@
             ＋
           </button>
 
+          <textarea
+            id="input"
+            rows="1"
+            maxlength="12000"
+            placeholder="اكتب رسالتك هنا..."
+          ></textarea>
 
-          <div
-            id="plusMenu"
-            class="plus-menu"
-            aria-hidden="true"
-          >
+          <button id="send" type="submit" aria-label="إرسال">
+            ➤
+          </button>
+        </form>
 
-            <button
-              id="imageUploadButton"
-              type="button"
-            >
-              <span>🖼️</span>
-              <span>
-                تحليل صورة
-                <small>
-                  ارفع صورة واسأل الذكاء الاصطناعي عنها
-                </small>
-              </span>
-            </button>
+        <div id="plusMenu" class="plus-menu" aria-hidden="true">
+          <button id="imageUploadButton" type="button">
+            🖼️ تحليل صورة
+          </button>
 
-
-            <button
-              id="imageEditButton"
-              type="button"
-            >
-              <span>🎨</span>
-              <span>
-                تعديل صورة
-                <small>
-                  ارفع صورة واكتب ما تريد تعديله
-                </small>
-              </span>
-            </button>
-
-          </div>
-
+          <button id="imageEditButton" type="button">
+            ✨ اقتراح تعديلات للصورة
+          </button>
         </div>
 
-
-        <textarea
-          id="input"
-          rows="1"
-          maxlength="12000"
-          placeholder="اكتب رسالتك هنا..."
-        ></textarea>
-
-
-        <button
-          id="send"
-          type="submit"
-        >
-          ➤
-        </button>
-
-      </form>
-
-
-      <div class="hint">
-        Enter للإرسال · Shift + Enter لسطر جديد
-      </div>
-
-    </div>
-
-  </main>
-
-</div>
-
-
-<!-- =========================
-     اختيار الصورة
-========================== -->
-
-<input
-  id="imageInput"
-  type="file"
-  accept="image/jpeg,image/png,image/webp,image/gif"
-  hidden
->
-
-
-<!-- =========================
-     لوحة المالك
-========================== -->
-
-<div
-  id="ownerModal"
-  class="modal"
-  hidden
->
-
-  <div class="owner-modal">
-
-    <div class="modal-header">
-
-      <div>
-        <strong>
-          👑 لوحة تحكم المالك
-        </strong>
-
-        <span>
-          التحكم الكامل في مظهر الموقع
-        </span>
-      </div>
-
-
-      <button
-        id="closeOwnerModal"
-        type="button"
-        class="close-modal"
-      >
-        ×
-      </button>
-
-    </div>
-
-
-    <!-- تسجيل دخول المالك -->
-
-    <section
-      id="ownerLoginSection"
-      class="owner-login"
-    >
-
-      <div class="owner-lock">
-        🔐
-      </div>
-
-      <h2>
-        دخول المالك
-      </h2>
-
-      <p>
-        هذه المنطقة مخصصة لمالك الموقع فقط.
-      </p>
-
-
-      <form id="ownerLoginForm">
-
-        <label>
-          كلمة مرور المالك
-        </label>
-
-        <input
-          id="ownerPassword"
-          type="password"
-          autocomplete="current-password"
-          placeholder="أدخل كلمة المرور"
-          required
-        >
-
-
-        <button
-          type="submit"
-          class="primary-button"
-        >
-          دخول لوحة التحكم
-        </button>
-
-
-        <div
-          id="ownerLoginError"
-          class="form-error"
-        ></div>
-
-      </form>
-
-    </section>
-
-
-    <!-- لوحة التحكم -->
-
-    <section
-      id="ownerPanelSection"
-      class="owner-panel"
-      hidden
-    >
-
-      <div class="panel-section">
-
-        <h3>
-          🎨 معلومات الموقع
-        </h3>
-
-
-        <label>
-          اسم الموقع
-        </label>
-
-        <input
-          id="settingSiteName"
-          type="text"
-        >
-
-
-        <label>
-          وصف الموقع
-        </label>
-
-        <input
-          id="settingDescription"
-          type="text"
-        >
-
-
-        <label>
-          اسم المطور
-        </label>
-
-        <input
-          id="settingDeveloper"
-          type="text"
-          value="ياسين عمرو عبد الرحيم"
-        >
-
-      </div>
-
-
-      <div class="panel-section">
-
-        <h3>
-          🖌️ الألوان
-        </h3>
-
-
-        <div class="color-row">
-
-          <div>
-
-            <label>
-              اللون الأساسي
-            </label>
-
-            <input
-              id="settingPrimaryColor"
-              type="color"
-              value="#c9a227"
-            >
-
-          </div>
-
-
-          <div>
-
-            <label>
-              لون الخلفية
-            </label>
-
-            <input
-              id="settingBackgroundColor"
-              type="color"
-              value="#faf8f1"
-            >
-
-          </div>
-
+        <div id="imagePreview" class="image-preview" hidden>
+          <img id="previewImage" alt="معاينة الصورة">
+          <button id="removeImage" type="button">×</button>
         </div>
 
+        <div class="hint">
+          Enter للإرسال · Shift + Enter لسطر جديد · + لإضافة صورة
+        </div>
       </div>
-
-
-      <div class="panel-section">
-
-        <h3>
-          🔰 شعار الموقع
-        </h3>
-
-
-        <label>
-          الحرف / الرمز
-        </label>
-
-        <input
-          id="settingLogoText"
-          type="text"
-          maxlength="3"
-          value="T"
-        >
-
-      </div>
-
-
-      <div class="panel-section">
-
-        <h3>
-          🖼️ خلفية الموقع
-        </h3>
-
-
-        <label>
-          رابط صورة الخلفية
-        </label>
-
-        <input
-          id="settingBackgroundImage"
-          type="url"
-          placeholder="https://example.com/background.jpg"
-        >
-
-
-        <small class="field-help">
-          استخدم رابط صورة مباشر يبدأ بـ https://
-        </small>
-
-      </div>
-
-
-      <div class="panel-section">
-
-        <h3>
-          ⚙️ خيارات الموقع
-        </h3>
-
-
-        <label class="checkbox-row">
-
-          <input
-            id="settingShowWelcome"
-            type="checkbox"
-            checked
-          >
-
-          <span>
-            إظهار شاشة الترحيب
-          </span>
-
-        </label>
-
-
-        <label class="checkbox-row">
-
-          <input
-            id="settingShowSuggestions"
-            type="checkbox"
-            checked
-          >
-
-          <span>
-            إظهار الاقتراحات
-          </span>
-
-        </label>
-
-
-        <label class="checkbox-row">
-
-          <input
-            id="settingShowDeveloper"
-            type="checkbox"
-            checked
-          >
-
-          <span>
-            إظهار اسم المطور
-          </span>
-
-        </label>
-
-
-        <label class="checkbox-row">
-
-          <input
-            id="settingEnableImageTools"
-            type="checkbox"
-            checked
-          >
-
-          <span>
-            تفعيل أدوات الصور
-          </span>
-
-        </label>
-
-      </div>
-
-
-      <div class="panel-section">
-
-        <h3>
-          💡 الاقتراحات
-        </h3>
-
-
-        <div
-          id="suggestionsEditor"
-          class="suggestions-editor"
-        ></div>
-
-
-        <button
-          id="addSuggestion"
-          class="secondary-button"
-          type="button"
-        >
-          ＋ إضافة اقتراح
-        </button>
-
-      </div>
-
-
-      <div class="owner-actions">
-
-        <button
-          id="saveSettings"
-          class="primary-button"
-          type="button"
-        >
-          💾 حفظ الإعدادات
-        </button>
-
-
-        <button
-          id="ownerLogout"
-          class="logout-button"
-          type="button"
-        >
-          تسجيل خروج المالك
-        </button>
-
-      </div>
-
-
-      <div
-        id="settingsMessage"
-        class="settings-message"
-      ></div>
-
-    </section>
-
+    </main>
   </div>
 
-</div>
+  <input
+    id="imageInput"
+    type="file"
+    accept="image/jpeg,image/png,image/webp,image/gif"
+    hidden
+  >
 
+  <div id="ownerModal" class="modal" hidden>
+    <div class="modal-card owner-card">
+      <button id="closeOwnerModal" class="modal-close" type="button">×</button>
 
-<script src="/app.js"></script>
+      <div class="modal-header">
+        <div class="modal-logo">⚙️</div>
+        <div>
+          <h2>لوحة مالك T.M.D AI</h2>
+          <p>تغيير شكل الموقع لجميع المستخدمين</p>
+        </div>
+      </div>
 
+      <section id="ownerLoginSection">
+        <form id="ownerLoginForm" class="owner-login-form">
+          <label>
+            كلمة مرور المالك
+            <input
+              id="ownerPassword"
+              type="password"
+              autocomplete="current-password"
+              placeholder="أدخل كلمة مرور المالك"
+              required
+            >
+          </label>
+
+          <button class="primary-button" type="submit">
+            دخول لوحة المالك
+          </button>
+
+          <div id="ownerLoginError" class="form-message error"></div>
+        </form>
+      </section>
+
+      <section id="ownerPanelSection" hidden>
+        <div class="settings-grid">
+          <label>
+            اسم الموقع
+            <input id="settingSiteName" type="text">
+          </label>
+
+          <label>
+            وصف الموقع
+            <input id="settingDescription" type="text">
+          </label>
+
+          <label>
+            اسم المطور
+            <input id="settingDeveloper" type="text">
+          </label>
+
+          <label>
+            نص الشعار
+            <input id="settingLogoText" type="text" maxlength="4">
+          </label>
+
+          <label>
+            اللون الرئيسي
+            <input id="settingPrimaryColor" type="color">
+          </label>
+
+          <label>
+            لون النص
+            <input id="settingTextColor" type="color">
+          </label>
+
+          <label>
+            لون الخلفية
+            <input id="settingBackgroundColor" type="color">
+          </label>
+
+          <label>
+            لون اللوحات
+            <input id="settingPanelColor" type="color">
+          </label>
+
+          <label>
+            لون الحدود
+            <input id="settingBorderColor" type="color">
+          </label>
+
+          <label>
+            لون أيقونات القائمة
+            <input id="settingSidebarIconColor" type="color">
+          </label>
+
+          <label class="full">
+            رابط الشعار
+            <input
+              id="settingLogoUrl"
+              type="url"
+              placeholder="https://..."
+            >
+          </label>
+
+          <label class="full">
+            رابط الأيقونة Favicon
+            <input
+              id="settingFaviconUrl"
+              type="url"
+              placeholder="https://..."
+            >
+          </label>
+
+          <label class="full">
+            رابط خلفية الموقع
+            <input
+              id="settingBackgroundImage"
+              type="url"
+              placeholder="https://..."
+            >
+          </label>
+        </div>
+
+        <div class="upload-row">
+          <label class="upload-box">
+            🖼️ رفع شعار
+            <input id="logoFileInput" type="file" accept="image/*" hidden>
+          </label>
+
+          <label class="upload-box">
+            🌄 رفع خلفية
+            <input id="backgroundFileInput" type="file" accept="image/*" hidden>
+          </label>
+        </div>
+
+        <div class="switches">
+          <label class="switch-row">
+            <input id="settingShowWelcome" type="checkbox">
+            <span>إظهار واجهة الترحيب</span>
+          </label>
+
+          <label class="switch-row">
+            <input id="settingShowSuggestions" type="checkbox">
+            <span>إظهار الاقتراحات</span>
+          </label>
+
+          <label class="switch-row">
+            <input id="settingShowDeveloper" type="checkbox">
+            <span>إظهار اسم المطور</span>
+          </label>
+
+          <label class="switch-row">
+            <input id="settingEnableImageTools" type="checkbox">
+            <span>تفعيل أدوات الصور</span>
+          </label>
+        </div>
+
+        <div class="settings-actions">
+          <button id="saveSettings" class="primary-button" type="button">
+            حفظ التغييرات
+          </button>
+
+          <button id="ownerLogout" class="secondary-button" type="button">
+            تسجيل خروج المالك
+          </button>
+        </div>
+
+        <div id="settingsMessage" class="form-message"></div>
+      </section>
+    </div>
+  </div>
+
+  <footer id="developer" class="developer">
+    المطور: ياسين عمرو عبد الرحيم
+  </footer>
+
+  <script src="/app.js"></script>
 </body>
 </html>
