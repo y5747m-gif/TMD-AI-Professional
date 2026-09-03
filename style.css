@@ -777,3 +777,902 @@ body.light input[type="color"]{
     opacity:.45;
   }
 }
+/* =====================================================
+   T.M.D AI — FRONTEND FIX
+   إصلاح التباين وترتيب الواجهة
+===================================================== */
+
+:root {
+  --primary-color: #c9a227;
+  --background-color: #faf8f1;
+  --text-color: #1b1a17;
+  --panel-color: #ffffff;
+  --border-color: #ded5b7;
+}
+
+/* =========================
+   الصفحة
+========================= */
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+  font-family:
+    "Tajawal",
+    "Cairo",
+    Arial,
+    sans-serif;
+
+  overflow: hidden;
+}
+
+/* =========================
+   الخلفية
+========================= */
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+
+  background:
+    linear-gradient(
+      rgba(250, 248, 241, 0.88),
+      rgba(250, 248, 241, 0.88)
+    );
+
+  pointer-events: none;
+  z-index: -1;
+}
+
+body.custom-background::before {
+  background:
+    linear-gradient(
+      rgba(0, 0, 0, 0.42),
+      rgba(0, 0, 0, 0.42)
+    );
+}
+
+/* =========================
+   التطبيق
+========================= */
+
+#app,
+.app,
+.application {
+  width: 100%;
+  height: 100vh;
+}
+
+/* =========================
+   الشريط الجانبي
+========================= */
+
+#sidebar,
+.sidebar {
+  background:
+    linear-gradient(
+      180deg,
+      #111827 0%,
+      #0b1220 100%
+    ) !important;
+
+  color: #ffffff !important;
+
+  border-right:
+    1px solid
+    rgba(201, 162, 39, 0.35);
+
+  z-index: 20;
+}
+
+/* كل النصوص داخل القائمة */
+
+#sidebar *,
+.sidebar * {
+  color: inherit;
+}
+
+/* اسم الموقع */
+
+#sidebar #siteName,
+#sidebar .site-name,
+#sidebar .brand-name {
+  color: #d4af37 !important;
+  font-weight: 800;
+}
+
+/* وصف الموقع */
+
+#sidebar #siteDescription,
+#sidebar .site-description {
+  color: #d1d5db !important;
+}
+
+/* =========================
+   الأزرار الجانبية
+========================= */
+
+#sidebar button,
+.sidebar button {
+  color: #111827 !important;
+
+  background:
+    #ffffff !important;
+
+  border:
+    1px solid
+    rgba(201, 162, 39, 0.35);
+
+  border-radius: 12px;
+
+  font-family: inherit;
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+#sidebar button:hover,
+.sidebar button:hover {
+  background:
+    #fff8df !important;
+
+  transform:
+    translateY(-1px);
+
+  box-shadow:
+    0 6px 18px
+    rgba(0, 0, 0, 0.15);
+}
+
+/* =========================
+   المحتوى الرئيسي
+========================= */
+
+main,
+#main,
+.main-content,
+.chat-container {
+  background:
+    transparent !important;
+
+  color:
+    var(--text-color);
+}
+
+/* =========================
+   شريط العنوان العلوي
+========================= */
+
+header,
+.topbar,
+#topbar {
+  background:
+    rgba(255, 255, 255, 0.92) !important;
+
+  color:
+    #171717 !important;
+
+  border-bottom:
+    1px solid
+    var(--border-color);
+}
+
+header *,
+.topbar *,
+#topbar * {
+  color: inherit;
+}
+
+/* =========================
+   اسم T.M.D AI
+========================= */
+
+#topSiteName,
+.top-site-name {
+  color:
+    #1b1a17 !important;
+
+  font-weight:
+    800;
+}
+
+#topSiteName::first-letter {
+  color:
+    var(--primary-color);
+}
+
+/* =========================
+   الترحيب
+========================= */
+
+#welcome {
+  color:
+    var(--text-color) !important;
+
+  text-align:
+    center;
+}
+
+#welcome * {
+  color:
+    inherit;
+}
+
+#welcome h1,
+#welcome h2,
+#welcome .welcome-title {
+  color:
+    #171717 !important;
+
+  font-weight:
+    800;
+}
+
+#welcomeSiteName {
+  color:
+    var(--primary-color) !important;
+}
+
+#welcomeDescription {
+  color:
+    #6b7280 !important;
+}
+
+/* =========================
+   الاقتراحات
+========================= */
+
+.suggestion,
+.welcome-cards button,
+.welcome-cards .suggestion {
+  background:
+    rgba(255, 255, 255, 0.96) !important;
+
+  color:
+    #1b1a17 !important;
+
+  border:
+    1px solid
+    var(--border-color) !important;
+
+  border-radius:
+    12px;
+
+  box-shadow:
+    0 3px 12px
+    rgba(0, 0, 0, 0.06);
+}
+
+.suggestion *,
+.welcome-cards button * {
+  color:
+    inherit !important;
+}
+
+.suggestion:hover,
+.welcome-cards button:hover {
+  border-color:
+    var(--primary-color) !important;
+
+  background:
+    #fffaf0 !important;
+}
+
+/* =========================
+   الرسائل
+========================= */
+
+.message-row {
+  width: 100%;
+}
+
+.message-row .bubble {
+  color:
+    #171717;
+
+  line-height:
+    1.8;
+
+  word-break:
+    break-word;
+}
+
+/* رسالة المستخدم */
+
+.message-row.user .bubble {
+  background:
+    var(--primary-color);
+
+  color:
+    #ffffff !important;
+
+  border-radius:
+    18px 18px 4px 18px;
+}
+
+/* رسالة الذكاء الاصطناعي */
+
+.message-row.assistant .bubble {
+  background:
+    #ffffff;
+
+  color:
+    #171717 !important;
+
+  border:
+    1px solid
+    var(--border-color);
+
+  border-radius:
+    18px 18px 18px 4px;
+
+  box-shadow:
+    0 3px 14px
+    rgba(0, 0, 0, 0.06);
+}
+
+/* =========================
+   الصور داخل الرسائل
+========================= */
+
+.image-message img {
+  display:
+    block;
+
+  max-width:
+    100%;
+
+  width:
+    auto;
+
+  max-height:
+    420px;
+
+  object-fit:
+    contain;
+
+  border-radius:
+    12px;
+
+  margin-bottom:
+    10px;
+
+  background:
+    #f3f4f6;
+}
+
+/* =========================
+   مربع الكتابة
+========================= */
+
+#composer,
+.composer {
+  background:
+    rgba(255, 255, 255, 0.97) !important;
+
+  border:
+    1px solid
+    var(--primary-color) !important;
+
+  border-radius:
+    18px;
+
+  box-shadow:
+    0 8px 30px
+    rgba(0, 0, 0, 0.14);
+}
+
+/* حقل الكتابة */
+
+#input,
+textarea,
+.composer textarea {
+  background:
+    transparent !important;
+
+  color:
+    #171717 !important;
+
+  border:
+    none !important;
+
+  outline:
+    none !important;
+
+  font-family:
+    inherit;
+}
+
+#input::placeholder,
+textarea::placeholder {
+  color:
+    #6b7280 !important;
+
+  opacity:
+    1;
+}
+
+/* =========================
+   زر الإرسال
+========================= */
+
+#send,
+#sendButton,
+.send-button {
+  background:
+    var(--primary-color) !important;
+
+  color:
+    #ffffff !important;
+
+  border:
+    none !important;
+
+  border-radius:
+    12px;
+
+  cursor:
+    pointer;
+
+  font-size:
+    22px;
+
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease;
+}
+
+#send:hover,
+#sendButton:hover,
+.send-button:hover {
+  filter:
+    brightness(1.08);
+
+  transform:
+    scale(1.04);
+}
+
+#send:disabled,
+#sendButton:disabled {
+  opacity:
+    0.6;
+
+  cursor:
+    not-allowed;
+}
+
+/* =========================
+   زر +
+========================= */
+
+#plusButton {
+  background:
+    #ffffff !important;
+
+  color:
+    var(--primary-color) !important;
+
+  border:
+    1px solid
+    var(--primary-color) !important;
+
+  border-radius:
+    12px;
+
+  cursor:
+    pointer;
+
+  font-size:
+    22px;
+
+  transition:
+    0.2s ease;
+}
+
+#plusButton:hover {
+  background:
+    #fff8df !important;
+
+  transform:
+    scale(1.04);
+}
+
+/* =========================
+   قائمة +
+========================= */
+
+#plusMenu {
+  background:
+    #ffffff !important;
+
+  border:
+    1px solid
+    var(--border-color) !important;
+
+  box-shadow:
+    0 12px 35px
+    rgba(0, 0, 0, 0.18);
+
+  border-radius:
+    14px;
+
+  z-index:
+    100;
+}
+
+#plusMenu button {
+  background:
+    transparent !important;
+
+  color:
+    #171717 !important;
+
+  border:
+    none !important;
+
+  width:
+    100%;
+
+  text-align:
+    right;
+
+  cursor:
+    pointer;
+}
+
+#plusMenu button:hover {
+  background:
+    #fff8df !important;
+
+  color:
+    #8c6b00 !important;
+}
+
+/* =========================
+   معاينة الصورة
+========================= */
+
+#imagePreview {
+  background:
+    #ffffff;
+
+  border:
+    1px solid
+    var(--border-color);
+
+  border-radius:
+    14px;
+
+  box-shadow:
+    0 8px 25px
+    rgba(0, 0, 0, 0.15);
+
+  overflow:
+    hidden;
+}
+
+#previewImage {
+  display:
+    block;
+
+  max-width:
+    240px;
+
+  max-height:
+    180px;
+
+  width:
+    auto;
+
+  height:
+    auto;
+
+  object-fit:
+    contain;
+
+  border-radius:
+    10px;
+}
+
+#removeImage {
+  background:
+    #b91c1c !important;
+
+  color:
+    #ffffff !important;
+
+  border:
+    none !important;
+
+  border-radius:
+    50%;
+
+  cursor:
+    pointer;
+}
+
+/* =========================
+   الأفاتار
+========================= */
+
+.avatar {
+  background:
+    linear-gradient(
+      135deg,
+      #c9a227,
+      #f4df87
+    ) !important;
+
+  color:
+    #ffffff !important;
+
+  border-radius:
+    12px;
+
+  font-weight:
+    800;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+}
+
+/* =========================
+   لوحة المالك
+========================= */
+
+#ownerModal {
+  background:
+    rgba(0, 0, 0, 0.65);
+
+  z-index:
+    1000;
+}
+
+#ownerModal .modal,
+#ownerModal .owner-modal,
+#ownerModal > div {
+  background:
+    #ffffff;
+
+  color:
+    #171717;
+
+  border:
+    1px solid
+    var(--primary-color);
+
+  border-radius:
+    18px;
+
+  box-shadow:
+    0 20px 60px
+    rgba(0, 0, 0, 0.35);
+}
+
+#ownerModal input,
+#ownerModal textarea,
+#ownerModal select {
+  background:
+    #ffffff !important;
+
+  color:
+    #171717 !important;
+
+  border:
+    1px solid
+    #d1d5db !important;
+
+  border-radius:
+    10px;
+
+  font-family:
+    inherit;
+}
+
+#ownerModal input:focus,
+#ownerModal textarea:focus,
+#ownerModal select:focus {
+  border-color:
+    var(--primary-color) !important;
+
+  outline:
+    none;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(201, 162, 39, 0.15);
+}
+
+/* أزرار لوحة المالك */
+
+#ownerModal button {
+  font-family:
+    inherit;
+}
+
+/* =========================
+   حالة الخطأ
+========================= */
+
+.message-row.error .bubble {
+  background:
+    #fee2e2 !important;
+
+  color:
+    #991b1b !important;
+
+  border-color:
+    #fecaca !important;
+}
+
+/* =========================
+   مؤشر الكتابة
+========================= */
+
+.typing {
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    5px;
+}
+
+.typing span {
+  width:
+    7px;
+
+  height:
+    7px;
+
+  border-radius:
+    50%;
+
+  background:
+    var(--primary-color);
+
+  animation:
+    tmdTyping 1.2s infinite ease-in-out;
+}
+
+.typing span:nth-child(2) {
+  animation-delay:
+    0.15s;
+}
+
+.typing span:nth-child(3) {
+  animation-delay:
+    0.3s;
+}
+
+@keyframes tmdTyping {
+  0%,
+  60%,
+  100% {
+    transform:
+      translateY(0);
+
+    opacity:
+      0.45;
+  }
+
+  30% {
+    transform:
+      translateY(-4px);
+
+    opacity:
+      1;
+  }
+}
+
+/* =========================
+   الوضع الفاتح
+========================= */
+
+body.light {
+  background:
+    #faf8f1;
+
+  color:
+    #171717;
+}
+
+body.light .message-row.assistant .bubble {
+  background:
+    #ffffff;
+}
+
+/* =========================
+   الهاتف
+========================= */
+
+@media (max-width: 800px) {
+
+  #sidebar,
+  .sidebar {
+    position:
+      fixed;
+
+    top:
+      0;
+
+    right:
+      auto;
+
+    left:
+      0;
+
+    height:
+      100vh;
+
+    transform:
+      translateX(-100%);
+
+    transition:
+      transform 0.25s ease;
+
+    z-index:
+      100;
+  }
+
+  #sidebar.open,
+  .sidebar.open {
+    transform:
+      translateX(0);
+  }
+
+  .message-row .bubble {
+    max-width:
+      85%;
+  }
+
+  #composer,
+  .composer {
+    margin:
+      8px;
+  }
+
+}
+
+/* =========================
+   منع ظهور صور مكسورة
+========================= */
+
+img {
+  max-width:
+    100%;
+}
+
+img:not([src]),
+img[src=""] {
+  display:
+    none;
+}
+
+/* =========================
+   إصلاح العناصر المخفية
+========================= */
+
+[hidden] {
+  display:
+    none !important;
+}
