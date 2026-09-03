@@ -13,7 +13,8 @@ const state = {
   busy: false,
   selectedImage: null,
   imageMode: "analyze",
-  ownerToken: sessionStorage.getItem("tmd_owner_token") || "",
+  ownerToken:
+    sessionStorage.getItem("tmd_owner_token") || "",
   settings: null
 };
 
@@ -31,10 +32,15 @@ const welcome = document.getElementById("welcome");
 const sidebar = document.getElementById("sidebar");
 const overlay = document.getElementById("overlay");
 
-const plusButton = document.getElementById("plusButton");
-const plusMenu = document.getElementById("plusMenu");
+const plusButton =
+  document.getElementById("plusButton");
 
-const imageInput = document.getElementById("imageInput");
+const plusMenu =
+  document.getElementById("plusMenu");
+
+const imageInput =
+  document.getElementById("imageInput");
+
 const imageUploadButton =
   document.getElementById("imageUploadButton");
 
@@ -195,13 +201,17 @@ function addMessage(
   text,
   isError = false
 ) {
+  if (!chat) {
+    return null;
+  }
 
   const row =
     document.createElement("div");
 
   row.className =
-    `message-row ${role}${isError ? " error" : ""}`;
-
+    `message-row ${role}${
+      isError ? " error" : ""
+    }`;
 
   const avatar =
     document.createElement("div");
@@ -217,7 +227,6 @@ function addMessage(
           "T"
         );
 
-
   const bubble =
     document.createElement("div");
 
@@ -225,25 +234,19 @@ function addMessage(
     "bubble";
 
   bubble.textContent =
-    text;
-
+    String(text || "");
 
   if (role === "user") {
-
     row.append(
       bubble,
       avatar
     );
-
   } else {
-
     row.append(
       avatar,
       bubble
     );
-
   }
-
 
   chat.appendChild(row);
 
@@ -258,6 +261,9 @@ function addMessage(
 ========================= */
 
 function render() {
+  if (!chat) {
+    return;
+  }
 
   chat
     .querySelectorAll(
@@ -268,25 +274,19 @@ function render() {
         element.remove()
     );
 
-
   if (welcome) {
-
     welcome.style.display =
       state.messages.length
         ? "none"
         : "flex";
-
   }
-
 
   state.messages.forEach(
     message => {
-
       addMessage(
         message.role,
         message.content
       );
-
     }
   );
 }
@@ -297,13 +297,10 @@ function render() {
 ========================= */
 
 function setBusy(value) {
-
   state.busy =
     Boolean(value);
 
-
   if (send) {
-
     send.disabled =
       state.busy;
 
@@ -311,7 +308,6 @@ function setBusy(value) {
       state.busy
         ? "…"
         : "➤";
-
   }
 }
 
@@ -321,7 +317,6 @@ function setBusy(value) {
 ========================= */
 
 function closeSidebar() {
-
   if (sidebar) {
     sidebar.classList.remove(
       "open"
@@ -341,12 +336,13 @@ function closeSidebar() {
 ========================= */
 
 function newChat() {
-
   state.messages = [];
 
   saveMessages();
 
   render();
+
+  removeSelectedImage();
 
   if (input) {
     input.focus();
@@ -359,7 +355,6 @@ function newChat() {
 ========================= */
 
 function showError(message) {
-
   addMessage(
     "assistant",
     message,
@@ -369,58 +364,64 @@ function showError(message) {
 
 
 /* =========================
-   إرسال الرسالة
+   إرسال الرسالة النصية
 ========================= */
 
 async function sendMessage(text) {
-
   const message =
     String(text || "").trim();
 
-
   if (
-    !message ||
+    (!message &&
+      !state.selectedImage) ||
     state.busy
   ) {
     return;
   }
 
+  /*
+   * إذا كانت هناك صورة مختارة،
+   * يتم إرسالها للتحليل بدل إرسال
+   * رسالة نصية عادية.
+   */
+
+  if (state.selectedImage) {
+    await analyzeSelectedImage(
+      message
+    );
+
+    return;
+  }
 
   state.messages.push({
     role: "user",
     content: message
   });
 
-
   saveMessages();
 
   render();
 
-
-  input.value = "";
-
-  input.style.height =
-    "auto";
-
+  if (input) {
+    input.value = "";
+    input.style.height =
+      "auto";
+  }
 
   setBusy(true);
 
-
   const typing =
-    document.createElement(
-      "div"
-    );
-
+    document.createElement("div");
 
   typing.className =
     "message-row assistant";
-
 
   typing.innerHTML =
     `
       <div class="avatar">
         ${escapeHtml(
-          state.settings?.logoText || "T"
+          state.settings?.logoText ||
+          "T"
         )}
       </div>
 
@@ -431,16 +432,15 @@ async function sendMessage(text) {
       </div>
     `;
 
-
-  chat.appendChild(
-    typing
-  );
+  if (chat) {
+    chat.appendChild(
+      typing
+    );
+  }
 
   scrollBottom();
 
-
   try {
-
     const response =
       await fetch(
         "/api/chat",
@@ -460,7 +460,6 @@ async function sendMessage(text) {
         }
       );
 
-
     const data =
       await response
         .json()
@@ -468,22 +467,17 @@ async function sendMessage(text) {
           () => ({})
         );
 
-
     typing.remove();
-
 
     if (
       !response.ok ||
       !data.ok
     ) {
-
       throw new Error(
         data.error ||
         `HTTP ${response.status}`
       );
-
     }
-
 
     state.messages.push({
       role: "assistant",
@@ -491,14 +485,11 @@ async function sendMessage(text) {
         data.message
     });
 
-
     saveMessages();
 
     render();
 
-
   } catch (error) {
-
     typing.remove();
 
     showError(
@@ -509,11 +500,9 @@ async function sendMessage(text) {
     );
 
   } finally {
-
     setBusy(false);
 
-    input.focus();
-
+    input?.focus();
   }
 }
 
@@ -523,72 +512,49 @@ async function sendMessage(text) {
 ========================= */
 
 function togglePlusMenu() {
-
   if (!plusMenu) {
     return;
   }
-
 
   const isOpen =
     plusMenu.classList.contains(
       "show"
     );
 
+  plusMenu.classList.toggle(
+    "show",
+    !isOpen
+  );
 
-  if (isOpen) {
-
-    plusMenu.classList.remove(
-      "show"
-    );
-
-    plusMenu.setAttribute(
-      "aria-hidden",
-      "true"
-    );
-
-  } else {
-
-    plusMenu.classList.add(
-      "show"
-    );
-
-    plusMenu.setAttribute(
-      "aria-hidden",
-      "false"
-    );
-
-  }
+  plusMenu.setAttribute(
+    "aria-hidden",
+    String(isOpen)
+  );
 }
 
 
 /* =========================
-   فتح رفع الصور
+   فتح اختيار الصورة
 ========================= */
 
 function openImagePicker(
   mode = "analyze"
 ) {
-
   state.imageMode =
     mode;
 
+  plusMenu?.classList.remove(
+    "show"
+  );
 
-  if (plusMenu) {
-
-    plusMenu.classList.remove(
-      "show"
-    );
-
-  }
-
+  plusMenu?.setAttribute(
+    "aria-hidden",
+    "true"
+  );
 
   if (imageInput) {
-
-    imageInput.value =
-      "";
-
+    imageInput.value = "";
     imageInput.click();
-
   }
 }
 
@@ -598,33 +564,30 @@ function openImagePicker(
 ========================= */
 
 function readImageFile(file) {
-
   return new Promise(
     (resolve, reject) => {
-
       const reader =
         new FileReader();
 
-
       reader.onload =
-        () => resolve(
-          reader.result
-        );
-
+        () => {
+          resolve(
+            reader.result
+          );
+        };
 
       reader.onerror =
-        () =>
+        () => {
           reject(
             new Error(
               "تعذر قراءة الصورة."
             )
           );
-
+        };
 
       reader.readAsDataURL(
         file
       );
-
     }
   );
 }
@@ -637,15 +600,12 @@ function readImageFile(file) {
 async function handleImageSelection(
   event
 ) {
-
   const file =
     event.target.files?.[0];
-
 
   if (!file) {
     return;
   }
-
 
   const allowedTypes = [
     "image/jpeg",
@@ -654,75 +614,59 @@ async function handleImageSelection(
     "image/gif"
   ];
 
-
   if (
     !allowedTypes.includes(
       file.type
     )
   ) {
-
-    alert(
-      "نوع الصورة غير مدعوم."
+    showError(
+      "نوع الصورة غير مدعوم. استخدم JPG أو PNG أو WEBP أو GIF."
     );
 
     return;
-
   }
-
 
   if (
     file.size >
     8 * 1024 * 1024
   ) {
-
-    alert(
+    showError(
       "حجم الصورة يجب ألا يتجاوز 8MB."
     );
 
     return;
-
   }
 
-
   try {
-
     const dataUrl =
       await readImageFile(
         file
       );
-
 
     state.selectedImage = {
       file,
       dataUrl
     };
 
-
     if (previewImage) {
-
       previewImage.src =
         dataUrl;
-
     }
-
 
     if (imagePreview) {
-
       imagePreview.hidden =
         false;
-
     }
 
-
     /*
-     * بعد اختيار الصورة:
-     * نرسلها مباشرة للتحليل.
+     * لا نرسل الصورة مباشرة.
+     * المستخدم يستطيع كتابة سؤاله
+     * ثم الضغط على زر الإرسال.
      */
 
-    await analyzeSelectedImage();
+    input?.focus();
 
   } catch (error) {
-
     console.error(
       "Image selection error:",
       error
@@ -732,7 +676,6 @@ async function handleImageSelection(
       error.message ||
       "تعذر التعامل مع الصورة."
     );
-
   }
 }
 
@@ -741,8 +684,9 @@ async function handleImageSelection(
    تحليل الصورة
 ========================= */
 
-async function analyzeSelectedImage() {
-
+async function analyzeSelectedImage(
+  customPrompt = ""
+) {
   if (
     !state.selectedImage ||
     state.busy
@@ -750,64 +694,61 @@ async function analyzeSelectedImage() {
     return;
   }
 
-
   const prompt =
-    input.value.trim() ||
+    String(
+      customPrompt ||
+      input?.value ||
+      ""
+    ).trim() ||
     (
       state.imageMode === "edit"
         ? "أخبرني بالتفصيل كيف يمكن تعديل هذه الصورة وما التعديلات المقترحة."
         : "حلل هذه الصورة بالتفصيل واذكر أهم العناصر والمعلومات الموجودة فيها."
     );
 
-
-  input.value = "";
-
-  input.style.height =
-    "auto";
-
+  if (input) {
+    input.value = "";
+    input.style.height =
+      "auto";
+  }
 
   setBusy(true);
 
+  /*
+   * عرض الصورة للمستخدم
+   */
 
   const userRow =
     document.createElement(
       "div"
     );
 
-
   userRow.className =
     "message-row user";
-
 
   const userAvatar =
     document.createElement(
       "div"
     );
 
-
   userAvatar.className =
     "avatar";
 
-
   userAvatar.textContent =
     "أنت";
-
 
   const userBubble =
     document.createElement(
       "div"
     );
 
-
   userBubble.className =
     "bubble image-message";
-
 
   const image =
     document.createElement(
       "img"
     );
-
 
   image.src =
     state.selectedImage.dataUrl;
@@ -815,52 +756,46 @@ async function analyzeSelectedImage() {
   image.alt =
     "الصورة المرسلة";
 
-
   const caption =
     document.createElement(
       "div"
     );
 
-
   caption.textContent =
     prompt;
-
 
   userBubble.append(
     image,
     caption
   );
 
-
   userRow.append(
     userBubble,
     userAvatar
   );
 
-
-  chat.appendChild(
-    userRow
-  );
-
+  if (chat) {
+    chat.appendChild(
+      userRow
+    );
+  }
 
   scrollBottom();
-
 
   const typing =
     document.createElement(
       "div"
     );
 
-
   typing.className =
     "message-row assistant";
-
 
   typing.innerHTML =
     `
       <div class="avatar">
         ${escapeHtml(
-          state.settings?.logoText || "T"
+          state.settings?.logoText ||
+          "T"
         )}
       </div>
 
@@ -871,17 +806,15 @@ async function analyzeSelectedImage() {
       </div>
     `;
 
-
-  chat.appendChild(
-    typing
-  );
-
+  if (chat) {
+    chat.appendChild(
+      typing
+    );
+  }
 
   scrollBottom();
 
-
   try {
-
     const response =
       await fetch(
         "/api/image",
@@ -906,7 +839,6 @@ async function analyzeSelectedImage() {
         }
       );
 
-
     const data =
       await response
         .json()
@@ -914,31 +846,24 @@ async function analyzeSelectedImage() {
           () => ({})
         );
 
-
     typing.remove();
-
 
     if (
       !response.ok ||
       !data.ok
     ) {
-
       throw new Error(
         data.error ||
         `HTTP ${response.status}`
       );
-
     }
-
 
     addMessage(
       "assistant",
       data.message
     );
 
-
   } catch (error) {
-
     typing.remove();
 
     showError(
@@ -949,13 +874,11 @@ async function analyzeSelectedImage() {
     );
 
   } finally {
-
     setBusy(false);
 
     removeSelectedImage();
 
-    input.focus();
-
+    input?.focus();
   }
 }
 
@@ -965,71 +888,57 @@ async function analyzeSelectedImage() {
 ========================= */
 
 function removeSelectedImage() {
-
   state.selectedImage =
     null;
 
-
   if (imagePreview) {
-
     imagePreview.hidden =
       true;
-
   }
-
 
   if (previewImage) {
-
     previewImage.src =
       "";
-
   }
-
 
   if (imageInput) {
-
     imageInput.value =
       "";
-
   }
-
 }
 
 
 /* =========================
-   تطبيق إعدادات الموقع
+   تطبيق الإعدادات
 ========================= */
 
 function applySettings(
   incoming
 ) {
-
   state.settings = {
     ...DEFAULT_SETTINGS,
     ...(incoming || {})
   };
 
-
   const s =
     state.settings;
-
 
   document.documentElement.style.setProperty(
     "--primary-color",
     s.primaryColor
   );
 
+  document.documentElement.style.setProperty(
+    "--secondary-color",
+    s.secondaryColor
+  );
 
   document.documentElement.style.setProperty(
     "--background-color",
     s.backgroundColor
   );
 
-
-  if (
-    s.backgroundImage
-  ) {
-
+  if (s.backgroundImage) {
     document.body.style.backgroundImage =
       `url("${escapeCssUrl(
         s.backgroundImage
@@ -1038,18 +947,14 @@ function applySettings(
     document.body.classList.add(
       "custom-background"
     );
-
   } else {
-
     document.body.style.backgroundImage =
       "";
 
     document.body.classList.remove(
       "custom-background"
     );
-
   }
-
 
   setText(
     "siteName",
@@ -1066,116 +971,83 @@ function applySettings(
     s.siteName
   );
 
-
   setText(
     "siteDescription",
     s.siteDescription
   );
-
 
   setText(
     "welcomeDescription",
     s.siteDescription
   );
 
-
   setText(
     "developer",
     `المطور: ${s.developerName}`
   );
-
 
   setText(
     "brandIcon",
     s.logoText || "T"
   );
 
-
   setText(
     "welcomeLogo",
     s.logoText || "T"
   );
 
-
   document.title =
     s.siteName ||
     "T.M.D AI";
 
+  const developer =
+    document.getElementById(
+      "developer"
+    );
 
-  if (
-    !s.showDeveloper
-  ) {
-
-    const developer =
-      document.getElementById(
-        "developer"
-      );
-
-    if (developer) {
-      developer.style.display =
-        "none";
-    }
-
+  if (developer) {
+    developer.style.display =
+      s.showDeveloper
+        ? ""
+        : "none";
   }
 
+  document
+    .querySelectorAll(
+      ".suggestion, .welcome-cards"
+    )
+    .forEach(
+      element => {
+        element.style.display =
+          s.showSuggestions
+            ? ""
+            : "none";
+      }
+    );
 
   if (
-    !s.showSuggestions
+    welcome &&
+    !s.showWelcome
   ) {
-
-    document
-      .querySelectorAll(
-        ".suggestion, .welcome-cards"
-      )
-      .forEach(
-        element => {
-          element.style.display =
-            "none";
-        }
-      );
-
-  }
-
-
-  if (
-    !s.showWelcome &&
-    welcome
-  ) {
-
     welcome.style.display =
       "none";
-
   }
 
-
-  if (
-    !s.enableImageTools
-  ) {
-
-    if (plusButton) {
-      plusButton.style.display =
-        "none";
-    }
-
-  } else {
-
-    if (plusButton) {
-      plusButton.style.display =
-        "inline-flex";
-    }
-
+  if (plusButton) {
+    plusButton.style.display =
+      s.enableImageTools
+        ? "inline-flex"
+        : "none";
   }
 }
 
 
 /* =========================
-   جلب الإعدادات
+   جلب إعدادات الموقع
 ========================= */
 
 async function loadSettings() {
-
   try {
-
     const response =
       await fetch(
         "/api/settings",
@@ -1185,7 +1057,6 @@ async function loadSettings() {
         }
       );
 
-
     const data =
       await response
         .json()
@@ -1193,30 +1064,24 @@ async function loadSettings() {
           () => ({})
         );
 
-
     if (
       response.ok &&
       data.ok &&
       data.settings
     ) {
-
       applySettings(
         data.settings
       );
 
       return;
-
     }
 
   } catch (error) {
-
     console.warn(
       "Settings request failed:",
       error
     );
-
   }
-
 
   applySettings(
     DEFAULT_SETTINGS
@@ -1225,34 +1090,25 @@ async function loadSettings() {
 
 
 /* =========================
-   فتح لوحة المالك
+   لوحة المالك
 ========================= */
 
 async function openOwnerPanel() {
-
   if (!ownerModal) {
     return;
   }
 
-
   ownerModal.hidden =
     false;
 
-
-  if (
-    state.ownerToken
-  ) {
-
+  if (state.ownerToken) {
     showOwnerPanel();
 
     await loadOwnerSettings();
 
   } else {
-
     showOwnerLogin();
-
   }
-
 
   setTimeout(
     () => {
@@ -1263,26 +1119,15 @@ async function openOwnerPanel() {
 }
 
 
-/* =========================
-   إغلاق لوحة المالك
-========================= */
-
 function closeOwnerPanel() {
-
   if (ownerModal) {
     ownerModal.hidden =
       true;
   }
-
 }
 
-
-/* =========================
-   واجهة تسجيل المالك
-========================= */
 
 function showOwnerLogin() {
-
   if (ownerLoginSection) {
     ownerLoginSection.hidden =
       false;
@@ -1292,16 +1137,10 @@ function showOwnerLogin() {
     ownerPanelSection.hidden =
       true;
   }
-
 }
 
-
-/* =========================
-   واجهة لوحة التحكم
-========================= */
 
 function showOwnerPanel() {
-
   if (ownerLoginSection) {
     ownerLoginSection.hidden =
       true;
@@ -1311,43 +1150,32 @@ function showOwnerPanel() {
     ownerPanelSection.hidden =
       false;
   }
-
 }
 
 
 /* =========================
-   تسجيل دخول المالك
+   دخول المالك
 ========================= */
 
 async function loginOwner(
   event
 ) {
-
   event.preventDefault();
-
 
   const password =
     ownerPassword?.value.trim();
 
-
   if (!password) {
-
     setOwnerError(
       "أدخل كلمة مرور المالك."
     );
 
     return;
-
   }
 
-
-  setOwnerError(
-    ""
-  );
-
+  setOwnerError("");
 
   try {
-
     const response =
       await fetch(
         "/api/owner-login",
@@ -1366,7 +1194,6 @@ async function loginOwner(
         }
       );
 
-
     const data =
       await response
         .json()
@@ -1374,82 +1201,62 @@ async function loginOwner(
           () => ({})
         );
 
-
     if (
       !response.ok ||
       !data.ok
     ) {
-
       throw new Error(
         data.error ||
         "بيانات الدخول غير صحيحة."
       );
-
     }
-
 
     state.ownerToken =
       data.token;
-
 
     sessionStorage.setItem(
       "tmd_owner_token",
       state.ownerToken
     );
 
-
-    ownerPassword.value =
-      "";
-
+    if (ownerPassword) {
+      ownerPassword.value =
+        "";
+    }
 
     showOwnerPanel();
 
     await loadOwnerSettings();
 
-
   } catch (error) {
-
     setOwnerError(
       error.message ||
       "تعذر تسجيل الدخول."
     );
-
   }
 }
 
-
-/* =========================
-   خطأ تسجيل الدخول
-========================= */
 
 function setOwnerError(
   message
 ) {
-
   if (ownerLoginError) {
-
     ownerLoginError.textContent =
       message || "";
-
   }
 }
 
 
 /* =========================
-   جلب إعدادات المالك
+   تحميل إعدادات المالك
 ========================= */
 
 async function loadOwnerSettings() {
-
-  if (
-    !state.ownerToken
-  ) {
+  if (!state.ownerToken) {
     return;
   }
 
-
   try {
-
     const response =
       await fetch(
         "/api/settings",
@@ -1459,14 +1266,12 @@ async function loadOwnerSettings() {
         }
       );
 
-
     const data =
       await response
         .json()
         .catch(
           () => ({})
         );
-
 
     if (
       !response.ok ||
@@ -1475,37 +1280,27 @@ async function loadOwnerSettings() {
       return;
     }
 
-
-    const settings = {
+    fillSettingsForm({
       ...DEFAULT_SETTINGS,
       ...(data.settings || {})
-    };
-
-
-    fillSettingsForm(
-      settings
-    );
-
+    });
 
   } catch (error) {
-
     console.error(
       "Load owner settings error:",
       error
     );
-
   }
 }
 
 
 /* =========================
-   تعبئة نموذج الإعدادات
+   تعبئة الإعدادات
 ========================= */
 
 function fillSettingsForm(
   settings
 ) {
-
   if (settingSiteName) {
     settingSiteName.value =
       settings.siteName || "";
@@ -1535,35 +1330,31 @@ function fillSettingsForm(
 
   if (settingLogoText) {
     settingLogoText.value =
-      settings.logoText || "T";
+      settings.logoText ||
+      "T";
   }
 
   if (settingBackgroundImage) {
     settingBackgroundImage.value =
-      settings.backgroundImage || "";
+      settings.backgroundImage ||
+      "";
   }
 }
 
 
 /* =========================
-   حفظ إعدادات المالك
+   حفظ الإعدادات
 ========================= */
 
 async function saveOwnerSettings() {
-
-  if (
-    !state.ownerToken
-  ) {
-
+  if (!state.ownerToken) {
     showSettingsMessage(
       "يجب تسجيل دخول المالك أولًا.",
       true
     );
 
     return;
-
   }
-
 
   const settings = {
     siteName:
@@ -1598,9 +1389,7 @@ async function saveOwnerSettings() {
       ""
   };
 
-
   try {
-
     const response =
       await fetch(
         "/api/settings",
@@ -1622,7 +1411,6 @@ async function saveOwnerSettings() {
         }
       );
 
-
     const data =
       await response
         .json()
@@ -1630,46 +1418,37 @@ async function saveOwnerSettings() {
           () => ({})
         );
 
-
     if (
       !response.ok ||
       !data.ok
     ) {
-
       throw new Error(
         data.error ||
         `HTTP ${response.status}`
       );
-
     }
-
 
     applySettings(
       data.settings ||
       settings
     );
 
-
     showSettingsMessage(
       "تم حفظ الإعدادات بنجاح.",
       false
     );
 
-
   } catch (error) {
-
     console.error(
       "Save settings error:",
       error
     );
-
 
     showSettingsMessage(
       error.message ||
       "تعذر حفظ الإعدادات.",
       true
     );
-
   }
 }
 
@@ -1682,30 +1461,24 @@ function showSettingsMessage(
   message,
   isError
 ) {
-
   if (!settingsMessage) {
     return;
   }
 
-
   settingsMessage.textContent =
     message;
-
 
   settingsMessage.classList.toggle(
     "error",
     Boolean(isError)
   );
 
-
   setTimeout(
     () => {
-
       if (settingsMessage) {
         settingsMessage.textContent =
           "";
       }
-
     },
     4000
   );
@@ -1713,15 +1486,12 @@ function showSettingsMessage(
 
 
 /* =========================
-   تسجيل خروج المالك
+   خروج المالك
 ========================= */
 
 async function logoutOwner() {
-
   try {
-
     if (state.ownerToken) {
-
       await fetch(
         "/api/owner-logout",
         {
@@ -1735,11 +1505,8 @@ async function logoutOwner() {
       ).catch(
         () => {}
       );
-
     }
-
   } finally {
-
     state.ownerToken =
       "";
 
@@ -1750,21 +1517,18 @@ async function logoutOwner() {
     showOwnerLogin();
 
     closeOwnerPanel();
-
   }
 }
 
 
 /* =========================
-   الوضع الليلي / الفاتح
+   الوضع الليلي
 ========================= */
 
 function toggleTheme() {
-
   document.body.classList.toggle(
     "light"
   );
-
 
   localStorage.setItem(
     "tmd_theme",
@@ -1778,41 +1542,30 @@ function toggleTheme() {
 }
 
 
-/* =========================
-   تحميل المظهر
-========================= */
-
 function loadTheme() {
-
   if (
     localStorage.getItem(
       "tmd_theme"
     ) === "light"
   ) {
-
     document.body.classList.add(
       "light"
     );
-
   }
-
 }
 
 
 /* =========================
-   Auto Resize
+   تغيير حجم مربع الكتابة
 ========================= */
 
 function resizeInput() {
-
   if (!input) {
     return;
   }
 
-
   input.style.height =
     "auto";
-
 
   input.style.height =
     Math.min(
@@ -1823,13 +1576,12 @@ function resizeInput() {
 
 
 /* =========================
-   Escape HTML
+   حماية HTML
 ========================= */
 
 function escapeHtml(
   value
 ) {
-
   return String(
     value || ""
   )
@@ -1857,13 +1609,12 @@ function escapeHtml(
 
 
 /* =========================
-   Escape CSS URL
+   حماية رابط الخلفية
 ========================= */
 
 function escapeCssUrl(
   value
 ) {
-
   return String(
     value || ""
   )
@@ -1883,25 +1634,21 @@ function escapeCssUrl(
 
 
 /* =========================
-   Set Text
+   تغيير النص
 ========================= */
 
 function setText(
   id,
   value
 ) {
-
   const element =
     document.getElementById(
       id
     );
 
-
   if (element) {
-
     element.textContent =
       value ?? "";
-
   }
 }
 
@@ -1914,138 +1661,110 @@ function setText(
 /* إرسال */
 
 if (composer) {
-
   composer.addEventListener(
     "submit",
     event => {
-
       event.preventDefault();
 
       sendMessage(
-        input.value
+        input?.value || ""
       );
-
     }
   );
-
 }
 
 
 /* Enter */
 
 if (input) {
-
   input.addEventListener(
     "keydown",
     event => {
-
       if (
         event.key === "Enter" &&
         !event.shiftKey
       ) {
-
         event.preventDefault();
 
         composer?.requestSubmit();
-
       }
-
     }
   );
-
 
   input.addEventListener(
     "input",
     resizeInput
   );
-
 }
 
 
 /* زر + */
 
 if (plusButton) {
-
   plusButton.addEventListener(
     "click",
     event => {
-
       event.stopPropagation();
 
       togglePlusMenu();
-
     }
   );
-
 }
 
 
-/* رفع صورة */
+/* تحليل صورة */
 
 if (imageUploadButton) {
-
   imageUploadButton.addEventListener(
     "click",
     () => {
-
       openImagePicker(
         "analyze"
       );
-
     }
   );
-
 }
 
 
 /* تعديل صورة */
 
 if (imageEditButton) {
-
   imageEditButton.addEventListener(
     "click",
     () => {
-
       openImagePicker(
         "edit"
       );
-
     }
   );
-
 }
 
 
 /* اختيار الصورة */
 
 if (imageInput) {
-
   imageInput.addEventListener(
     "change",
     handleImageSelection
   );
-
 }
 
 
 /* إزالة الصورة */
 
 if (removeImage) {
-
   removeImage.addEventListener(
     "click",
     removeSelectedImage
   );
-
 }
 
 
-/* الضغط خارج قائمة + */
+/* إغلاق قائمة + */
 
 document.addEventListener(
   "click",
   event => {
-
     if (
       plusMenu &&
       plusButton &&
@@ -2056,7 +1775,6 @@ document.addEventListener(
         event.target
       )
     ) {
-
       plusMenu.classList.remove(
         "show"
       );
@@ -2065,9 +1783,7 @@ document.addEventListener(
         "aria-hidden",
         "true"
       );
-
     }
-
   }
 );
 
@@ -2080,10 +1796,12 @@ document
   )
   .forEach(
     button => {
-
       button.addEventListener(
         "click",
         () => {
+          if (!input) {
+            return;
+          }
 
           input.value =
             button.dataset.prompt ||
@@ -2094,10 +1812,8 @@ document
           input.dispatchEvent(
             new Event("input")
           );
-
         }
       );
-
     }
   );
 
@@ -2109,20 +1825,15 @@ const newChatButton =
     "newChat"
   );
 
-
 if (newChatButton) {
-
   newChatButton.addEventListener(
     "click",
     () => {
-
       newChat();
 
       closeSidebar();
-
     }
   );
-
 }
 
 
@@ -2133,18 +1844,13 @@ const clearChat =
     "clearChat"
   );
 
-
 if (clearChat) {
-
   clearChat.addEventListener(
     "click",
     () => {
-
       newChat();
-
     }
   );
-
 }
 
 
@@ -2155,14 +1861,11 @@ const themeButton =
     "theme"
   );
 
-
 if (themeButton) {
-
   themeButton.addEventListener(
     "click",
     toggleTheme
   );
-
 }
 
 
@@ -2173,13 +1876,10 @@ const menuButton =
     "menuBtn"
   );
 
-
 if (menuButton) {
-
   menuButton.addEventListener(
     "click",
     () => {
-
       sidebar?.classList.add(
         "open"
       );
@@ -2187,105 +1887,85 @@ if (menuButton) {
       overlay?.classList.add(
         "show"
       );
-
     }
   );
-
 }
 
 
 /* إغلاق القائمة */
 
 if (overlay) {
-
   overlay.addEventListener(
     "click",
     closeSidebar
   );
-
 }
 
 
 /* لوحة المالك */
 
 if (ownerButton) {
-
   ownerButton.addEventListener(
     "click",
     openOwnerPanel
   );
-
 }
 
 
 /* إغلاق لوحة المالك */
 
 if (closeOwnerModal) {
-
   closeOwnerModal.addEventListener(
     "click",
     closeOwnerPanel
   );
-
 }
 
 
 /* تسجيل دخول المالك */
 
 if (ownerLoginForm) {
-
   ownerLoginForm.addEventListener(
     "submit",
     loginOwner
   );
-
 }
 
 
 /* حفظ الإعدادات */
 
 if (saveSettingsButton) {
-
   saveSettingsButton.addEventListener(
     "click",
     saveOwnerSettings
   );
-
 }
 
 
 /* خروج المالك */
 
 if (ownerLogout) {
-
   ownerLogout.addEventListener(
     "click",
     logoutOwner
   );
-
 }
 
 
 /* الضغط على خلفية النافذة */
 
 if (ownerModal) {
-
   ownerModal.addEventListener(
     "click",
     event => {
-
       if (
         event.target ===
         ownerModal
       ) {
-
         closeOwnerPanel();
-
       }
-
     }
   );
-
 }
 
 
