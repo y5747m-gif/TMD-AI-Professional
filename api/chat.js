@@ -19,7 +19,7 @@ module.exports = async function handler(req, res) {
     });
   }
 
-  // مفتاح Groq الموجود في Vercel
+  // مفتاح Groq من Vercel
   const apiKey = process.env.GROQ_API_KEY;
 
   if (!apiKey) {
@@ -62,8 +62,8 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // موديل Groq
-    const model = 'llama-3.1-8b-instant';
+    // الموديل الجديد
+    const model = 'openai/gpt-oss-20b';
 
     // إرسال الطلب إلى Groq
     const response = await fetch(GROQ_URL, {
@@ -71,7 +71,7 @@ module.exports = async function handler(req, res) {
 
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        Authorization: `Bearer ${apiKey}`
       },
 
       body: JSON.stringify({
@@ -83,6 +83,7 @@ module.exports = async function handler(req, res) {
             content:
               'أنت T.M.D AI، مساعد ذكاء اصطناعي عربي احترافي. أجب بوضوح وباختصار مفيد. ادعم العربية والإنجليزية. ساعد المستخدم في البرمجة والدراسة والكتابة والأسئلة العامة.'
           },
+
           ...cleaned
         ],
 
@@ -99,7 +100,7 @@ module.exports = async function handler(req, res) {
       const message =
         data &&
         data.error &&
-        data.error.message
+        typeof data.error.message === 'string'
           ? data.error.message
           : `Groq returned HTTP ${response.status}`;
 
@@ -111,7 +112,7 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // استخراج الإجابة
+    // استخراج الرد
     const text =
       data &&
       data.choices &&
@@ -130,7 +131,7 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    // إرسال الإجابة للموقع
+    // إرسال الرد للموقع
     return res.status(200).json({
       ok: true,
       message: text,
