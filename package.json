@@ -2,14 +2,11 @@
   "name": "tmd-ai-professional",
   "version": "3.0.0",
   "private": true,
-  "description": "T.M.D AI - Vercel + Groq + Vercel Blob",
+  "description": "T.M.D AI - Arabic AI Assistant with image support and owner customization",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
     "dev": "vercel dev"
-  },
-  "dependencies": {
-    "@vercel/blob": "^2.3.0"
   }
 }
