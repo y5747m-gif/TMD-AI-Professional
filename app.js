@@ -1,7 +1,10 @@
 const state = {
-  messages: JSON.parse(localStorage.getItem("tmd_messages") || "[]"),
+  messages: loadMessages(),
   busy: false
 };
+
+
+/* ================= ELEMENTS ================= */
 
 const chat = document.getElementById("chat");
 const input = document.getElementById("input");
@@ -12,33 +15,95 @@ const welcome = document.getElementById("welcome");
 const sidebar = document.getElementById("sidebar");
 const overlay = document.getElementById("overlay");
 
+const themeButton = document.getElementById("theme");
+
+
+/* ================= STORAGE ================= */
+
+function loadMessages() {
+  try {
+
+    const saved =
+      localStorage.getItem("tmd_messages");
+
+    if (!saved) {
+      return [];
+    }
+
+    const parsed =
+      JSON.parse(saved);
+
+    return Array.isArray(parsed)
+      ? parsed
+      : [];
+
+  } catch (error) {
+
+    console.warn(
+      "Unable to load saved messages.",
+      error
+    );
+
+    return [];
+  }
+}
+
 
 function save() {
-  localStorage.setItem(
-    "tmd_messages",
-    JSON.stringify(state.messages)
-  );
+
+  try {
+
+    localStorage.setItem(
+      "tmd_messages",
+      JSON.stringify(state.messages)
+    );
+
+  } catch (error) {
+
+    console.warn(
+      "Unable to save messages.",
+      error
+    );
+
+  }
+
 }
 
+
+/* ================= SCROLL ================= */
 
 function scrollBottom() {
+
   requestAnimationFrame(() => {
-    chat.scrollTop = chat.scrollHeight;
+
+    chat.scrollTop =
+      chat.scrollHeight;
+
   });
+
 }
 
 
-function addMessage(role, text, isError = false) {
+/* ================= ADD MESSAGE ================= */
 
-  const row = document.createElement("div");
+function addMessage(
+  role,
+  text,
+  isError = false
+) {
+
+  const row =
+    document.createElement("div");
 
   row.className =
     `message-row ${role}${isError ? " error" : ""}`;
 
 
-  const avatar = document.createElement("div");
+  const avatar =
+    document.createElement("div");
 
-  avatar.className = "avatar";
+  avatar.className =
+    "avatar";
 
   avatar.textContent =
     role === "user"
@@ -46,11 +111,14 @@ function addMessage(role, text, isError = false) {
       : "T";
 
 
-  const bubble = document.createElement("div");
+  const bubble =
+    document.createElement("div");
 
-  bubble.className = "bubble";
+  bubble.className =
+    "bubble";
 
-  bubble.textContent = text;
+  bubble.textContent =
+    String(text || "");
 
 
   if (role === "user") {
@@ -75,14 +143,21 @@ function addMessage(role, text, isError = false) {
   scrollBottom();
 
   return row;
+
 }
 
+
+/* ================= RENDER ================= */
 
 function render() {
 
   chat
     .querySelectorAll(".message-row")
-    .forEach((element) => element.remove());
+    .forEach((element) => {
+
+      element.remove();
+
+    });
 
 
   welcome.style.display =
@@ -93,6 +168,15 @@ function render() {
 
   state.messages.forEach((message) => {
 
+    if (
+      !message ||
+      !message.role ||
+      typeof message.content !== "string"
+    ) {
+      return;
+    }
+
+
     addMessage(
       message.role,
       message.content
@@ -100,22 +184,33 @@ function render() {
 
   });
 
+
+  scrollBottom();
+
 }
 
 
+/* ================= BUSY ================= */
+
 function setBusy(value) {
 
-  state.busy = value;
+  state.busy =
+    Boolean(value);
 
-  send.disabled = value;
+
+  send.disabled =
+    state.busy;
+
 
   send.textContent =
-    value
+    state.busy
       ? "…"
       : "➤";
 
 }
 
+
+/* ================= SIDEBAR ================= */
 
 function closeSidebar() {
 
@@ -126,6 +221,17 @@ function closeSidebar() {
 }
 
 
+function openSidebar() {
+
+  sidebar.classList.add("open");
+
+  overlay.classList.add("show");
+
+}
+
+
+/* ================= NEW CHAT ================= */
+
 function newChat() {
 
   state.messages = [];
@@ -134,24 +240,40 @@ function newChat() {
 
   render();
 
+  input.value = "";
+
+  input.style.height =
+    "auto";
+
   input.focus();
 
 }
 
 
+/* ================= SEND MESSAGE ================= */
+
 async function sendMessage(text) {
 
-  const message = text.trim();
+  const message =
+    String(text || "").trim();
 
 
-  if (!message || state.busy) {
+  if (
+    !message ||
+    state.busy
+  ) {
+
     return;
+
   }
 
 
   state.messages.push({
+
     role: "user",
+
     content: message
+
   });
 
 
@@ -160,13 +282,17 @@ async function sendMessage(text) {
   render();
 
 
-  input.value = "";
+  input.value =
+    "";
 
-  input.style.height = "auto";
+  input.style.height =
+    "auto";
 
 
   setBusy(true);
 
+
+  /* ================= TYPING ================= */
 
   const typing =
     document.createElement("div");
@@ -177,12 +303,18 @@ async function sendMessage(text) {
 
 
   typing.innerHTML =
+
     '<div class="avatar">T</div>' +
+
     '<div class="bubble typing">' +
-    '<span></span>' +
-    '<span></span>' +
-    '<span></span>' +
-    '</div>';
+
+    "<span></span>" +
+
+    "<span></span>" +
+
+    "<span></span>" +
+
+    "</div>";
 
 
   chat.appendChild(typing);
@@ -193,19 +325,23 @@ async function sendMessage(text) {
   try {
 
     const response =
-      await fetch("/api/chat", {
+      await fetch(
+        "/api/chat",
+        {
+          method: "POST",
 
-        method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
 
-        headers: {
-          "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify({
-          messages: state.messages
-        })
-
-      });
+          body:
+            JSON.stringify({
+              messages:
+                state.messages
+            })
+        }
+      );
 
 
     const data =
@@ -217,11 +353,36 @@ async function sendMessage(text) {
     typing.remove();
 
 
-    if (!response.ok || !data.ok) {
+    if (
+      !response.ok ||
+      !data ||
+      data.ok !== true
+    ) {
 
       throw new Error(
-        data.error ||
-        `HTTP ${response.status}`
+
+        data &&
+        typeof data.error === "string"
+
+          ? data.error
+
+          : `HTTP ${response.status}`
+
+      );
+
+    }
+
+
+    const answer =
+      typeof data.message === "string"
+        ? data.message.trim()
+        : "";
+
+
+    if (!answer) {
+
+      throw new Error(
+        "لم تصل إجابة من الخادم."
       );
 
     }
@@ -231,7 +392,7 @@ async function sendMessage(text) {
 
       role: "assistant",
 
-      content: data.message
+      content: answer
 
     });
 
@@ -246,15 +407,24 @@ async function sendMessage(text) {
     typing.remove();
 
 
-    addMessage(
-      "assistant",
-      `حدث خطأ: ${
-        error.message ||
-        "تعذر الاتصال بالخادم."
-      }`,
-      true
-    );
+    const errorMessage =
+      error &&
+      error.message
 
+        ? error.message
+
+        : "تعذر الاتصال بالخادم.";
+
+
+    addMessage(
+
+      "assistant",
+
+      `حدث خطأ: ${errorMessage}`,
+
+      true
+
+    );
 
   } finally {
 
@@ -267,7 +437,7 @@ async function sendMessage(text) {
 }
 
 
-/* إرسال */
+/* ================= FORM ================= */
 
 composer.addEventListener(
   "submit",
@@ -275,13 +445,15 @@ composer.addEventListener(
 
     event.preventDefault();
 
-    sendMessage(input.value);
+    sendMessage(
+      input.value
+    );
 
   }
 );
 
 
-/* Enter */
+/* ================= ENTER ================= */
 
 input.addEventListener(
   "keydown",
@@ -302,13 +474,15 @@ input.addEventListener(
 );
 
 
-/* تغيير حجم مربع الكتابة */
+/* ================= TEXTAREA ================= */
 
 input.addEventListener(
   "input",
   () => {
 
-    input.style.height = "auto";
+    input.style.height =
+      "auto";
+
 
     input.style.height =
       Math.min(
@@ -320,7 +494,7 @@ input.addEventListener(
 );
 
 
-/* الأزرار الجاهزة */
+/* ================= QUICK PROMPTS ================= */
 
 document
   .querySelectorAll("[data-prompt]")
@@ -333,7 +507,9 @@ document
         input.value =
           button.dataset.prompt || "";
 
+
         input.focus();
+
 
         input.dispatchEvent(
           new Event("input")
@@ -345,11 +521,17 @@ document
   });
 
 
-/* محادثة جديدة */
+/* ================= NEW CHAT ================= */
 
-document
-  .getElementById("newChat")
-  .addEventListener(
+const newChatButton =
+  document.getElementById(
+    "newChat"
+  );
+
+
+if (newChatButton) {
+
+  newChatButton.addEventListener(
     "click",
     () => {
 
@@ -360,12 +542,20 @@ document
     }
   );
 
+}
 
-/* مسح المحادثة */
 
-document
-  .getElementById("clearChat")
-  .addEventListener(
+/* ================= CLEAR CHAT ================= */
+
+const clearChatButton =
+  document.getElementById(
+    "clearChat"
+  );
+
+
+if (clearChatButton) {
+
+  clearChatButton.addEventListener(
     "click",
     () => {
 
@@ -374,48 +564,67 @@ document
     }
   );
 
+}
 
-/* الوضع الليلي / الفاتح */
 
-document
-  .getElementById("theme")
-  .addEventListener(
-    "click",
-    () => {
+/* ================= THEME ================= */
 
-      document.body.classList.toggle(
+function applyTheme(theme) {
+
+  document.body.classList.toggle(
+    "light",
+    theme === "light"
+  );
+
+}
+
+
+themeButton.addEventListener(
+  "click",
+  () => {
+
+    const isLight =
+      document.body.classList.contains(
         "light"
       );
 
 
-      localStorage.setItem(
-        "tmd_theme",
+    const newTheme =
+      isLight
+        ? "dark"
+        : "light";
 
-        document.body.classList.contains(
-          "light"
-        )
-          ? "light"
-          : "dark"
-      );
 
-    }
+    applyTheme(
+      newTheme
+    );
+
+
+    localStorage.setItem(
+      "tmd_theme",
+      newTheme
+    );
+
+  }
+);
+
+
+/* ================= MOBILE MENU ================= */
+
+const menuButton =
+  document.getElementById(
+    "menuBtn"
   );
 
 
-/* قائمة الهاتف */
+if (menuButton) {
 
-document
-  .getElementById("menuBtn")
-  .addEventListener(
+  menuButton.addEventListener(
     "click",
-    () => {
-
-      sidebar.classList.add("open");
-
-      overlay.classList.add("show");
-
-    }
+    openSidebar
   );
+
+}
 
 
 overlay.addEventListener(
@@ -424,18 +633,27 @@ overlay.addEventListener(
 );
 
 
-/* حفظ المظهر */
+/* ================= SAVED THEME ================= */
 
-if (
-  localStorage.getItem("tmd_theme") ===
-  "light"
-) {
+const savedTheme =
+  localStorage.getItem(
+    "tmd_theme"
+  );
 
-  document.body.classList.add("light");
+
+if (savedTheme === "light") {
+
+  applyTheme("light");
+
+} else {
+
+  applyTheme("dark");
 
 }
 
 
-/* تشغيل الموقع */
+/* ================= START ================= */
 
 render();
+
+input.focus();
