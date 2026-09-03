@@ -1,516 +1,616 @@
+/* =========================================================
+   T.M.D AI
+   التصميم الرئيسي
+   المطور: ياسين عمرو عبد الرحيم
+   Gold + White
+========================================================= */
+
+
+/* =========================================================
+   المتغيرات
+========================================================= */
+
 :root {
   --primary-color: #c9a227;
-  --primary-dark: #9f7b12;
-  --primary-light: #e8d58a;
+  --secondary-color: #ffffff;
 
   --background-color: #faf8f1;
-  --surface: #ffffff;
-  --surface-2: #f6f2e5;
+  --surface-color: #ffffff;
+  --surface-secondary: #f7f3e5;
 
-  --text: #242424;
-  --muted: #777;
+  --text-color: #252525;
+  --muted-color: #777777;
 
-  --border: rgba(201, 162, 39, 0.22);
+  --border-color: rgba(201, 162, 39, 0.22);
 
-  --shadow:
-    0 12px 35px rgba(0, 0, 0, 0.08);
+  --danger-color: #c62828;
 
-  --radius: 18px;
+  --sidebar-width: 285px;
+
+  --shadow-small:
+    0 4px 15px rgba(0, 0, 0, 0.06);
+
+  --shadow-medium:
+    0 10px 35px rgba(0, 0, 0, 0.09);
+
+  --radius-small: 10px;
+  --radius-medium: 16px;
+  --radius-large: 24px;
 }
 
+
+/* =========================================================
+   Reset
+========================================================= */
 
 * {
   box-sizing: border-box;
 }
 
-
-html,
-body {
+html {
   width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
+  min-height: 100%;
+  scroll-behavior: smooth;
 }
 
-
 body {
+  margin: 0;
+  width: 100%;
+  min-height: 100vh;
+
   font-family:
+    "Segoe UI",
     Tahoma,
     Arial,
     sans-serif;
+
+  color: var(--text-color);
 
   background:
     radial-gradient(
       circle at top right,
       rgba(201, 162, 39, 0.12),
-      transparent 35%
+      transparent 32%
     ),
     var(--background-color);
-
-  color: var(--text);
 
   overflow: hidden;
 
   transition:
-    background 0.25s ease,
+    background-color 0.25s ease,
     color 0.25s ease;
 }
 
+button,
+input,
+textarea {
+  font: inherit;
+}
 
-/* =========================
-   APP
-========================= */
+button {
+  border: 0;
+}
 
-.app {
-  width: 100%;
-  height: 100vh;
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline:
+    3px solid
+    rgba(201, 162, 39, 0.3);
 
-  display: flex;
+  outline-offset: 2px;
+}
 
-  direction: rtl;
+img {
+  max-width: 100%;
 }
 
 
-/* =========================
-   SIDEBAR
-========================= */
+/* =========================================================
+   الخلفية المخصصة
+========================================================= */
 
-.sidebar {
-  width: 290px;
-  min-width: 290px;
+body.custom-background {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
 
-  height: 100vh;
+body.custom-background::before {
+  content: "";
+
+  position: fixed;
+
+  inset: 0;
 
   background:
-    linear-gradient(
-      180deg,
-      #ffffff 0%,
-      #faf8f1 100%
-    );
+    rgba(255, 255, 255, 0.82);
 
-  border-left:
-    1px solid var(--border);
+  pointer-events: none;
+
+  z-index: -1;
+}
+
+
+/* =========================================================
+   القائمة الجانبية
+========================================================= */
+
+.sidebar {
+  position: fixed;
+
+  top: 0;
+  right: 0;
+  bottom: 0;
+
+  width: var(--sidebar-width);
 
   display: flex;
   flex-direction: column;
 
   padding: 22px 16px;
 
-  position: relative;
-  z-index: 30;
+  background:
+    rgba(255, 255, 255, 0.96);
+
+  border-left:
+    1px solid var(--border-color);
 
   box-shadow:
     -8px 0 30px
-    rgba(0, 0, 0, 0.03);
+    rgba(0, 0, 0, 0.04);
+
+  z-index: 100;
+
+  transition:
+    transform 0.3s ease;
 }
 
+
+/* رأس القائمة */
+
+.sidebar-header {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  margin-bottom: 24px;
+}
+
+
+/* العلامة التجارية */
 
 .brand {
   display: flex;
+
   align-items: center;
+
   gap: 12px;
 
-  padding:
-    4px 5px 22px;
+  min-width: 0;
 }
-
 
 .brand-icon {
   width: 48px;
   height: 48px;
 
-  border-radius: 15px;
+  flex: 0 0 48px;
 
   display: flex;
+
   align-items: center;
   justify-content: center;
 
+  border-radius: 15px;
+
+  color: #fff;
+
   background:
     linear-gradient(
       135deg,
-      var(--primary-color),
-      var(--primary-dark)
+      #d7b53a,
+      #b38a16
     );
-
-  color: white;
 
   font-size: 22px;
-  font-weight: 900;
+  font-weight: 800;
 
   box-shadow:
-    0 8px 22px
-    rgba(201, 162, 39, 0.28);
+    0 6px 18px
+    rgba(201, 162, 39, 0.25);
 }
 
-
-.brand-text {
+.brand-info {
   display: flex;
+
   flex-direction: column;
 
-  gap: 4px;
+  min-width: 0;
 }
 
+.brand-info strong {
+  font-size: 17px;
 
-.brand-text strong {
-  font-size: 18px;
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
 }
 
+.brand-info span {
+  margin-top: 3px;
 
-.brand-text span {
   font-size: 12px;
-  color: var(--muted);
+
+  color: var(--muted-color);
 }
 
 
-/* =========================
-   NEW CHAT
-========================= */
+/* =========================================================
+   زر محادثة جديدة
+========================================================= */
 
-.new-chat {
+.new-chat-button {
   width: 100%;
 
-  border: 1px solid var(--border);
+  min-height: 50px;
 
-  background:
-    linear-gradient(
-      135deg,
-      rgba(201, 162, 39, 0.12),
-      rgba(255, 255, 255, 0.9)
-    );
+  display: flex;
 
-  color: var(--text);
+  align-items: center;
+  justify-content: center;
 
-  padding: 13px 14px;
+  gap: 8px;
+
+  margin-bottom: 16px;
 
   border-radius: 14px;
 
-  cursor: pointer;
-
-  font-size: 14px;
-  font-weight: 700;
-
-  transition:
-    0.2s ease;
-}
-
-
-.new-chat:hover {
-  transform: translateY(-1px);
-
-  border-color:
-    var(--primary-color);
+  color: #fff;
 
   background:
-    rgba(201, 162, 39, 0.16);
+    linear-gradient(
+      135deg,
+      #d5b13a,
+      #b68d19
+    );
+
+  cursor: pointer;
+
+  font-weight: 700;
+
+  box-shadow:
+    0 7px 20px
+    rgba(201, 162, 39, 0.22);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.new-chat-button span:first-child {
+  font-size: 23px;
+
+  line-height: 1;
+}
+
+.new-chat-button:hover {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 10px 25px
+    rgba(201, 162, 39, 0.3);
+}
+
+.new-chat-button:active {
+  transform: translateY(0);
 }
 
 
-/* =========================
-   QUICK TITLE
-========================= */
+/* =========================================================
+   عناصر القائمة
+========================================================= */
 
-.quick-title {
-  font-size: 12px;
+.sidebar-nav {
+  display: flex;
 
-  color: var(--muted);
+  flex-direction: column;
 
-  margin:
-    25px 7px 10px;
+  gap: 7px;
 }
 
-
-/* =========================
-   SUGGESTIONS
-========================= */
-
-.suggestion {
+.sidebar-item {
   width: 100%;
 
-  border: 0;
+  min-height: 48px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 0 14px;
+
+  border-radius: 13px;
+
+  color: #444;
 
   background: transparent;
 
-  color: var(--text);
-
   text-align: right;
-
-  padding: 12px 10px;
-
-  border-radius: 12px;
 
   cursor: pointer;
 
-  font-size: 13px;
-
   transition:
-    0.2s ease;
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
+.sidebar-item:hover {
+  color: #8e6b0c;
 
-.suggestion:hover {
   background:
-    rgba(201, 162, 39, 0.10);
-
-  color:
-    var(--primary-dark);
+    rgba(201, 162, 39, 0.09);
 
   transform:
     translateX(-2px);
 }
 
-
-/* =========================
-   SIDEBAR BOTTOM
-========================= */
-
-.sidebar-bottom {
-  margin-top: auto;
+.sidebar-item-icon {
+  width: 32px;
+  height: 32px;
 
   display: flex;
-  flex-direction: column;
 
-  gap: 9px;
-}
-
-
-.status {
-  display: flex;
-  align-items: center;
-
-  gap: 8px;
-
-  font-size: 12px;
-
-  color: #4d7a43;
-
-  padding:
-    6px 8px;
-}
-
-
-.status i {
-  width: 8px;
-  height: 8px;
-
-  border-radius: 50%;
-
-  background: #54a947;
-
-  box-shadow:
-    0 0 0 4px
-    rgba(84, 169, 71, 0.12);
-}
-
-
-.developer {
-  font-size: 11px;
-
-  color: var(--muted);
-
-  padding:
-    5px 8px;
-
-  line-height: 1.6;
-}
-
-
-.clear {
-  width: 100%;
-
-  border: 0;
-
-  background: transparent;
-
-  color: var(--muted);
-
-  padding: 10px;
-
-  border-radius: 11px;
-
-  cursor: pointer;
-
-  text-align: right;
-
-  font-size: 12px;
-
-  transition:
-    0.2s ease;
-}
-
-
-.clear:hover {
-  background:
-    rgba(201, 162, 39, 0.08);
-
-  color:
-    var(--primary-dark);
-}
-
-
-.owner-button {
-  border:
-    1px solid var(--border);
-
-  background:
-    rgba(201, 162, 39, 0.06);
-
-  color:
-    var(--primary-dark);
-
-  font-weight: 700;
-}
-
-
-/* =========================
-   MAIN
-========================= */
-
-.main {
-  flex: 1;
-
-  min-width: 0;
-
-  height: 100vh;
-
-  display: flex;
-  flex-direction: column;
-
-  position: relative;
-}
-
-
-/* =========================
-   TOPBAR
-========================= */
-
-.topbar {
-  height: 70px;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  padding:
-    0 22px;
-
-  background:
-    rgba(255, 255, 255, 0.86);
-
-  border-bottom:
-    1px solid var(--border);
-
-  backdrop-filter:
-    blur(15px);
-
-  position: relative;
-
-  z-index: 10;
-}
-
-
-.top-title {
-  display: flex;
-  align-items: center;
-
-  gap: 9px;
-
-  font-weight: 800;
-}
-
-
-.top-title i {
-  width: 9px;
-  height: 9px;
-
-  border-radius: 50%;
-
-  background:
-    var(--primary-color);
-
-  box-shadow:
-    0 0 0 5px
-    rgba(201, 162, 39, 0.12);
-}
-
-
-.icon-btn {
-  width: 42px;
-  height: 42px;
-
-  border-radius: 12px;
-
-  border:
-    1px solid var(--border);
-
-  background:
-    rgba(255, 255, 255, 0.85);
-
-  color: var(--text);
-
-  cursor: pointer;
-
-  font-size: 18px;
-
-  display: flex;
   align-items: center;
   justify-content: center;
 
+  border-radius: 9px;
+
+  background:
+    rgba(201, 162, 39, 0.1);
+
+  font-size: 17px;
+}
+
+.owner-item {
+  margin-top: 8px;
+
+  color: #80610a;
+}
+
+.owner-item .sidebar-item-icon {
+  color: #8e6b0c;
+}
+
+
+/* =========================================================
+   معلومات المطور
+========================================================= */
+
+.developer {
+  margin-top: auto;
+
+  padding:
+    15px 8px 4px;
+
+  color: #777;
+
+  border-top:
+    1px solid var(--border-color);
+
+  font-size: 11px;
+
+  line-height: 1.7;
+
+  text-align: center;
+}
+
+
+/* =========================================================
+   المحتوى الرئيسي
+========================================================= */
+
+.main {
+  position: relative;
+
+  height: 100vh;
+
+  margin-right: var(--sidebar-width);
+
+  display: flex;
+
+  flex-direction: column;
+
+  min-width: 0;
+}
+
+
+/* =========================================================
+   الشريط العلوي
+========================================================= */
+
+.topbar {
+  height: 76px;
+
+  flex: 0 0 76px;
+
+  display: flex;
+
+  align-items: center;
+
+  padding:
+    0 28px;
+
+  background:
+    rgba(255, 255, 255, 0.9);
+
+  border-bottom:
+    1px solid var(--border-color);
+
+  backdrop-filter:
+    blur(12px);
+
+  z-index: 20;
+}
+
+.topbar-right {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+}
+
+.top-brand {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+}
+
+.top-logo {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+
+  color: #fff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #d8b43b,
+      #b18a18
+    );
+
+  font-weight: 800;
+
+  box-shadow:
+    0 5px 15px
+    rgba(201, 162, 39, 0.2);
+}
+
+.top-brand > div:last-child {
+  display: flex;
+
+  flex-direction: column;
+}
+
+.top-brand strong {
+  font-size: 15px;
+}
+
+.top-brand span {
+  margin-top: 2px;
+
+  color: #888;
+
+  font-size: 11px;
+}
+
+
+/* =========================================================
+   أزرار الأيقونات
+========================================================= */
+
+.icon-button {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  color: #555;
+
+  background:
+    rgba(201, 162, 39, 0.08);
+
+  cursor: pointer;
+
   transition:
-    0.2s ease;
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
+.icon-button:hover {
+  color: #8d6a0c;
 
-.icon-btn:hover {
-  border-color:
-    var(--primary-color);
-
-  color:
-    var(--primary-dark);
-
-  transform:
-    translateY(-1px);
+  background:
+    rgba(201, 162, 39, 0.15);
 }
 
+.mobile-only {
+  display: none;
+}
 
-.menu-btn {
+.desktop-hidden {
   display: none;
 }
 
 
-/* =========================
-   CHAT
-========================= */
+/* =========================================================
+   منطقة المحادثة
+========================================================= */
 
 .chat {
   flex: 1;
 
+  min-height: 0;
+
   overflow-y: auto;
 
   padding:
-    32px
-    max(20px, 7vw)
-    160px;
+    30px
+    clamp(16px, 5vw, 80px)
+    190px;
 
   scroll-behavior: smooth;
 }
 
 
+/* شريط التمرير */
+
 .chat::-webkit-scrollbar {
   width: 8px;
 }
 
+.chat::-webkit-scrollbar-track {
+  background: transparent;
+}
 
 .chat::-webkit-scrollbar-thumb {
   background:
-    rgba(201, 162, 39, 0.28);
+    rgba(201, 162, 39, 0.25);
 
   border-radius: 20px;
 }
 
+.chat::-webkit-scrollbar-thumb:hover {
+  background:
+    rgba(201, 162, 39, 0.4);
+}
 
-/* =========================
-   WELCOME
-========================= */
+
+/* =========================================================
+   شاشة الترحيب
+========================================================= */
 
 .welcome {
   min-height: 100%;
@@ -522,281 +622,304 @@ body {
   align-items: center;
   justify-content: center;
 
+  padding:
+    40px 0 80px;
+
   text-align: center;
-
-  gap: 13px;
-
-  padding-bottom: 70px;
 }
-
 
 .welcome-logo {
   width: 78px;
   height: 78px;
 
-  border-radius: 24px;
-
   display: flex;
+
   align-items: center;
   justify-content: center;
 
-  color: white;
+  margin-bottom: 18px;
 
-  font-size: 34px;
-  font-weight: 900;
+  border-radius: 25px;
+
+  color: #fff;
 
   background:
     linear-gradient(
       135deg,
-      var(--primary-color),
-      var(--primary-dark)
+      #d9b83f,
+      #b18a17
     );
 
-  box-shadow:
-    0 18px 45px
-    rgba(201, 162, 39, 0.27);
-}
+  font-size: 34px;
 
+  font-weight: 900;
+
+  box-shadow:
+    0 14px 35px
+    rgba(201, 162, 39, 0.24);
+}
 
 .welcome h1 {
   margin:
-    5px 0 0;
+    0 0 8px;
 
   font-size:
-    clamp(25px, 4vw, 38px);
-}
+    clamp(26px, 4vw, 38px);
 
+  line-height: 1.3;
+
+  color: #252525;
+}
 
 .welcome h1 span {
   color:
-    var(--primary-dark);
+    var(--primary-color);
+}
+
+.welcome > p {
+  margin:
+    0 0 28px;
+
+  color: #777;
+
+  font-size: 15px;
 }
 
 
-.welcome p {
-  max-width: 650px;
-
-  margin: 0;
-
-  color: var(--muted);
-
-  line-height: 1.8;
-
-  font-size: 14px;
-}
-
-
-/* =========================
-   WELCOME CARDS
-========================= */
+/* =========================================================
+   بطاقات الاقتراحات
+========================================================= */
 
 .welcome-cards {
+  width: min(
+    780px,
+    100%
+  );
+
   display: grid;
 
   grid-template-columns:
-    repeat(4, minmax(130px, 1fr));
+    repeat(2, minmax(0, 1fr));
 
   gap: 12px;
 
-  max-width: 850px;
-
-  width: 100%;
-
-  margin-top: 20px;
+  margin-top: 5px;
 }
 
+.suggestion {
+  min-height: 110px;
 
-.welcome-cards button {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: flex-start;
+
+  padding: 17px;
+
   border:
-    1px solid var(--border);
+    1px solid
+    rgba(201, 162, 39, 0.18);
+
+  border-radius: 17px;
+
+  color: #333;
 
   background:
-    rgba(255, 255, 255, 0.86);
+    rgba(255, 255, 255, 0.88);
 
-  color: var(--text);
-
-  border-radius: 15px;
-
-  padding:
-    16px 12px;
+  text-align: right;
 
   cursor: pointer;
 
-  font-family: inherit;
+  box-shadow:
+    var(--shadow-small);
 
   transition:
-    0.2s ease;
-
-  box-shadow:
-    0 7px 22px
-    rgba(0, 0, 0, 0.04);
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-
-.welcome-cards button:hover {
-  border-color:
-    var(--primary-color);
-
+.suggestion:hover {
   transform:
     translateY(-3px);
 
+  border-color:
+    rgba(201, 162, 39, 0.45);
+
   box-shadow:
-    0 12px 28px
-    rgba(201, 162, 39, 0.12);
+    0 10px 30px
+    rgba(0, 0, 0, 0.08);
+}
+
+.suggestion > span {
+  margin-bottom: 8px;
+
+  font-size: 22px;
+}
+
+.suggestion strong {
+  font-size: 14px;
+}
+
+.suggestion small {
+  margin-top: 5px;
+
+  color: #888;
+
+  font-size: 11px;
+
+  line-height: 1.5;
 }
 
 
-/* =========================
-   MESSAGE
-========================= */
+/* =========================================================
+   الرسائل
+========================================================= */
 
 .message-row {
+  width: min(
+    900px,
+    100%
+  );
+
   display: flex;
 
   align-items: flex-start;
 
-  gap: 11px;
-
-  width: 100%;
-
-  max-width: 900px;
+  gap: 10px;
 
   margin:
-    0 auto 20px;
+    0 auto 18px;
 }
-
 
 .message-row.user {
   justify-content: flex-start;
 }
 
-
 .message-row.assistant {
   justify-content: flex-start;
 }
 
-
 .avatar {
-  flex:
-    0 0 38px;
-
   width: 38px;
   height: 38px;
 
-  border-radius: 12px;
+  flex: 0 0 38px;
 
   display: flex;
+
   align-items: center;
   justify-content: center;
+
+  border-radius: 12px;
+
+  color: #fff;
 
   background:
     linear-gradient(
       135deg,
-      var(--primary-color),
-      var(--primary-dark)
+      #d4b038,
+      #ad8415
     );
-
-  color: white;
 
   font-size: 11px;
 
   font-weight: 800;
 
   box-shadow:
-    0 5px 15px
+    0 4px 12px
     rgba(201, 162, 39, 0.18);
 }
-
 
 .message-row.user .avatar {
   order: 2;
 }
 
+.message-row.user .bubble {
+  order: 1;
+
+  margin-right: 0;
+
+  background:
+    linear-gradient(
+      135deg,
+      #fff,
+      #fbf7e9
+    );
+
+  border:
+    1px solid
+    rgba(201, 162, 39, 0.18);
+}
 
 .bubble {
   max-width: min(
-    78%,
-    760px
+    720px,
+    calc(100% - 55px)
   );
 
   padding:
     13px 16px;
 
-  border-radius:
-    17px;
+  border-radius: 17px;
 
-  line-height:
-    1.8;
-
-  font-size:
-    14px;
-
-  white-space:
-    pre-wrap;
-
-  word-break:
-    break-word;
-}
-
-
-.message-row.assistant .bubble {
   background:
-    var(--surface);
+    #fff;
 
   border:
-    1px solid var(--border);
+    1px solid
+    rgba(0, 0, 0, 0.06);
 
   box-shadow:
-    0 7px 25px
+    0 4px 18px
     rgba(0, 0, 0, 0.045);
+
+  color: #292929;
+
+  font-size: 14px;
+
+  line-height: 1.8;
+
+  white-space: pre-wrap;
+
+  overflow-wrap: anywhere;
 }
-
-
-.message-row.user .bubble {
-  background:
-    linear-gradient(
-      135deg,
-      var(--primary-color),
-      var(--primary-dark)
-    );
-
-  color: white;
-
-  order: 1;
-
-  box-shadow:
-    0 7px 20px
-    rgba(201, 162, 39, 0.18);
-}
-
 
 .message-row.error .bubble {
-  border-color:
-    rgba(190, 50, 50, 0.3);
+  color: #8b1f1f;
 
-  color:
-    #a32222;
+  border-color:
+    rgba(198, 40, 40, 0.2);
+
+  background:
+    #fff5f5;
 }
 
 
-/* =========================
-   TYPING
-========================= */
+/* =========================================================
+   الكتابة...
+========================================================= */
 
 .typing {
+  min-width: 72px;
+
   display: flex;
 
   align-items: center;
 
   gap: 5px;
 
-  min-width: 62px;
+  padding:
+    16px 17px;
 }
-
 
 .typing span {
   width: 7px;
   height: 7px;
+
+  display: block;
 
   border-radius: 50%;
 
@@ -804,82 +927,86 @@ body {
     var(--primary-color);
 
   animation:
-    typing 1.2s infinite ease-in-out;
+    typingAnimation
+    1.2s infinite ease-in-out;
 }
-
 
 .typing span:nth-child(2) {
   animation-delay:
     0.15s;
 }
 
-
 .typing span:nth-child(3) {
   animation-delay:
     0.3s;
 }
 
-
-@keyframes typing {
-
+@keyframes typingAnimation {
   0%,
   60%,
   100% {
-    transform:
-      translateY(0);
+    transform: translateY(0);
 
-    opacity:
-      0.45;
+    opacity: 0.45;
   }
 
   30% {
     transform:
-      translateY(-5px);
+      translateY(-4px);
 
-    opacity:
-      1;
+    opacity: 1;
   }
-
 }
 
 
-/* =========================
-   COMPOSER
-========================= */
+/* =========================================================
+   منطقة المؤلف
+========================================================= */
 
-.composer-wrap {
+.composer-area {
   position: absolute;
 
-  bottom: 0;
   right: 0;
   left: 0;
+  bottom: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
 
   padding:
-    15px
-    max(20px, 7vw)
-    20px;
+    12px 24px 16px;
 
   background:
     linear-gradient(
       to top,
-      var(--background-color) 70%,
-      transparent
+      rgba(250, 248, 241, 1),
+      rgba(250, 248, 241, 0.92),
+      rgba(250, 248, 241, 0)
     );
 
-  z-index: 15;
+  z-index: 30;
 }
 
 
+/* =========================================================
+   صندوق الكتابة
+========================================================= */
+
 .composer {
-  width: 100%;
+  position: relative;
 
-  max-width: 900px;
+  width: min(
+    900px,
+    100%
+  );
 
-  margin: 0 auto;
-
-  min-height: 60px;
+  min-height: 58px;
 
   display: flex;
+
   align-items: flex-end;
 
   gap: 8px;
@@ -887,434 +1014,411 @@ body {
   padding:
     8px;
 
-  background:
-    rgba(255, 255, 255, 0.95);
-
   border:
-    1px solid var(--border);
+    1px solid
+    rgba(201, 162, 39, 0.28);
 
-  border-radius: 20px;
-
-  box-shadow:
-    0 12px 38px
-    rgba(0, 0, 0, 0.10);
-
-  backdrop-filter:
-    blur(15px);
-}
-
-
-.composer textarea {
-  flex: 1;
-
-  resize: none;
-
-  min-height: 42px;
-  max-height: 170px;
-
-  border: 0;
-  outline: 0;
-
-  background:
-    transparent;
-
-  color: var(--text);
-
-  font-family: inherit;
-
-  font-size: 14px;
-
-  line-height: 1.7;
-
-  padding:
-    9px 5px;
-}
-
-
-.composer textarea::placeholder {
-  color:
-    #999;
-}
-
-
-/* =========================
-   SEND BUTTON
-========================= */
-
-#send {
-  width: 44px;
-  height: 44px;
-
-  flex:
-    0 0 44px;
-
-  border: 0;
-
-  border-radius: 14px;
-
-  background:
-    linear-gradient(
-      135deg,
-      var(--primary-color),
-      var(--primary-dark)
-    );
-
-  color: white;
-
-  font-size: 20px;
-
-  cursor: pointer;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  transition:
-    0.2s ease;
-}
-
-
-#send:hover:not(:disabled) {
-  transform:
-    scale(1.04);
-
-  box-shadow:
-    0 7px 20px
-    rgba(201, 162, 39, 0.25);
-}
-
-
-#send:disabled {
-  opacity:
-    0.65;
-
-  cursor:
-    not-allowed;
-}
-
-
-/* =========================
-   PLUS BUTTON
-========================= */
-
-.plus-button {
-  width: 44px;
-  height: 44px;
-
-  flex:
-    0 0 44px;
-
-  border:
-    1px solid var(--border);
-
-  border-radius: 14px;
-
-  background:
-    #ffffff;
-
-  color:
-    var(--primary-dark);
-
-  font-size:
-    25px;
-
-  font-weight:
-    400;
-
-  cursor:
-    pointer;
-
-  display:
-    inline-flex;
-
-  align-items:
-    center;
-
-  justify-content:
-    center;
-
-  transition:
-    0.2s ease;
-}
-
-
-.plus-button:hover {
-  background:
-    rgba(201, 162, 39, 0.10);
-
-  border-color:
-    var(--primary-color);
-
-  transform:
-    translateY(-1px);
-}
-
-
-/* =========================
-   PLUS MENU
-========================= */
-
-.plus-menu {
-  position: absolute;
-
-  right:
-    max(20px, 7vw);
-
-  bottom:
-    92px;
-
-  width:
-    230px;
-
-  padding:
-    8px;
-
-  border:
-    1px solid var(--border);
-
-  border-radius:
-    16px;
+  border-radius: 19px;
 
   background:
     rgba(255, 255, 255, 0.97);
 
   box-shadow:
-    0 16px 40px
-    rgba(0, 0, 0, 0.14);
+    0 10px 35px
+    rgba(0, 0, 0, 0.09);
 
   backdrop-filter:
-    blur(15px);
-
-  opacity:
-    0;
-
-  visibility:
-    hidden;
-
-  transform:
-    translateY(10px)
-    scale(0.97);
-
-  transition:
-    0.2s ease;
-
-  z-index:
-    30;
+    blur(12px);
 }
 
 
-.plus-menu.show {
-  opacity:
-    1;
+/* مربع النص */
 
-  visibility:
-    visible;
+#input {
+  flex: 1;
+
+  min-width: 0;
+
+  max-height: 170px;
+
+  min-height: 42px;
+
+  padding:
+    10px 6px;
+
+  resize: none;
+
+  border: 0;
+
+  outline: 0;
+
+  color: #292929;
+
+  background: transparent;
+
+  line-height: 1.7;
+
+  overflow-y: auto;
+}
+
+#input::placeholder {
+  color: #999;
+}
+
+
+/* =========================================================
+   زر +
+========================================================= */
+
+.plus-button {
+  width: 42px;
+  height: 42px;
+
+  flex: 0 0 42px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 13px;
+
+  color:
+    #8a690b;
+
+  background:
+    rgba(201, 162, 39, 0.1);
+
+  cursor: pointer;
+
+  font-size: 25px;
+
+  line-height: 1;
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease;
+}
+
+.plus-button:hover {
+  transform:
+    rotate(90deg);
+
+  background:
+    rgba(201, 162, 39, 0.18);
+}
+
+
+/* =========================================================
+   زر الإرسال
+========================================================= */
+
+.send-button {
+  width: 42px;
+  height: 42px;
+
+  flex: 0 0 42px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 13px;
+
+  color: #fff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #d6b33a,
+      #b38a18
+    );
+
+  cursor: pointer;
+
+  font-size: 20px;
+
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.send-button:hover:not(:disabled) {
+  transform:
+    translateY(-2px);
+
+  box-shadow:
+    0 7px 18px
+    rgba(201, 162, 39, 0.28);
+}
+
+.send-button:disabled {
+  opacity: 0.55;
+
+  cursor: not-allowed;
+}
+
+
+/* =========================================================
+   قائمة زر +
+========================================================= */
+
+.plus-menu {
+  position: absolute;
+
+  right:
+    max(
+      24px,
+      calc(
+        (100% - 900px) / 2
+      )
+    );
+
+  bottom: 82px;
+
+  width: 205px;
+
+  padding: 8px;
+
+  border:
+    1px solid
+    rgba(201, 162, 39, 0.2);
+
+  border-radius: 16px;
+
+  background:
+    rgba(255, 255, 255, 0.98);
+
+  box-shadow:
+    0 12px 35px
+    rgba(0, 0, 0, 0.13);
+
+  opacity: 0;
+
+  visibility: hidden;
+
+  transform:
+    translateY(8px)
+    scale(0.97);
+
+  transform-origin:
+    bottom right;
+
+  transition:
+    opacity 0.18s ease,
+    visibility 0.18s ease,
+    transform 0.18s ease;
+
+  z-index: 50;
+}
+
+.plus-menu.show {
+  opacity: 1;
+
+  visibility: visible;
 
   transform:
     translateY(0)
     scale(1);
 }
 
-
-.plus-menu button {
+.plus-menu-item {
   width: 100%;
 
-  border: 0;
+  min-height: 48px;
 
-  background:
-    transparent;
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
 
   padding:
-    12px;
+    8px 10px;
 
-  border-radius:
-    11px;
+  border-radius: 11px;
 
-  cursor:
-    pointer;
+  color: #444;
 
-  display:
-    flex;
+  background: transparent;
 
-  align-items:
-    center;
+  text-align: right;
 
-  gap:
-    10px;
-
-  text-align:
-    right;
-
-  color:
-    var(--text);
-
-  font-family:
-    inherit;
+  cursor: pointer;
 
   transition:
-    0.2s ease;
+    background 0.18s ease;
 }
 
-
-.plus-menu button:hover {
+.plus-menu-item:hover {
   background:
-    rgba(201, 162, 39, 0.10);
+    rgba(201, 162, 39, 0.1);
 
   color:
-    var(--primary-dark);
+    #80610a;
+}
+
+.plus-menu-icon {
+  width: 32px;
+  height: 32px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9px;
+
+  background:
+    rgba(201, 162, 39, 0.1);
+
+  font-size: 16px;
 }
 
 
-/* =========================
-   IMAGE PREVIEW
-========================= */
+/* =========================================================
+   معاينة الصورة
+========================================================= */
 
 .image-preview {
-  position: absolute;
+  width: min(
+    900px,
+    100%
+  );
 
-  right:
-    max(20px, 7vw);
+  margin-bottom: 8px;
 
-  bottom:
-    93px;
-
-  width:
-    110px;
-
-  height:
-    110px;
-
-  padding:
-    4px;
-
-  background:
-    #ffffff;
+  padding: 7px;
 
   border:
-    1px solid var(--border);
+    1px solid
+    rgba(201, 162, 39, 0.2);
 
-  border-radius:
-    14px;
+  border-radius: 15px;
+
+  background:
+    rgba(255, 255, 255, 0.95);
 
   box-shadow:
-    var(--shadow);
-
-  z-index:
-    25;
+    var(--shadow-small);
 }
 
+.image-preview-inner {
+  position: relative;
 
-.image-preview img {
   width: 100%;
-  height: 100%;
 
-  object-fit: cover;
+  max-height: 150px;
 
-  border-radius:
-    10px;
-}
+  display: flex;
 
+  align-items: center;
 
-.image-preview button {
-  position: absolute;
+  justify-content: center;
 
-  top:
-    -8px;
+  overflow: hidden;
 
-  left:
-    -8px;
-
-  width:
-    25px;
-
-  height:
-    25px;
-
-  border:
-    0;
-
-  border-radius:
-    50%;
+  border-radius: 11px;
 
   background:
-    #222;
+    #f5f5f5;
+}
 
-  color:
-    #fff;
+.image-preview img {
+  max-width: 100%;
 
-  cursor:
-    pointer;
+  max-height: 140px;
 
-  font-size:
-    17px;
+  display: block;
 
-  line-height:
-    25px;
+  object-fit: contain;
+}
+
+.remove-image {
+  position: absolute;
+
+  top: 7px;
+  left: 7px;
+
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  color: #fff;
+
+  background:
+    rgba(50, 50, 50, 0.72);
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease;
+}
+
+.remove-image:hover {
+  background:
+    rgba(198, 40, 40, 0.9);
 }
 
 
-/* =========================
-   IMAGE MESSAGE
-========================= */
+/* =========================================================
+   صورة داخل الرسالة
+========================================================= */
 
 .image-message {
-  display:
-    flex;
+  display: flex;
 
-  flex-direction:
-    column;
+  flex-direction: column;
 
-  gap:
-    9px;
+  gap: 9px;
 }
-
 
 .image-message img {
-  max-width:
-    320px;
+  max-width: 360px;
 
-  max-height:
-    320px;
+  max-height: 330px;
 
-  width:
-    auto;
+  border-radius: 12px;
 
-  height:
-    auto;
+  object-fit: contain;
 
-  object-fit:
-    contain;
-
-  border-radius:
-    12px;
+  border:
+    1px solid
+    rgba(201, 162, 39, 0.15);
 }
 
 
-/* =========================
-   HINT
-========================= */
+/* =========================================================
+   ملاحظة أسفل مربع الكتابة
+========================================================= */
 
-.hint {
-  max-width:
-    900px;
+.composer-note {
+  width: min(
+    900px,
+    100%
+  );
 
-  margin:
-    8px auto 0;
+  padding:
+    7px 4px 0;
 
-  text-align:
-    center;
+  color: #999;
 
-  font-size:
-    10px;
+  text-align: center;
 
-  color:
-    var(--muted);
+  font-size: 10px;
 }
 
 
-/* =========================
-   OVERLAY
-========================= */
+/* =========================================================
+   Overlay
+========================================================= */
 
 .overlay {
   position: fixed;
@@ -1322,735 +1426,870 @@ body {
   inset: 0;
 
   background:
-    rgba(0, 0, 0, 0.42);
+    rgba(0, 0, 0, 0.38);
 
-  opacity:
-    0;
+  opacity: 0;
 
-  visibility:
-    hidden;
+  visibility: hidden;
 
   transition:
-    0.2s ease;
+    opacity 0.25s ease,
+    visibility 0.25s ease;
 
-  z-index:
-    20;
+  z-index: 90;
 }
-
 
 .overlay.show {
-  opacity:
-    1;
+  opacity: 1;
 
-  visibility:
-    visible;
+  visibility: visible;
 }
 
 
-/* =========================
-   MODAL
-========================= */
+/* =========================================================
+   نافذة المالك
+========================================================= */
 
 .modal {
   position: fixed;
 
   inset: 0;
 
-  z-index:
-    100;
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
 
   background:
-    rgba(0, 0, 0, 0.48);
-
-  display:
-    flex;
-
-  align-items:
-    center;
-
-  justify-content:
-    center;
-
-  padding:
-    20px;
+    rgba(0, 0, 0, 0.45);
 
   backdrop-filter:
     blur(5px);
-}
 
+  z-index: 500;
+}
 
 .modal[hidden] {
-  display:
-    none;
+  display: none;
 }
 
-
-.modal-box {
-  width:
-    min(520px, 100%);
+.owner-modal {
+  width: min(
+    760px,
+    100%
+  );
 
   max-height:
-    min(720px, 92vh);
+    min(90vh, 850px);
 
-  overflow-y:
-    auto;
+  overflow-y: auto;
 
-  position:
-    relative;
-
-  padding:
-    30px;
-
-  border-radius:
-    24px;
-
-  background:
-    #ffffff;
-
-  border:
-    1px solid var(--border);
-
-  box-shadow:
-    0 25px 80px
-    rgba(0, 0, 0, 0.22);
-}
-
-
-.modal-close {
-  position:
-    absolute;
-
-  top:
-    15px;
-
-  left:
-    15px;
-
-  width:
-    36px;
-
-  height:
-    36px;
-
-  border:
-    1px solid var(--border);
-
-  background:
-    #ffffff;
-
-  border-radius:
-    10px;
-
-  cursor:
-    pointer;
-
-  font-size:
-    21px;
-}
-
-
-.modal-close:hover {
-  color:
-    var(--primary-dark);
-
-  border-color:
-    var(--primary-color);
-}
-
-
-/* =========================
-   OWNER
-========================= */
-
-.owner-section {
-  display:
-    flex;
-
-  flex-direction:
-    column;
-
-  gap:
-    15px;
-}
-
-
-.owner-section[hidden] {
-  display:
-    none;
-}
-
-
-.modal-icon {
-  width:
-    60px;
-
-  height:
-    60px;
-
-  display:
-    flex;
-
-  align-items:
-    center;
-
-  justify-content:
-    center;
-
-  border-radius:
-    18px;
-
-  background:
-    rgba(201, 162, 39, 0.12);
-
-  font-size:
-    27px;
-}
-
-
-.owner-section h2 {
-  margin:
-    0;
-
-  font-size:
-    24px;
-}
-
-
-.owner-section p {
-  margin:
-    0;
-
-  color:
-    var(--muted);
-
-  font-size:
-    13px;
-
-  line-height:
-    1.7;
-}
-
-
-.owner-section label {
-  display:
-    flex;
-
-  flex-direction:
-    column;
-
-  gap:
-    7px;
-
-  font-size:
-    12px;
-
-  color:
-    #555;
-}
-
-
-.owner-section input {
-  width:
-    100%;
-
-  min-height:
-    44px;
-
-  border:
-    1px solid #ddd;
-
-  border-radius:
-    12px;
-
-  padding:
-    9px 12px;
-
-  outline:
-    none;
-
-  font-family:
-    inherit;
+  border-radius: 24px;
 
   background:
     #fff;
 
-  color:
-    #222;
-
-  transition:
-    0.2s ease;
-}
-
-
-.owner-section input:focus {
-  border-color:
-    var(--primary-color);
-
   box-shadow:
-    0 0 0 3px
-    rgba(201, 162, 39, 0.10);
-}
-
-
-.owner-section input[type="color"] {
-  padding:
-    4px;
-
-  height:
-    48px;
-
-  cursor:
-    pointer;
-}
-
-
-.owner-primary {
-  width:
-    100%;
-
-  min-height:
-    46px;
+    0 25px 70px
+    rgba(0, 0, 0, 0.22);
 
   border:
-    0;
+    1px solid
+    rgba(201, 162, 39, 0.2);
+}
 
-  border-radius:
-    13px;
+
+/* رأس النافذة */
+
+.owner-modal-header {
+  display: flex;
+
+  align-items: flex-start;
+
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding:
+    22px 24px;
+
+  border-bottom:
+    1px solid
+    rgba(201, 162, 39, 0.14);
 
   background:
     linear-gradient(
       135deg,
-      var(--primary-color),
-      var(--primary-dark)
+      #fff,
+      #fbf7e8
     );
+}
 
-  color:
-    #fff;
+.owner-modal-header h2 {
+  margin: 0;
 
-  font-family:
-    inherit;
+  color: #3b321b;
 
-  font-weight:
-    800;
+  font-size: 21px;
+}
 
-  cursor:
-    pointer;
+.owner-modal-header p {
+  margin:
+    6px 0 0;
+
+  color: #888;
+
+  font-size: 12px;
+}
+
+.modal-close {
+  width: 38px;
+  height: 38px;
+
+  flex: 0 0 38px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  color: #666;
+
+  background:
+    rgba(0, 0, 0, 0.05);
+
+  cursor: pointer;
 
   transition:
-    0.2s ease;
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.modal-close:hover {
+  color: #fff;
+
+  background:
+    var(--primary-color);
 }
 
 
-.owner-primary:hover {
+/* =========================================================
+   أقسام المالك
+========================================================= */
+
+.owner-section {
+  padding:
+    26px;
+}
+
+
+/* دخول المالك */
+
+.owner-login-icon {
+  width: 65px;
+  height: 65px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  margin:
+    0 auto 15px;
+
+  border-radius: 20px;
+
+  background:
+    rgba(201, 162, 39, 0.1);
+
+  font-size: 29px;
+}
+
+.owner-section > h3 {
+  margin:
+    0 0 7px;
+
+  text-align: center;
+
+  font-size: 20px;
+}
+
+.owner-section > p {
+  margin:
+    0 0 22px;
+
+  color: #888;
+
+  text-align: center;
+
+  font-size: 12px;
+}
+
+
+/* نموذج الدخول */
+
+.owner-login-form {
+  width: min(
+    430px,
+    100%
+  );
+
+  margin: 0 auto;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 9px;
+}
+
+.owner-login-form label,
+.setting-field label {
+  color: #555;
+
+  font-size: 12px;
+
+  font-weight: 700;
+}
+
+.owner-login-form input,
+.setting-field input {
+  width: 100%;
+
+  min-height: 46px;
+
+  padding:
+    0 13px;
+
+  border:
+    1px solid
+    rgba(0, 0, 0, 0.1);
+
+  border-radius: 12px;
+
+  color: #333;
+
+  background:
+    #fff;
+
+  outline: none;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.owner-login-form input:focus,
+.setting-field input:focus {
+  border-color:
+    rgba(201, 162, 39, 0.65);
+
+  box-shadow:
+    0 0 0 4px
+    rgba(201, 162, 39, 0.09);
+}
+
+
+/* =========================================================
+   أزرار المالك
+========================================================= */
+
+.owner-primary-button {
+  min-height: 48px;
+
+  padding:
+    0 20px;
+
+  border-radius: 13px;
+
+  color: #fff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #d6b23a,
+      #ae8517
+    );
+
+  cursor: pointer;
+
+  font-weight: 700;
+
+  box-shadow:
+    0 7px 18px
+    rgba(201, 162, 39, 0.18);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.owner-primary-button:hover {
   transform:
     translateY(-1px);
 
   box-shadow:
-    0 8px 22px
-    rgba(201, 162, 39, 0.22);
+    0 10px 23px
+    rgba(201, 162, 39, 0.27);
+}
+
+.owner-error {
+  min-height: 20px;
+
+  color:
+    var(--danger-color);
+
+  font-size: 12px;
+
+  text-align: center;
 }
 
 
-.owner-secondary {
-  width:
-    100%;
+/* =========================================================
+   أعلى لوحة المالك
+========================================================= */
 
-  min-height:
-    44px;
+.owner-panel-top {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 15px;
+
+  margin-bottom: 20px;
+
+  padding:
+    14px 16px;
+
+  border-radius: 15px;
+
+  background:
+    #fbf8ed;
+}
+
+.owner-panel-top strong {
+  display: block;
+
+  color: #463a1d;
+
+  font-size: 15px;
+}
+
+.owner-panel-top p {
+  margin:
+    4px 0 0;
+
+  color: #888;
+
+  font-size: 11px;
+}
+
+.owner-logout-button {
+  min-height: 38px;
+
+  padding:
+    0 13px;
+
+  border-radius: 10px;
+
+  color: #9a2525;
+
+  background:
+    rgba(198, 40, 40, 0.08);
+
+  cursor: pointer;
+
+  font-size: 11px;
+}
+
+.owner-logout-button:hover {
+  background:
+    rgba(198, 40, 40, 0.14);
+}
+
+
+/* =========================================================
+   شبكة الإعدادات
+========================================================= */
+
+.settings-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 16px;
+}
+
+.setting-field {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 7px;
+}
+
+.setting-field.full-width {
+  grid-column:
+    1 / -1;
+}
+
+.setting-field small {
+  color: #999;
+
+  font-size: 10px;
+}
+
+
+/* =========================================================
+   اختيار اللون
+========================================================= */
+
+.color-input {
+  min-height: 46px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  padding:
+    5px 10px;
 
   border:
-    1px solid var(--border);
+    1px solid
+    rgba(0, 0, 0, 0.1);
 
-  border-radius:
-    13px;
+  border-radius: 12px;
 
   background:
     #fff;
+}
 
-  color:
-    #555;
+.color-input input[type="color"] {
+  width: 35px;
+  height: 35px;
 
-  font-family:
-    inherit;
+  min-height: 35px;
 
-  cursor:
-    pointer;
+  padding: 2px;
+
+  border: 0;
+
+  border-radius: 9px;
+
+  cursor: pointer;
+}
+
+.color-input span {
+  color: #777;
+
+  font-size: 11px;
 }
 
 
-.owner-actions {
-  display:
-    grid;
+/* =========================================================
+   معاينة إعدادات المالك
+========================================================= */
 
-  grid-template-columns:
-    1fr 1fr;
-
-  gap:
-    10px;
-
-  margin-top:
-    5px;
+.settings-preview {
+  margin-top: 22px;
 }
 
+.settings-preview-title {
+  margin-bottom: 8px;
 
-.owner-error {
-  min-height:
-    20px;
+  color: #555;
 
-  color:
-    #b42318;
+  font-size: 12px;
 
-  font-size:
-    12px;
+  font-weight: 700;
 }
 
+.preview-card {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  padding:
+    14px;
+
+  border:
+    1px solid
+    rgba(201, 162, 39, 0.17);
+
+  border-radius: 15px;
+
+  background:
+    #fffdf5;
+}
+
+.preview-logo {
+  width: 45px;
+  height: 45px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 13px;
+
+  color: #fff;
+
+  background:
+    var(--primary-color);
+
+  font-weight: 900;
+}
+
+.preview-card strong {
+  font-size: 13px;
+}
+
+.preview-card p {
+  margin:
+    4px 0 0;
+
+  color: #888;
+
+  font-size: 10px;
+}
+
+.save-button {
+  width: 100%;
+
+  margin-top: 20px;
+}
 
 .settings-message {
-  min-height:
-    20px;
+  min-height: 22px;
 
-  font-size:
-    12px;
+  margin-top: 10px;
 
-  color:
-    #39742d;
+  color: #428345;
 
-  text-align:
-    center;
+  font-size: 12px;
+
+  text-align: center;
 }
-
 
 .settings-message.error {
   color:
-    #b42318;
+    var(--danger-color);
 }
 
 
-/* =========================
-   LIGHT MODE
-========================= */
+/* =========================================================
+   الوضع الفاتح
+========================================================= */
 
 body.light {
-  --background-color:
-    #ffffff;
+  color: #292929;
 
-  --surface:
-    #ffffff;
-
-  --surface-2:
-    #f7f7f7;
-
-  --text:
-    #202020;
-
-  --muted:
-    #707070;
-
-  background:
-    #ffffff;
+  background-color:
+    #faf8f1;
 }
 
 
-body.light .sidebar {
-  background:
-    #ffffff;
+/* =========================================================
+   Responsive
+========================================================= */
+
+@media (max-width: 900px) {
+
+  :root {
+    --sidebar-width: 250px;
+  }
+
+  .chat {
+    padding:
+      25px
+      20px
+      185px;
+  }
+
+  .composer-area {
+    padding:
+      10px
+      15px
+      14px;
+  }
+
+  .plus-menu {
+    right: 15px;
+  }
+
 }
 
 
-body.light .topbar {
-  background:
-    rgba(255, 255, 255, 0.92);
-}
+/* =========================================================
+   الهاتف
+========================================================= */
 
+@media (max-width: 700px) {
 
-body.light .composer {
-  background:
-    rgba(255, 255, 255, 0.97);
-}
-
-
-/* =========================
-   CUSTOM BACKGROUND
-========================= */
-
-body.custom-background::before {
-  content: "";
-
-  position: fixed;
-
-  inset: 0;
-
-  background:
-    rgba(255, 255, 255, 0.72);
-
-  pointer-events: none;
-
-  z-index:
-    -1;
-}
-
-
-body.custom-background {
-  background-size:
-    cover;
-
-  background-position:
-    center;
-
-  background-repeat:
-    no-repeat;
-
-  background-attachment:
-    fixed;
-}
-
-
-/* =========================
-   MOBILE
-========================= */
-
-@media (max-width: 850px) {
+  body {
+    overflow: hidden;
+  }
 
   .sidebar {
-    position:
-      fixed;
-
-    right:
-      0;
-
-    top:
-      0;
-
-    bottom:
-      0;
+    width: min(
+      310px,
+      88vw
+    );
 
     transform:
       translateX(105%);
 
-    transition:
-      transform 0.25s ease;
-
-    z-index:
-      40;
-
     box-shadow:
-      -15px 0 45px
-      rgba(0, 0, 0, 0.15);
+      -15px 0 40px
+      rgba(0, 0, 0, 0.18);
   }
-
 
   .sidebar.open {
     transform:
       translateX(0);
   }
 
-
-  .menu-btn {
-    display:
-      flex;
+  .mobile-only {
+    display: flex;
   }
 
+  .desktop-hidden {
+    display: flex;
+  }
 
   .main {
-    width:
-      100%;
+    margin-right: 0;
   }
 
+  .topbar {
+    height: 64px;
+
+    flex-basis: 64px;
+
+    padding:
+      0 14px;
+  }
 
   .chat {
     padding:
-      25px
-      15px
-      150px;
-  }
-
-
-  .composer-wrap {
-    padding:
+      18px
       12px
-      12px
-      15px;
+      175px;
   }
-
-
-  .plus-menu {
-    right:
-      12px;
-
-    bottom:
-      87px;
-  }
-
-
-  .image-preview {
-    right:
-      12px;
-
-    bottom:
-      87px;
-  }
-
 
   .welcome {
     padding:
-      30px 5px 50px;
+      25px 0 60px;
   }
-
-
-  .welcome-cards {
-    grid-template-columns:
-      repeat(2, 1fr);
-  }
-
-
-  .bubble {
-    max-width:
-      86%;
-
-    font-size:
-      13px;
-  }
-
-}
-
-
-/* =========================
-   SMALL MOBILE
-========================= */
-
-@media (max-width: 500px) {
-
-  .topbar {
-    height:
-      62px;
-
-    padding:
-      0 12px;
-  }
-
-
-  .icon-btn {
-    width:
-      38px;
-
-    height:
-      38px;
-  }
-
 
   .welcome-logo {
-    width:
-      66px;
+    width: 65px;
+    height: 65px;
 
-    height:
-      66px;
+    border-radius: 20px;
 
-    border-radius:
-      20px;
+    font-size: 28px;
   }
-
 
   .welcome h1 {
-    font-size:
-      25px;
+    font-size: 25px;
   }
 
-
-  .welcome p {
-    font-size:
-      12px;
-
-    padding:
-      0 15px;
+  .welcome > p {
+    font-size: 13px;
   }
-
 
   .welcome-cards {
     grid-template-columns:
-      1fr 1fr;
+      1fr;
 
-    gap:
-      8px;
+    gap: 9px;
   }
 
+  .suggestion {
+    min-height: 85px;
 
-  .welcome-cards button {
-    padding:
-      12px 8px;
-
-    font-size:
-      11px;
+    padding: 13px;
   }
 
+  .message-row {
+    gap: 7px;
 
-  .composer {
-    min-height:
-      55px;
-
-    border-radius:
-      17px;
+    margin-bottom: 13px;
   }
-
-
-  #send,
-  .plus-button {
-    width:
-      40px;
-
-    height:
-      40px;
-
-    flex-basis:
-      40px;
-  }
-
 
   .avatar {
-    width:
-      34px;
+    width: 34px;
+    height: 34px;
 
-    height:
-      34px;
+    flex-basis: 34px;
 
-    flex-basis:
-      34px;
+    border-radius: 10px;
+
+    font-size: 9px;
   }
-
 
   .bubble {
     max-width:
-      84%;
+      calc(100% - 42px);
 
     padding:
       10px 12px;
+
+    border-radius: 14px;
+
+    font-size: 13px;
+
+    line-height: 1.7;
   }
 
-
-  .modal-box {
+  .composer-area {
     padding:
-      24px 18px;
+      8px
+      10px
+      11px;
   }
 
+  .composer {
+    min-height: 54px;
 
-  .owner-actions {
+    border-radius: 17px;
+
+    padding: 6px;
+  }
+
+  #input {
+    min-height: 40px;
+
+    font-size: 13px;
+  }
+
+  .plus-button,
+  .send-button {
+    width: 40px;
+    height: 40px;
+
+    flex-basis: 40px;
+
+    border-radius: 12px;
+  }
+
+  .plus-menu {
+    right: 10px;
+
+    bottom: 73px;
+
+    width: 190px;
+  }
+
+  .image-message img {
+    max-width: 100%;
+
+    max-height: 280px;
+  }
+
+  .owner-modal {
+    max-height: 94vh;
+
+    border-radius: 20px;
+  }
+
+  .owner-modal-header {
+    padding:
+      17px 16px;
+  }
+
+  .owner-modal-header h2 {
+    font-size: 18px;
+  }
+
+  .owner-section {
+    padding: 18px 16px;
+  }
+
+  .settings-grid {
     grid-template-columns:
       1fr;
+
+    gap: 13px;
+  }
+
+  .setting-field.full-width {
+    grid-column:
+      auto;
+  }
+
+  .owner-panel-top {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .owner-logout-button {
+    width: 100%;
   }
 
 }
 
 
-/* =========================
-   REDUCED MOTION
-========================= */
+/* =========================================================
+   شاشات صغيرة جدًا
+========================================================= */
+
+@media (max-width: 420px) {
+
+  .top-brand span {
+    display: none;
+  }
+
+  .chat {
+    padding:
+      14px
+      8px
+      170px;
+  }
+
+  .welcome h1 {
+    font-size: 22px;
+  }
+
+  .welcome > p {
+    margin-bottom: 20px;
+  }
+
+  .bubble {
+    font-size: 12px;
+  }
+
+  .composer-note {
+    font-size: 9px;
+  }
+
+}
+
+
+/* =========================================================
+   Accessibility
+========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
 
   *,
   *::before,
   *::after {
-    scroll-behavior:
-      auto !important;
+    scroll-behavior: auto !important;
 
     animation-duration:
       0.01ms !important;
