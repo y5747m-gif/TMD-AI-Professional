@@ -1,1557 +1,1543 @@
-:root{
-  --bg:#080b12;
-  --panel:#0d111b;
-  --border:#202a3b;
-  --text:#f5f7fb;
-  --muted:#8d98ad;
-  --accent:#c9a227;
-  --accent2:#ffffff;
-  --user:#1b2d51;
-  --icon:#c9a227;
-  --panel-light:#ffffff;
-}
-
-*{box-sizing:border-box}
-
-html,body{
-  margin:0;
-  width:100%;
-  min-height:100%;
-  font-family:Arial,"Segoe UI",Tahoma,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-}
-
-body{
-  overflow:hidden;
-  background-size:cover;
-  background-position:center;
-  background-attachment:fixed;
-}
-
-button,textarea,input{font:inherit}
-button{cursor:pointer}
-
-.app{
-  min-height:100vh;
-  display:grid;
-  grid-template-columns:300px 1fr;
-  direction:ltr;
-}
-
-.sidebar{
-  direction:rtl;
-  background:linear-gradient(180deg,rgba(11,15,23,.97),rgba(8,11,18,.98));
-  border-right:1px solid var(--border);
-  padding:22px 18px;
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-  backdrop-filter:blur(18px);
-}
-
-.brand{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:4px 5px 18px;
-}
-
-.brand-icon,.welcome-logo,.modal-logo{
-  width:48px;
-  height:48px;
-  border-radius:15px;
-  display:grid;
-  place-items:center;
-  color:#fff;
-  font-size:25px;
-  font-weight:900;
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  box-shadow:0 12px 35px rgba(0,0,0,.22);
-  overflow:hidden;
-}
-
-.brand-icon img,.welcome-logo img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
-
-.brand strong{
-  display:block;
-  font-size:16px;
-}
-
-.brand span{
-  display:block;
-  margin-top:3px;
-  color:var(--muted);
-  font-size:12px;
-}
-
-.new-chat{
-  border:1px solid var(--border);
-  background:var(--panel);
-  color:var(--text);
-  border-radius:12px;
-  padding:13px;
-}
-
-.new-chat:hover,
-.sidebar-action:hover,
-.suggestion:hover,
-.clear:hover{
-  border-color:var(--accent);
-  transform:translateY(-1px);
-}
-
-.quick-title{
-  margin:15px 5px 2px;
-  color:var(--muted);
-  font-size:12px;
-}
-
-.suggestion{
-  width:100%;
-  border:1px solid transparent;
-  background:transparent;
-  color:var(--text);
-  text-align:right;
-  padding:11px 8px;
-  border-radius:9px;
-  transition:.2s;
-}
-
-.sidebar-bottom{
-  margin-top:auto;
-}
-
-.status{
-  color:var(--muted);
-  font-size:12px;
-  margin:10px 4px;
-}
-
-.status i{
-  display:inline-block;
-  width:7px;
-  height:7px;
-  border-radius:50%;
-  background:#35d68b;
-  margin-left:7px;
-}
-
-.sidebar-action,
-.clear{
-  width:100%;
-  border:1px solid var(--border);
-  background:var(--panel);
-  color:var(--text);
-  padding:10px;
-  border-radius:10px;
-  margin-top:7px;
-  transition:.2s;
-}
-
-.main{
-  direction:rtl;
-  min-width:0;
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
-  background:
-    radial-gradient(circle at 65% 0%,rgba(201,162,39,.10),transparent 35%),
-    rgba(8,11,18,.50);
-  backdrop-filter:blur(3px);
-}
-
-.topbar{
-  height:70px;
-  padding:0 30px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  border-bottom:1px solid var(--border);
-  background:rgba(8,11,18,.45);
-  backdrop-filter:blur(15px);
-}
-
-.top-title{
-  font-weight:800;
-}
-
-.top-title i{
-  display:inline-block;
-  width:7px;
-  height:7px;
-  border-radius:50%;
-  background:var(--accent);
-  margin-right:5px;
-}
-
-.icon-btn{
-  border:1px solid var(--border);
-  background:var(--panel);
-  color:var(--text);
-  width:40px;
-  height:40px;
-  border-radius:10px;
-}
-
-.mobile-only{
-  display:none;
-}
-
-.chat{
-  flex:1;
-  overflow-y:auto;
-  padding:35px clamp(18px,7vw,110px) 180px;
-}
-
-.welcome{
-  min-height:55vh;
-  display:grid;
-  place-items:center;
-  align-content:center;
-  text-align:center;
-  gap:10px;
-}
-
-.welcome-logo{
-  width:62px;
-  height:62px;
-}
-
-.welcome h1{
-  margin:8px 0 0;
-  font-size:clamp(27px,4vw,44px);
-}
-
-.welcome h1 span{
-  color:var(--accent);
-}
-
-.welcome p{
-  color:var(--muted);
-  margin:0;
-}
-
-.welcome-cards{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  justify-content:center;
-  margin-top:18px;
-}
-
-.welcome-cards button{
-  border:1px solid var(--border);
-  background:rgba(15,21,32,.78);
-  color:var(--text);
-  border-radius:11px;
-  padding:10px 14px;
-}
-
-.message-row{
-  display:flex;
-  gap:10px;
-  margin:0 auto 18px;
-  max-width:900px;
-}
-
-.message-row.user{
-  justify-content:flex-start;
-}
-
-.message-row.assistant{
-  justify-content:flex-end;
-}
-
-.avatar{
-  flex:0 0 auto;
-  width:34px;
-  height:34px;
-  border-radius:10px;
-  display:grid;
-  place-items:center;
-  background:var(--panel);
-  color:var(--icon);
-  font-weight:800;
-  overflow:hidden;
-}
-
-.avatar img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
-
-.bubble{
-  max-width:min(78%,760px);
-  padding:13px 16px;
-  border:1px solid var(--border);
-  border-radius:15px;
-  line-height:1.75;
-  white-space:pre-wrap;
-  word-break:break-word;
-  background:rgba(16,22,32,.88);
-}
-
-.user .bubble{
-  background:rgba(27,45,81,.92);
-  border-color:#294777;
-}
-
-.error .bubble{
-  border-color:#6a2c3b;
-  color:#ffb7c0;
-}
-
-.image-message img{
-  display:block;
-  max-width:min(420px,100%);
-  max-height:420px;
-  border-radius:12px;
-  margin-bottom:10px;
-}
-
-.composer-wrap{
-  position:fixed;
-  left:300px;
-  right:0;
-  bottom:0;
-  z-index:20;
-  padding:14px clamp(18px,7vw,110px) 16px;
-  background:linear-gradient(transparent,rgba(8,11,18,.96) 35%);
-}
-
-.composer{
-  max-width:900px;
-  margin:0 auto;
-  display:flex;
-  gap:8px;
-  align-items:flex-end;
-  border:1px solid var(--border);
-  background:rgba(17,25,37,.94);
-  border-radius:17px;
-  padding:8px;
-  box-shadow:0 20px 70px rgba(0,0,0,.3);
-}
-
-textarea{
-  flex:1;
-  resize:none;
-  border:0;
-  outline:0;
-  background:transparent;
-  color:var(--text);
-  padding:10px 12px;
-  min-height:44px;
-  max-height:170px;
-}
-
-textarea::placeholder{
-  color:#69758a;
-}
-
-#send,
-.plus-button{
-  flex:0 0 auto;
-  width:46px;
-  height:46px;
-  border:0;
-  border-radius:13px;
-  color:#fff;
-  font-size:20px;
-}
-
-#send{
-  background:linear-gradient(135deg,var(--accent),#8b6d10);
-}
-
-.plus-button{
-  background:transparent;
-  color:var(--accent);
-  border:1px solid var(--border);
-}
-
-#send:disabled{
-  opacity:.55;
-}
-
-.hint{
-  text-align:center;
-  color:#69758a;
-  font-size:10px;
-  padding-top:7px;
-}
-
-.plus-menu{
-  position:absolute;
-  right:clamp(18px,7vw,110px);
-  bottom:91px;
-  width:245px;
-  padding:8px;
-  border:1px solid var(--border);
-  border-radius:14px;
-  background:rgba(13,17,27,.98);
-  box-shadow:0 20px 60px rgba(0,0,0,.4);
-  display:none;
-}
-
-.plus-menu.show{
-  display:block;
-}
-
-.plus-menu button{
-  width:100%;
-  border:0;
-  background:transparent;
-  color:var(--text);
-  text-align:right;
-  padding:12px;
-  border-radius:9px;
-}
-
-.plus-menu button:hover{
-  background:rgba(201,162,39,.12);
-}
-
-.image-preview{
-  position:absolute;
-  bottom:92px;
-  left:50%;
-  transform:translateX(-50%);
-  display:flex;
-  align-items:center;
-  gap:8px;
-  background:rgba(13,17,27,.98);
-  border:1px solid var(--border);
-  padding:6px;
-  border-radius:12px;
-}
-
-.image-preview img{
-  width:64px;
-  height:64px;
-  object-fit:cover;
-  border-radius:8px;
-}
-
-.image-preview button{
-  width:28px;
-  height:28px;
-  border:0;
-  border-radius:50%;
-  background:#7b2430;
-  color:#fff;
-}
-
-.developer{
-  position:fixed;
-  left:315px;
-  bottom:7px;
-  z-index:25;
-  color:#69758a;
-  font-size:10px;
-  pointer-events:none;
-}
-
-/* modal */
-
-.modal{
-  position:fixed;
-  inset:0;
-  z-index:100;
-  display:grid;
-  place-items:center;
-  padding:20px;
-  background:rgba(0,0,0,.66);
-  backdrop-filter:blur(8px);
-}
-
-.modal[hidden]{
-  display:none;
-}
-
-.modal-card{
-  position:relative;
-  width:min(900px,100%);
-  max-height:90vh;
-  overflow:auto;
-  border:1px solid var(--border);
-  border-radius:20px;
-  background:rgba(13,17,27,.98);
-  color:var(--text);
-  padding:24px;
-  box-shadow:0 30px 100px rgba(0,0,0,.5);
-}
-
-.modal-close{
-  position:absolute;
-  top:12px;
-  left:12px;
-  width:36px;
-  height:36px;
-  border:1px solid var(--border);
-  background:transparent;
-  color:var(--text);
-  border-radius:10px;
-  font-size:22px;
-}
-
-.modal-header{
-  display:flex;
-  align-items:center;
-  gap:14px;
-  margin-bottom:20px;
-}
-
-.modal-header h2{
-  margin:0;
-}
-
-.modal-header p{
-  margin:5px 0 0;
-  color:var(--muted);
-}
-
-.owner-login-form{
-  max-width:520px;
-  margin:20px auto;
-  display:grid;
-  gap:15px;
-}
-
-.owner-login-form label,
-.settings-grid label{
-  display:grid;
-  gap:7px;
-  color:var(--muted);
-  font-size:13px;
-}
-
-input[type="text"],
-input[type="password"],
-input[type="url"]{
-  width:100%;
-  border:1px solid var(--border);
-  background:#080c13;
-  color:var(--text);
-  border-radius:10px;
-  padding:12px;
-  outline:0;
-}
-
-input:focus{
-  border-color:var(--accent);
-}
-
-input[type="color"]{
-  width:100%;
-  height:44px;
-  padding:3px;
-  border:1px solid var(--border);
-  border-radius:10px;
-  background:#080c13;
-}
-
-.settings-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:14px;
-}
-
-.settings-grid .full{
-  grid-column:1/-1;
-}
-
-.upload-row{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-  margin-top:16px;
-}
-
-.upload-box{
-  border:1px dashed var(--accent);
-  border-radius:12px;
-  padding:16px;
-  text-align:center;
-  color:var(--text);
-  background:rgba(201,162,39,.06);
-  cursor:pointer;
-}
-
-.switches{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin:18px 0;
-}
-
-.switch-row{
-  display:flex;
-  align-items:center;
-  gap:9px;
-  border:1px solid var(--border);
-  padding:10px;
-  border-radius:10px;
-}
-
-.switch-row input{
-  accent-color:var(--accent);
-}
-
-.settings-actions{
-  display:flex;
-  gap:10px;
-}
-
-.primary-button,
-.secondary-button{
-  border-radius:11px;
-  padding:12px 18px;
-  border:1px solid var(--border);
-}
-
-.primary-button{
-  background:linear-gradient(135deg,var(--accent),#8b6d10);
-  color:#fff;
-  border:0;
-}
-
-.secondary-button{
-  background:transparent;
-  color:var(--text);
-}
-
-.form-message{
-  min-height:20px;
-  margin-top:12px;
-  color:#65d69b;
-}
-
-.form-message.error{
-  color:#ff8f9d;
-}
-
-.overlay{
-  display:none;
-}
-
-@media(max-width:760px){
-  body{overflow:auto}
-
-  .app{
-    display:block;
-  }
-
-  .sidebar{
-    display:flex;
-    position:fixed;
-    z-index:70;
-    top:0;
-    right:0;
-    bottom:0;
-    width:290px;
-    transform:translateX(110%);
-    transition:.25s;
-  }
-
-  .sidebar.open{
-    transform:translateX(0);
-  }
-
-  .overlay.show{
-    display:block;
-    position:fixed;
-    z-index:60;
-    inset:0;
-    background:rgba(0,0,0,.55);
-  }
-
-  .topbar{
-    padding:0 16px;
-  }
-
-  .mobile-only{
-    display:block;
-  }
-
-  .chat{
-    padding:22px 12px 155px;
-  }
-
-  .composer-wrap{
-    left:0;
-    padding:10px;
-  }
-
-  .developer{
-    left:0;
-    right:0;
-    text-align:center;
-  }
-
-  .bubble{
-    max-width:88%;
-  }
-
-  .plus-menu{
-    right:10px;
-  }
-
-  .settings-grid,
-  .upload-row,
-  .switches{
-    grid-template-columns:1fr;
-  }
-
-  .settings-grid .full{
-    grid-column:auto;
-  }
-
-  .settings-actions{
-    flex-direction:column;
-  }
-}
-
-body.light{
-  --bg:#faf8f1;
-  --panel:#ffffff;
-  --border:#ded5b7;
-  --text:#1b1a17;
-  --muted:#756f61;
-  --user:#eee4c9;
-}
-
-body.light .sidebar,
-body.light .modal-card{
-  background:rgba(255,255,255,.95);
-}
-
-body.light .main{
-  background:rgba(250,248,241,.72);
-}
-
-body.light .topbar{
-  background:rgba(255,255,255,.65);
-}
-
-body.light .composer{
-  background:rgba(255,255,255,.94);
-}
-
-body.light .bubble{
-  background:rgba(255,255,255,.88);
-}
-
-body.light input[type="text"],
-body.light input[type="password"],
-body.light input[type="url"],
-body.light input[type="color"]{
-  background:#fff;
-}
-
-.typing{
-  display:inline-flex;
-  gap:4px;
-  align-items:center;
-}
-
-.typing span{
-  width:6px;
-  height:6px;
-  border-radius:50%;
-  background:var(--accent);
-  animation:bounce .9s infinite alternate;
-}
-
-.typing span:nth-child(2){animation-delay:.15s}
-.typing span:nth-child(3){animation-delay:.3s}
-
-@keyframes bounce{
-  to{
-    transform:translateY(-4px);
-    opacity:.45;
-  }
-}
-/* =====================================================
-   T.M.D AI — FRONTEND FIX
-   إصلاح التباين وترتيب الواجهة
-===================================================== */
+/* =========================================================
+   T.M.D AI
+   STYLE.CSS — نسخة نظيفة ومتوافقة مع لوحة المالك
+========================================================= */
 
 :root {
   --primary-color: #c9a227;
+  --secondary-color: #ffffff;
+
   --background-color: #faf8f1;
   --text-color: #1b1a17;
+
   --panel-color: #ffffff;
   --border-color: #ded5b7;
+  --sidebar-icon-color: #c9a227;
+
+  --user-color: #c9a227;
+  --muted-color: #756f61;
+
+  --danger-color: #b91c1c;
+
+  --sidebar-width: 300px;
 }
 
-/* =========================
-   الصفحة
-========================= */
+/* =========================================================
+   RESET
+========================================================= */
+
+* {
+  box-sizing: border-box;
+}
 
 html,
 body {
-  margin: 0;
-  padding: 0;
   width: 100%;
   height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background-color: var(--background-color);
-  color: var(--text-color);
   font-family:
     "Tajawal",
     "Cairo",
     Arial,
+    "Segoe UI",
     sans-serif;
 
+  background-color: var(--background-color);
+  color: var(--text-color);
+
   overflow: hidden;
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
-/* =========================
-   الخلفية
-========================= */
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-
-  background:
-    linear-gradient(
-      rgba(250, 248, 241, 0.88),
-      rgba(250, 248, 241, 0.88)
-    );
-
-  pointer-events: none;
-  z-index: -1;
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
 
-body.custom-background::before {
-  background:
-    linear-gradient(
-      rgba(0, 0, 0, 0.42),
-      rgba(0, 0, 0, 0.42)
-    );
+button {
+  cursor: pointer;
 }
 
-/* =========================
-   التطبيق
-========================= */
+img {
+  max-width: 100%;
+}
 
-#app,
-.app,
-.application {
+/* =========================================================
+   APPLICATION
+========================================================= */
+
+.app {
   width: 100%;
   height: 100vh;
+
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+
+  direction: ltr;
 }
 
-/* =========================
-   الشريط الجانبي
-========================= */
+/* =========================================================
+   SIDEBAR
+========================================================= */
 
-#sidebar,
 .sidebar {
+  direction: rtl;
+
+  height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 22px 18px;
+
   background:
     linear-gradient(
       180deg,
-      #111827 0%,
-      #0b1220 100%
-    ) !important;
-
-  color: #ffffff !important;
+      rgba(255, 255, 255, 0.97),
+      rgba(250, 248, 241, 0.98)
+    );
 
   border-right:
     1px solid
-    rgba(201, 162, 39, 0.35);
+    var(--border-color);
 
-  z-index: 20;
+  color: var(--text-color);
+
+  overflow-y: auto;
+
+  z-index: 50;
+
+  backdrop-filter: blur(18px);
+
+  transition:
+    background 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
 }
 
-/* كل النصوص داخل القائمة */
+/* =========================================================
+   BRAND
+========================================================= */
 
-#sidebar *,
-.sidebar * {
-  color: inherit;
+.brand {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  padding:
+    4px
+    5px
+    20px;
 }
 
-/* اسم الموقع */
+.brand-icon,
+.welcome-logo,
+.modal-logo {
+  width: 48px;
+  height: 48px;
 
-#sidebar #siteName,
-#sidebar .site-name,
-#sidebar .brand-name {
-  color: #d4af37 !important;
+  flex: 0 0 auto;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 15px;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--primary-color),
+      #f1d978
+    );
+
+  color: #ffffff;
+
+  font-size: 24px;
+  font-weight: 900;
+
+  box-shadow:
+    0 10px 30px
+    rgba(0, 0, 0, 0.15);
+
+  overflow: hidden;
+
+  transition: 0.3s ease;
+}
+
+.brand-icon:hover,
+.welcome-logo:hover {
+  transform: translateY(-2px);
+}
+
+.brand-icon img,
+.welcome-logo img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.brand strong {
+  display: block;
+
+  color: var(--text-color);
+
+  font-size: 17px;
   font-weight: 800;
 }
 
-/* وصف الموقع */
+.brand span {
+  display: block;
 
-#sidebar #siteDescription,
-#sidebar .site-description {
-  color: #d1d5db !important;
+  margin-top: 4px;
+
+  color: var(--muted-color);
+
+  font-size: 12px;
 }
 
-/* =========================
-   الأزرار الجانبية
-========================= */
+/* =========================================================
+   NEW CHAT
+========================================================= */
 
-#sidebar button,
-.sidebar button {
-  color: #111827 !important;
-
-  background:
-    #ffffff !important;
+.new-chat {
+  width: 100%;
 
   border:
     1px solid
-    rgba(201, 162, 39, 0.35);
+    var(--border-color);
 
-  border-radius: 12px;
-
-  font-family: inherit;
-
-  transition:
-    transform 0.2s ease,
-    background 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-#sidebar button:hover,
-.sidebar button:hover {
   background:
-    #fff8df !important;
-
-  transform:
-    translateY(-1px);
-
-  box-shadow:
-    0 6px 18px
-    rgba(0, 0, 0, 0.15);
-}
-
-/* =========================
-   المحتوى الرئيسي
-========================= */
-
-main,
-#main,
-.main-content,
-.chat-container {
-  background:
-    transparent !important;
+    var(--panel-color);
 
   color:
     var(--text-color);
+
+  border-radius: 13px;
+
+  padding: 13px;
+
+  transition: 0.2s ease;
 }
 
-/* =========================
-   شريط العنوان العلوي
-========================= */
+.new-chat:hover {
+  border-color:
+    var(--primary-color);
 
-header,
-.topbar,
-#topbar {
   background:
-    rgba(255, 255, 255, 0.92) !important;
+    rgba(201, 162, 39, 0.07);
+
+  transform:
+    translateY(-1px);
+}
+
+/* =========================================================
+   QUICK SUGGESTIONS
+========================================================= */
+
+.quick-title {
+  margin:
+    17px
+    5px
+    4px;
 
   color:
-    #171717 !important;
+    var(--muted-color);
+
+  font-size: 12px;
+}
+
+#suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.suggestion {
+  width: 100%;
+
+  border:
+    1px solid
+    transparent;
+
+  background:
+    transparent;
+
+  color:
+    var(--text-color);
+
+  text-align: right;
+
+  padding:
+    11px 9px;
+
+  border-radius: 10px;
+
+  transition: 0.2s ease;
+}
+
+.suggestion:hover {
+  border-color:
+    var(--border-color);
+
+  background:
+    rgba(201, 162, 39, 0.08);
+
+  color:
+    var(--primary-color);
+
+  transform:
+    translateX(-2px);
+}
+
+/* =========================================================
+   SIDEBAR BOTTOM
+========================================================= */
+
+.sidebar-bottom {
+  margin-top: auto;
+}
+
+.status {
+  margin:
+    12px
+    4px;
+
+  color:
+    var(--muted-color);
+
+  font-size: 12px;
+}
+
+.status i {
+  display: inline-block;
+
+  width: 7px;
+  height: 7px;
+
+  margin-left: 7px;
+
+  border-radius: 50%;
+
+  background: #25c97b;
+}
+
+.sidebar-action,
+.clear {
+  width: 100%;
+
+  margin-top: 7px;
+
+  padding: 11px;
+
+  border:
+    1px solid
+    var(--border-color);
+
+  border-radius: 11px;
+
+  background:
+    var(--panel-color);
+
+  color:
+    var(--text-color);
+
+  transition: 0.2s ease;
+}
+
+.sidebar-action:hover,
+.clear:hover {
+  border-color:
+    var(--primary-color);
+
+  background:
+    rgba(201, 162, 39, 0.07);
+
+  transform:
+    translateY(-1px);
+}
+
+/* =========================================================
+   MAIN
+========================================================= */
+
+.main {
+  min-width: 0;
+  min-height: 100vh;
+
+  direction: rtl;
+
+  display: flex;
+  flex-direction: column;
+
+  position: relative;
+
+  background:
+    rgba(250, 248, 241, 0.76);
+
+  backdrop-filter: blur(3px);
+}
+
+/* =========================================================
+   TOPBAR
+========================================================= */
+
+.topbar {
+  height: 70px;
+
+  flex: 0 0 70px;
+
+  padding:
+    0 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background:
+    rgba(255, 255, 255, 0.86);
 
   border-bottom:
     1px solid
     var(--border-color);
+
+  backdrop-filter: blur(15px);
 }
 
-header *,
-.topbar *,
-#topbar * {
-  color: inherit;
-}
+.top-title {
+  display: flex;
+  align-items: center;
 
-/* =========================
-   اسم T.M.D AI
-========================= */
-
-#topSiteName,
-.top-site-name {
-  color:
-    #1b1a17 !important;
-
-  font-weight:
-    800;
-}
-
-#topSiteName::first-letter {
-  color:
-    var(--primary-color);
-}
-
-/* =========================
-   الترحيب
-========================= */
-
-#welcome {
-  color:
-    var(--text-color) !important;
-
-  text-align:
-    center;
-}
-
-#welcome * {
-  color:
-    inherit;
-}
-
-#welcome h1,
-#welcome h2,
-#welcome .welcome-title {
-  color:
-    #171717 !important;
-
-  font-weight:
-    800;
-}
-
-#welcomeSiteName {
-  color:
-    var(--primary-color) !important;
-}
-
-#welcomeDescription {
-  color:
-    #6b7280 !important;
-}
-
-/* =========================
-   الاقتراحات
-========================= */
-
-.suggestion,
-.welcome-cards button,
-.welcome-cards .suggestion {
-  background:
-    rgba(255, 255, 255, 0.96) !important;
+  gap: 6px;
 
   color:
-    #1b1a17 !important;
+    var(--text-color);
 
-  border:
-    1px solid
-    var(--border-color) !important;
-
-  border-radius:
-    12px;
-
-  box-shadow:
-    0 3px 12px
-    rgba(0, 0, 0, 0.06);
+  font-weight: 800;
 }
 
-.suggestion *,
-.welcome-cards button * {
-  color:
-    inherit !important;
-}
+.top-title i {
+  width: 7px;
+  height: 7px;
 
-.suggestion:hover,
-.welcome-cards button:hover {
-  border-color:
-    var(--primary-color) !important;
+  border-radius: 50%;
 
-  background:
-    #fffaf0 !important;
-}
-
-/* =========================
-   الرسائل
-========================= */
-
-.message-row {
-  width: 100%;
-}
-
-.message-row .bubble {
-  color:
-    #171717;
-
-  line-height:
-    1.8;
-
-  word-break:
-    break-word;
-}
-
-/* رسالة المستخدم */
-
-.message-row.user .bubble {
   background:
     var(--primary-color);
-
-  color:
-    #ffffff !important;
-
-  border-radius:
-    18px 18px 4px 18px;
 }
 
-/* رسالة الذكاء الاصطناعي */
+/* =========================================================
+   ICON BUTTON
+========================================================= */
 
-.message-row.assistant .bubble {
-  background:
-    #ffffff;
-
-  color:
-    #171717 !important;
+.icon-btn {
+  width: 42px;
+  height: 42px;
 
   border:
     1px solid
     var(--border-color);
 
-  border-radius:
-    18px 18px 18px 4px;
+  border-radius: 11px;
+
+  background:
+    var(--panel-color);
+
+  color:
+    var(--text-color);
+
+  transition: 0.2s ease;
+}
+
+.icon-btn:hover {
+  color:
+    var(--primary-color);
+
+  border-color:
+    var(--primary-color);
+
+  transform:
+    scale(1.04);
+}
+
+.mobile-only {
+  display: none;
+}
+
+/* =========================================================
+   CHAT
+========================================================= */
+
+.chat {
+  flex: 1;
+
+  min-height: 0;
+
+  overflow-y: auto;
+
+  padding:
+    35px
+    clamp(18px, 7vw, 110px)
+    180px;
+
+  scrollbar-width: thin;
+
+  scrollbar-color:
+    var(--primary-color)
+    transparent;
+}
+
+/* =========================================================
+   WELCOME
+========================================================= */
+
+.welcome {
+  min-height: 55vh;
+
+  display: grid;
+
+  place-items: center;
+
+  align-content: center;
+
+  text-align: center;
+
+  gap: 10px;
+}
+
+.welcome-logo {
+  width: 62px;
+  height: 62px;
+
+  font-size: 30px;
+}
+
+.welcome h1 {
+  margin:
+    8px
+    0
+    0;
+
+  color:
+    var(--text-color);
+
+  font-size:
+    clamp(27px, 4vw, 44px);
+
+  font-weight: 800;
+}
+
+.welcome h1 span {
+  color:
+    var(--primary-color);
+}
+
+.welcome p {
+  margin: 0;
+
+  color:
+    var(--muted-color);
+}
+
+/* =========================================================
+   WELCOME CARDS
+========================================================= */
+
+.welcome-cards {
+  display: flex;
+
+  gap: 10px;
+
+  flex-wrap: wrap;
+
+  justify-content: center;
+
+  margin-top: 18px;
+}
+
+.welcome-cards button {
+  border:
+    1px solid
+    var(--border-color);
+
+  background:
+    rgba(255, 255, 255, 0.94);
+
+  color:
+    var(--text-color);
+
+  border-radius: 11px;
+
+  padding:
+    10px 14px;
+
+  transition: 0.2s ease;
+}
+
+.welcome-cards button:hover {
+  border-color:
+    var(--primary-color);
+
+  color:
+    var(--primary-color);
+
+  transform:
+    translateY(-1px);
+}
+
+/* =========================================================
+   MESSAGES
+========================================================= */
+
+.message-row {
+  display: flex;
+
+  gap: 10px;
+
+  width: 100%;
+
+  max-width: 900px;
+
+  margin:
+    0 auto
+    18px;
+}
+
+.message-row.user {
+  justify-content: flex-start;
+}
+
+.message-row.assistant {
+  justify-content: flex-end;
+}
+
+.avatar {
+  flex:
+    0 0 auto;
+
+  width: 36px;
+  height: 36px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 11px;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--primary-color),
+      #f1d978
+    );
+
+  color: #ffffff;
+
+  font-weight: 800;
+
+  overflow: hidden;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+/* =========================================================
+   MESSAGE BUBBLES
+========================================================= */
+
+.bubble {
+  max-width:
+    min(78%, 760px);
+
+  padding:
+    13px 16px;
+
+  border:
+    1px solid
+    var(--border-color);
+
+  border-radius: 16px;
+
+  line-height: 1.8;
+
+  white-space: pre-wrap;
+
+  word-break: break-word;
+
+  background:
+    var(--panel-color);
+
+  color:
+    var(--text-color);
 
   box-shadow:
     0 3px 14px
-    rgba(0, 0, 0, 0.06);
+    rgba(0, 0, 0, 0.05);
 }
 
-/* =========================
-   الصور داخل الرسائل
-========================= */
+.message-row.user .bubble {
+  background:
+    var(--user-color);
 
-.image-message img {
-  display:
-    block;
+  color:
+    #ffffff;
 
-  max-width:
-    100%;
-
-  width:
-    auto;
-
-  max-height:
-    420px;
-
-  object-fit:
-    contain;
+  border-color:
+    var(--user-color);
 
   border-radius:
-    12px;
+    18px
+    18px
+    4px
+    18px;
+}
 
-  margin-bottom:
-    10px;
+.message-row.assistant .bubble {
+  border-radius:
+    18px
+    18px
+    18px
+    4px;
+}
+
+.message-row.error .bubble {
+  background:
+    #fee2e2;
+
+  color:
+    #991b1b;
+
+  border-color:
+    #fecaca;
+}
+
+/* =========================================================
+   IMAGE MESSAGE
+========================================================= */
+
+.image-message img {
+  display: block;
+
+  width: auto;
+
+  max-width:
+    min(420px, 100%);
+
+  max-height: 420px;
+
+  object-fit: contain;
+
+  margin-bottom: 10px;
+
+  border-radius: 12px;
 
   background:
     #f3f4f6;
 }
 
-/* =========================
-   مربع الكتابة
-========================= */
+/* =========================================================
+   COMPOSER
+========================================================= */
 
-#composer,
+.composer-wrap {
+  position: fixed;
+
+  left:
+    var(--sidebar-width);
+
+  right: 0;
+
+  bottom: 0;
+
+  z-index: 40;
+
+  padding:
+    14px
+    clamp(18px, 7vw, 110px)
+    16px;
+
+  background:
+    linear-gradient(
+      transparent,
+      rgba(250, 248, 241, 0.96) 35%
+    );
+}
+
 .composer {
-  background:
-    rgba(255, 255, 255, 0.97) !important;
+  max-width: 900px;
 
-  border:
-    1px solid
-    var(--primary-color) !important;
+  margin: 0 auto;
 
-  border-radius:
-    18px;
+  display: flex;
 
-  box-shadow:
-    0 8px 30px
-    rgba(0, 0, 0, 0.14);
-}
+  align-items: flex-end;
 
-/* حقل الكتابة */
+  gap: 8px;
 
-#input,
-textarea,
-.composer textarea {
-  background:
-    transparent !important;
-
-  color:
-    #171717 !important;
-
-  border:
-    none !important;
-
-  outline:
-    none !important;
-
-  font-family:
-    inherit;
-}
-
-#input::placeholder,
-textarea::placeholder {
-  color:
-    #6b7280 !important;
-
-  opacity:
-    1;
-}
-
-/* =========================
-   زر الإرسال
-========================= */
-
-#send,
-#sendButton,
-.send-button {
-  background:
-    var(--primary-color) !important;
-
-  color:
-    #ffffff !important;
-
-  border:
-    none !important;
-
-  border-radius:
-    12px;
-
-  cursor:
-    pointer;
-
-  font-size:
-    22px;
-
-  transition:
-    transform 0.2s ease,
-    filter 0.2s ease;
-}
-
-#send:hover,
-#sendButton:hover,
-.send-button:hover {
-  filter:
-    brightness(1.08);
-
-  transform:
-    scale(1.04);
-}
-
-#send:disabled,
-#sendButton:disabled {
-  opacity:
-    0.6;
-
-  cursor:
-    not-allowed;
-}
-
-/* =========================
-   زر +
-========================= */
-
-#plusButton {
-  background:
-    #ffffff !important;
-
-  color:
-    var(--primary-color) !important;
-
-  border:
-    1px solid
-    var(--primary-color) !important;
-
-  border-radius:
-    12px;
-
-  cursor:
-    pointer;
-
-  font-size:
-    22px;
-
-  transition:
-    0.2s ease;
-}
-
-#plusButton:hover {
-  background:
-    #fff8df !important;
-
-  transform:
-    scale(1.04);
-}
-
-/* =========================
-   قائمة +
-========================= */
-
-#plusMenu {
-  background:
-    #ffffff !important;
-
-  border:
-    1px solid
-    var(--border-color) !important;
-
-  box-shadow:
-    0 12px 35px
-    rgba(0, 0, 0, 0.18);
-
-  border-radius:
-    14px;
-
-  z-index:
-    100;
-}
-
-#plusMenu button {
-  background:
-    transparent !important;
-
-  color:
-    #171717 !important;
-
-  border:
-    none !important;
-
-  width:
-    100%;
-
-  text-align:
-    right;
-
-  cursor:
-    pointer;
-}
-
-#plusMenu button:hover {
-  background:
-    #fff8df !important;
-
-  color:
-    #8c6b00 !important;
-}
-
-/* =========================
-   معاينة الصورة
-========================= */
-
-#imagePreview {
-  background:
-    #ffffff;
+  padding: 8px;
 
   border:
     1px solid
     var(--border-color);
 
-  border-radius:
-    14px;
+  border-radius: 17px;
+
+  background:
+    rgba(255, 255, 255, 0.96);
 
   box-shadow:
-    0 8px 25px
-    rgba(0, 0, 0, 0.15);
+    0 15px 50px
+    rgba(0, 0, 0, 0.12);
 
-  overflow:
-    hidden;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-#previewImage {
-  display:
-    block;
+.composer:focus-within {
+  border-color:
+    var(--primary-color);
 
-  max-width:
-    240px;
-
-  max-height:
-    180px;
-
-  width:
-    auto;
-
-  height:
-    auto;
-
-  object-fit:
-    contain;
-
-  border-radius:
-    10px;
+  box-shadow:
+    0 15px 50px
+    rgba(201, 162, 39, 0.16);
 }
 
-#removeImage {
-  background:
-    #b91c1c !important;
+/* =========================================================
+   TEXTAREA
+========================================================= */
+
+#input,
+.composer textarea {
+  flex: 1;
+
+  min-height: 44px;
+
+  max-height: 170px;
+
+  resize: none;
+
+  border: 0;
+
+  outline: 0;
+
+  background: transparent;
 
   color:
-    #ffffff !important;
+    var(--text-color);
 
-  border:
-    none !important;
+  padding:
+    10px 12px;
 
-  border-radius:
-    50%;
-
-  cursor:
-    pointer;
+  line-height: 1.6;
 }
 
-/* =========================
-   الأفاتار
-========================= */
+#input::placeholder {
+  color:
+    var(--muted-color);
 
-.avatar {
+  opacity: 1;
+}
+
+/* =========================================================
+   SEND BUTTON
+========================================================= */
+
+#send {
+  flex:
+    0 0 auto;
+
+  width: 46px;
+  height: 46px;
+
+  border: 0;
+
+  border-radius: 13px;
+
   background:
     linear-gradient(
       135deg,
-      #c9a227,
-      #f4df87
-    ) !important;
+      var(--primary-color),
+      #9d7910
+    );
 
-  color:
-    #ffffff !important;
+  color: #ffffff;
 
-  border-radius:
-    12px;
+  font-size: 20px;
 
-  font-weight:
-    800;
-
-  display:
-    flex;
-
-  align-items:
-    center;
-
-  justify-content:
-    center;
+  transition: 0.2s ease;
 }
 
-/* =========================
-   لوحة المالك
-========================= */
+#send:hover {
+  filter: brightness(1.08);
 
-#ownerModal {
-  background:
-    rgba(0, 0, 0, 0.65);
-
-  z-index:
-    1000;
+  transform:
+    scale(1.04);
 }
 
-#ownerModal .modal,
-#ownerModal .owner-modal,
-#ownerModal > div {
+#send:disabled {
+  opacity: 0.55;
+
+  cursor:
+    not-allowed;
+}
+
+/* =========================================================
+   PLUS BUTTON
+========================================================= */
+
+.plus-button {
+  flex:
+    0 0 auto;
+
+  width: 46px;
+  height: 46px;
+
+  border:
+    1px solid
+    var(--border-color);
+
+  border-radius: 13px;
+
   background:
-    #ffffff;
+    var(--panel-color);
 
   color:
-    #171717;
+    var(--sidebar-icon-color);
+
+  font-size: 22px;
+
+  transition: 0.2s ease;
+}
+
+.plus-button:hover {
+  border-color:
+    var(--primary-color);
+
+  background:
+    rgba(201, 162, 39, 0.08);
+
+  transform:
+    scale(1.04);
+}
+
+/* =========================================================
+   PLUS MENU
+========================================================= */
+
+.plus-menu {
+  position: absolute;
+
+  right:
+    clamp(18px, 7vw, 110px);
+
+  bottom: 91px;
+
+  width: 250px;
+
+  padding: 8px;
+
+  display: none;
+
+  border:
+    1px solid
+    var(--border-color);
+
+  border-radius: 14px;
+
+  background:
+    var(--panel-color);
+
+  box-shadow:
+    0 20px 60px
+    rgba(0, 0, 0, 0.18);
+
+  z-index: 100;
+}
+
+.plus-menu.show {
+  display: block;
+}
+
+.plus-menu button {
+  width: 100%;
+
+  padding: 12px;
+
+  border: 0;
+
+  border-radius: 9px;
+
+  background: transparent;
+
+  color:
+    var(--text-color);
+
+  text-align: right;
+
+  transition: 0.2s ease;
+}
+
+.plus-menu button:hover {
+  background:
+    rgba(201, 162, 39, 0.10);
+
+  color:
+    var(--primary-color);
+}
+
+/* =========================================================
+   IMAGE PREVIEW
+========================================================= */
+
+.image-preview {
+  position: absolute;
+
+  left: 50%;
+
+  bottom: 92px;
+
+  transform:
+    translateX(-50%);
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 7px;
+
+  border:
+    1px solid
+    var(--border-color);
+
+  border-radius: 13px;
+
+  background:
+    var(--panel-color);
+
+  box-shadow:
+    0 12px 35px
+    rgba(0, 0, 0, 0.16);
+
+  z-index: 80;
+}
+
+.image-preview img {
+  width: 64px;
+  height: 64px;
+
+  object-fit: cover;
+
+  border-radius: 9px;
+}
+
+.image-preview button {
+  width: 28px;
+  height: 28px;
+
+  border: 0;
+
+  border-radius: 50%;
+
+  background:
+    #b91c1c;
+
+  color: #ffffff;
+
+  font-size: 20px;
+
+  line-height: 1;
+}
+
+/* =========================================================
+   HINT
+========================================================= */
+
+.hint {
+  padding-top: 7px;
+
+  text-align: center;
+
+  color:
+    var(--muted-color);
+
+  font-size: 10px;
+}
+
+/* =========================================================
+   DEVELOPER
+========================================================= */
+
+.developer {
+  position: fixed;
+
+  left:
+    calc(var(--sidebar-width) + 15px);
+
+  bottom: 7px;
+
+  z-index: 45;
+
+  color:
+    var(--muted-color);
+
+  font-size: 10px;
+
+  pointer-events: none;
+}
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+.modal {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 1000;
+
+  display: grid;
+
+  place-items: center;
+
+  padding: 20px;
+
+  background:
+    rgba(0, 0, 0, 0.62);
+
+  backdrop-filter:
+    blur(8px);
+}
+
+.modal[hidden] {
+  display: none !important;
+}
+
+/* =========================================================
+   MODAL CARD
+========================================================= */
+
+.modal-card {
+  position: relative;
+
+  width:
+    min(900px, 100%);
+
+  max-height: 90vh;
+
+  overflow-y: auto;
+
+  padding: 24px;
 
   border:
     1px solid
     var(--primary-color);
 
-  border-radius:
-    18px;
+  border-radius: 20px;
+
+  background:
+    var(--panel-color);
+
+  color:
+    var(--text-color);
 
   box-shadow:
-    0 20px 60px
+    0 30px 100px
     rgba(0, 0, 0, 0.35);
 }
 
-#ownerModal input,
-#ownerModal textarea,
-#ownerModal select {
-  background:
-    #ffffff !important;
+.modal-close {
+  position: absolute;
 
-  color:
-    #171717 !important;
+  top: 12px;
+
+  left: 12px;
+
+  width: 36px;
+  height: 36px;
 
   border:
     1px solid
-    #d1d5db !important;
+    var(--border-color);
 
-  border-radius:
-    10px;
+  border-radius: 10px;
 
-  font-family:
-    inherit;
+  background:
+    transparent;
+
+  color:
+    var(--text-color);
+
+  font-size: 22px;
 }
 
-#ownerModal input:focus,
-#ownerModal textarea:focus,
-#ownerModal select:focus {
+.modal-close:hover {
   border-color:
-    var(--primary-color) !important;
+    var(--primary-color);
 
-  outline:
-    none;
+  color:
+    var(--primary-color);
+}
+
+/* =========================================================
+   MODAL HEADER
+========================================================= */
+
+.modal-header {
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+
+  margin-bottom: 20px;
+}
+
+.modal-header h2 {
+  margin: 0;
+
+  color:
+    var(--text-color);
+}
+
+.modal-header p {
+  margin:
+    5px
+    0
+    0;
+
+  color:
+    var(--muted-color);
+}
+
+/* =========================================================
+   OWNER LOGIN
+========================================================= */
+
+.owner-login-form {
+  max-width: 520px;
+
+  margin: 20px auto;
+
+  display: grid;
+
+  gap: 15px;
+}
+
+.owner-login-form label,
+.settings-grid label {
+  display: grid;
+
+  gap: 7px;
+
+  color:
+    var(--muted-color);
+
+  font-size: 13px;
+}
+
+/* =========================================================
+   INPUTS
+========================================================= */
+
+input[type="text"],
+input[type="password"],
+input[type="url"],
+input[type="email"],
+input[type="number"],
+select {
+  width: 100%;
+
+  padding: 12px;
+
+  border:
+    1px solid
+    var(--border-color);
+
+  border-radius: 10px;
+
+  outline: none;
+
+  background:
+    var(--panel-color);
+
+  color:
+    var(--text-color);
+
+  transition: 0.2s ease;
+}
+
+input:focus,
+select:focus {
+  border-color:
+    var(--primary-color);
 
   box-shadow:
     0 0 0 3px
-    rgba(201, 162, 39, 0.15);
+    rgba(201, 162, 39, 0.12);
 }
 
-/* أزرار لوحة المالك */
+/* =========================================================
+   COLOR INPUT
+========================================================= */
 
-#ownerModal button {
-  font-family:
-    inherit;
-}
+input[type="color"] {
+  width: 100%;
 
-/* =========================
-   حالة الخطأ
-========================= */
+  height: 44px;
 
-.message-row.error .bubble {
+  padding: 3px;
+
+  border:
+    1px solid
+    var(--border-color);
+
+  border-radius: 10px;
+
   background:
-    #fee2e2 !important;
+    var(--panel-color);
+
+  cursor: pointer;
+}
+
+/* =========================================================
+   SETTINGS GRID
+========================================================= */
+
+.settings-grid {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap: 14px;
+}
+
+.settings-grid .full {
+  grid-column:
+    1 / -1;
+}
+
+/* =========================================================
+   UPLOAD ROW
+========================================================= */
+
+.upload-row {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap: 12px;
+
+  margin-top: 16px;
+}
+
+.upload-box {
+  display: block;
+
+  padding: 17px;
+
+  border:
+    1px dashed
+    var(--primary-color);
+
+  border-radius: 12px;
+
+  background:
+    rgba(201, 162, 39, 0.06);
 
   color:
-    #991b1b !important;
+    var(--text-color);
 
-  border-color:
-    #fecaca !important;
+  text-align: center;
+
+  cursor: pointer;
+
+  transition: 0.2s ease;
 }
 
-/* =========================
-   مؤشر الكتابة
-========================= */
+.upload-box:hover {
+  background:
+    rgba(201, 162, 39, 0.12);
+
+  transform:
+    translateY(-1px);
+}
+
+/* =========================================================
+   SWITCHES
+========================================================= */
+
+.switches {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap: 10px;
+
+  margin:
+    18px
+    0;
+}
+
+.switch-row {
+  display: flex !important;
+
+  align-items: center;
+
+  gap: 9px;
+
+  padding: 11px;
+
+  border:
+    1px solid
+    var(--border-color);
+
+  border-radius: 10px;
+
+  background:
+    rgba(201, 162, 39, 0.03);
+}
+
+.switch-row input {
+  accent-color:
+    var(--primary-color);
+}
+
+/* =========================================================
+   SETTINGS BUTTONS
+========================================================= */
+
+.settings-actions {
+  display: flex;
+
+  gap: 10px;
+}
+
+.primary-button,
+.secondary-button {
+  padding:
+    12px
+    18px;
+
+  border-radius: 11px;
+
+  transition: 0.2s ease;
+}
+
+.primary-button {
+  border: 0;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--primary-color),
+      #9d7910
+    );
+
+  color:
+    #ffffff;
+}
+
+.primary-button:hover {
+  filter:
+    brightness(1.07);
+
+  transform:
+    translateY(-1px);
+}
+
+.secondary-button {
+  border:
+    1px solid
+    var(--border-color);
+
+  background:
+    transparent;
+
+  color:
+    var(--text-color);
+}
+
+.secondary-button:hover {
+  border-color:
+    var(--primary-color);
+
+  color:
+    var(--primary-color);
+}
+
+/* =========================================================
+   FORM MESSAGE
+========================================================= */
+
+.form-message {
+  min-height: 20px;
+
+  margin-top: 12px;
+
+  color:
+    #159957;
+}
+
+.form-message.error {
+  color:
+    #b91c1c;
+}
+
+/* =========================================================
+   TYPING
+========================================================= */
 
 .typing {
-  display:
-    flex;
+  display: inline-flex;
 
-  align-items:
-    center;
+  align-items: center;
 
-  gap:
-    5px;
+  gap: 5px;
 }
 
 .typing span {
-  width:
-    7px;
+  width: 7px;
+  height: 7px;
 
-  height:
-    7px;
-
-  border-radius:
-    50%;
+  border-radius: 50%;
 
   background:
     var(--primary-color);
 
   animation:
-    tmdTyping 1.2s infinite ease-in-out;
+    tmdTyping
+    1.2s
+    infinite
+    ease-in-out;
 }
 
 .typing span:nth-child(2) {
@@ -1561,10 +1547,11 @@ textarea::placeholder {
 
 .typing span:nth-child(3) {
   animation-delay:
-    0.3s;
+    0.30s;
 }
 
 @keyframes tmdTyping {
+
   0%,
   60%,
   100% {
@@ -1584,95 +1571,271 @@ textarea::placeholder {
   }
 }
 
-/* =========================
-   الوضع الفاتح
-========================= */
+/* =========================================================
+   CUSTOM BACKGROUND
+========================================================= */
+
+body.custom-background {
+  background-size: cover;
+
+  background-position: center;
+
+  background-repeat: no-repeat;
+
+  background-attachment: fixed;
+}
+
+body.custom-background::before {
+  content: "";
+
+  position: fixed;
+
+  inset: 0;
+
+  z-index: -1;
+
+  pointer-events: none;
+
+  background:
+    rgba(255, 255, 255, 0.12);
+}
+
+/* =========================================================
+   LIGHT MODE
+========================================================= */
 
 body.light {
-  background:
-    #faf8f1;
-
-  color:
-    #171717;
+  --background-color: #faf8f1;
+  --text-color: #1b1a17;
+  --panel-color: #ffffff;
+  --border-color: #ded5b7;
+  --muted-color: #756f61;
 }
 
-body.light .message-row.assistant .bubble {
-  background:
-    #ffffff;
+/* =========================================================
+   DARK MODE
+========================================================= */
+
+body:not(.light) {
+  --background-color: #080b12;
+  --text-color: #f5f7fb;
+  --panel-color: #0d111b;
+  --border-color: #202a3b;
+  --muted-color: #8d98ad;
 }
 
-/* =========================
-   الهاتف
-========================= */
+body:not(.light) .sidebar {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(11, 15, 23, 0.98),
+      rgba(8, 11, 18, 0.99)
+    );
+}
+
+body:not(.light) .main {
+  background:
+    rgba(8, 11, 18, 0.55);
+}
+
+body:not(.light) .topbar {
+  background:
+    rgba(8, 11, 18, 0.72);
+}
+
+body:not(.light) .composer {
+  background:
+    rgba(13, 17, 27, 0.95);
+}
+
+body:not(.light) .welcome-cards button {
+  background:
+    rgba(13, 17, 27, 0.88);
+}
+
+body:not(.light) .plus-menu {
+  background:
+    rgba(13, 17, 27, 0.98);
+}
+
+/* =========================================================
+   OVERLAY
+========================================================= */
+
+.overlay {
+  display: none;
+}
+
+.overlay.show {
+  display: block;
+
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 60;
+
+  background:
+    rgba(0, 0, 0, 0.55);
+}
+
+/* =========================================================
+   HIDDEN
+========================================================= */
+
+[hidden] {
+  display: none !important;
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
 
 @media (max-width: 800px) {
 
-  #sidebar,
+  body {
+    overflow: auto;
+  }
+
+  .app {
+    display: block;
+  }
+
   .sidebar {
-    position:
-      fixed;
+    position: fixed;
 
-    top:
-      0;
+    top: 0;
+    right: 0;
+    bottom: 0;
 
-    right:
-      auto;
-
-    left:
-      0;
-
-    height:
-      100vh;
+    width: 290px;
 
     transform:
-      translateX(-100%);
+      translateX(110%);
 
     transition:
       transform 0.25s ease;
 
-    z-index:
-      100;
+    z-index: 100;
   }
 
-  #sidebar.open,
   .sidebar.open {
     transform:
       translateX(0);
   }
 
-  .message-row .bubble {
-    max-width:
-      85%;
+  .mobile-only {
+    display: block;
   }
 
-  #composer,
+  .topbar {
+    height: 62px;
+
+    padding:
+      0 15px;
+  }
+
+  .chat {
+    padding:
+      22px
+      12px
+      155px;
+  }
+
+  .composer-wrap {
+    left: 0;
+
+    padding:
+      10px;
+  }
+
   .composer {
-    margin:
-      8px;
+    margin: 0;
   }
 
+  .developer {
+    left: 0;
+    right: 0;
+
+    text-align: center;
+  }
+
+  .bubble {
+    max-width: 88%;
+  }
+
+  .message-row {
+    max-width: 100%;
+  }
+
+  .plus-menu {
+    right: 10px;
+  }
+
+  .settings-grid,
+  .upload-row,
+  .switches {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-grid .full {
+    grid-column: auto;
+  }
+
+  .settings-actions {
+    flex-direction: column;
+  }
+
+  .modal {
+    padding: 10px;
+  }
+
+  .modal-card {
+    max-height: 94vh;
+
+    padding:
+      18px;
+  }
+
+  .welcome h1 {
+    font-size: 29px;
+  }
+
+  .welcome-cards {
+    padding:
+      0 8px;
+  }
 }
 
-/* =========================
-   منع ظهور صور مكسورة
-========================= */
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
 
-img {
-  max-width:
-    100%;
-}
+@media (max-width: 480px) {
 
-img:not([src]),
-img[src=""] {
-  display:
-    none;
-}
+  .composer {
+    border-radius: 14px;
+  }
 
-/* =========================
-   إصلاح العناصر المخفية
-========================= */
+  #send,
+  .plus-button {
+    width: 43px;
+    height: 43px;
+  }
 
-[hidden] {
-  display:
-    none !important;
+  .avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .bubble {
+    max-width: 90%;
+
+    padding:
+      11px 13px;
+  }
+
+  .image-preview {
+    bottom: 88px;
+  }
 }
