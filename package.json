@@ -1,12 +1,12 @@
 {
   "name": "tmd-ai-professional",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "T.M.D AI Professional",
+  "description": "T.M.D AI - Professional Arabic AI Assistant",
   "engines": {
     "node": "24.x"
   },
   "scripts": {
-    "start": "node server.js"
+    "dev": "vercel dev"
   }
 }
