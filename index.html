@@ -3,94 +3,428 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
+
   <meta name="theme-color" content="#0b0b0c">
-  <meta name="description" content="T.M.D AI — مساعد الذكاء الاصطناعي الفائق">
+  <meta
+    name="description"
+    content="T.M.D AI — مساعد الذكاء الاصطناعي الفائق"
+  >
+
   <title>T.M.D AI</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+
 <div class="app">
 
+  <!-- =========================
+       SIDEBAR
+  ========================== -->
+
   <aside class="sidebar" id="sidebar">
+
     <div class="sidebar-top">
+
       <div class="brand">
-        <div class="brand-logo">T</div>
-        <div class="brand-name">T.M.D AI <span>✦</span></div>
+
+        <div class="brand-logo">
+          T
+        </div>
+
+        <div class="brand-name">
+          T.M.D AI
+          <span>✦</span>
+        </div>
+
       </div>
-      <button class="sidebar-icon" id="closeSidebar" title="إغلاق القائمة">‹</button>
+
+      <button
+        class="sidebar-icon"
+        id="closeSidebar"
+        title="إغلاق القائمة"
+        type="button"
+      >
+        ‹
+      </button>
+
     </div>
 
-    <button class="new-chat" id="newChat">
-      <span class="plus">＋</span><b>محادثة جديدة</b>
+
+    <button
+      class="new-chat"
+      id="newChat"
+      type="button"
+    >
+      <span class="plus">＋</span>
+      <b>محادثة جديدة</b>
     </button>
 
-    <div class="history-list" id="history"></div>
+
+    <div
+      class="history-list"
+      id="history"
+    ></div>
+
 
     <div class="sidebar-footer">
-      <button class="footer-btn" id="settingsBtn">⚙ الإعدادات</button>
+
+      <button
+        class="footer-btn"
+        id="settingsBtn"
+        type="button"
+      >
+        ⚙ الإعدادات
+      </button>
+
     </div>
+
   </aside>
 
+
+  <!-- =========================
+       MAIN
+  ========================== -->
+
   <main class="main">
+
+
+    <!-- TOP BAR -->
+
     <header class="topbar">
-      <button class="mobile-menu" id="openSidebar">☰</button>
+
+      <button
+        class="mobile-menu"
+        id="openSidebar"
+        type="button"
+      >
+        ☰
+      </button>
+
+
       <div class="model-selector">
-        <span class="model-badge" id="modelName">T.M.D Fast (Llama 3.3)</span>
+
+        <span
+          class="model-badge"
+          id="modelName"
+        >
+          T.M.D Fast (Llama 3.3)
+        </span>
+
       </div>
-      <button class="theme-top" id="themeTop">◑</button>
+
+
+      <button
+        class="theme-top"
+        id="themeTop"
+        type="button"
+        title="تغيير المظهر"
+      >
+        ◑
+      </button>
+
     </header>
 
-    <section class="chat-zone" id="chat">
-      <div class="welcome" id="welcome">
-        <div class="welcome-logo">T</div>
-        <h1>بمَ يمكنني مساعدتك اليوم؟</h1>
-        <p>مساعدك الذكي المدعوم بـ Groq. اختر محادثة أو ابدأ بسؤال جديد.</p>
+
+    <!-- =========================
+         CHAT AREA
+    ========================== -->
+
+    <section
+      class="chat-zone"
+      id="chat"
+    >
+
+      <div
+        class="welcome"
+        id="welcome"
+      >
+
+        <div class="welcome-logo">
+          T
+        </div>
+
+        <h1>
+          بمَ يمكنني مساعدتك اليوم؟
+        </h1>
+
+        <p>
+          مساعدك الذكي المدعوم بـ Groq.
+          اختر محادثة أو ابدأ بسؤال جديد.
+        </p>
+
       </div>
+
     </section>
 
+
+    <!-- =========================
+         COMPOSER
+    ========================== -->
+
     <div class="composer-zone">
+
       <div class="composer">
-        <textarea id="input" rows="1" maxlength="16000" placeholder="اكتب رسالتك إلى T.M.D AI..."></textarea>
-        <div class="composer-actions">
-          <button class="send-btn" id="send" type="button" title="إرسال">↑</button>
+
+
+        <!-- IMAGE PREVIEW -->
+
+        <div
+          class="image-preview-container hidden"
+          id="imagePreviewContainer"
+        >
+
+          <div class="image-preview">
+
+            <img
+              id="imagePreview"
+              src=""
+              alt="معاينة الصورة"
+            >
+
+            <button
+              id="removeImage"
+              class="remove-image"
+              type="button"
+              title="إزالة الصورة"
+            >
+              ×
+            </button>
+
+          </div>
+
+          <div class="image-preview-info">
+
+            <span id="imageFileName">
+              الصورة المحددة
+            </span>
+
+            <span id="imageModeLabel">
+              إضافة صورة
+            </span>
+
+          </div>
+
         </div>
+
+
+        <!-- INPUT -->
+
+        <textarea
+          id="input"
+          rows="1"
+          maxlength="16000"
+          placeholder="اكتب رسالتك إلى T.M.D AI..."
+        ></textarea>
+
+
+        <!-- ACTIONS -->
+
+        <div class="composer-actions">
+
+
+          <!-- PLUS BUTTON -->
+
+          <div class="plus-menu-wrapper">
+
+            <button
+              class="plus-btn"
+              id="plusButton"
+              type="button"
+              title="إضافة"
+              aria-label="إضافة صورة أو ملف"
+              aria-expanded="false"
+            >
+              ＋
+            </button>
+
+
+            <!-- PLUS MENU -->
+
+            <div
+              class="plus-menu hidden"
+              id="plusMenu"
+            >
+
+              <button
+                class="plus-menu-item"
+                id="addImageButton"
+                type="button"
+              >
+
+                <span class="plus-menu-icon">
+                  🖼️
+                </span>
+
+                <span>
+                  إضافة صورة
+                </span>
+
+              </button>
+
+
+              <button
+                class="plus-menu-item"
+                id="imageEditButton"
+                type="button"
+              >
+
+                <span class="plus-menu-icon">
+                  ✨
+                </span>
+
+                <span>
+                  تعديل صورة بالذكاء الاصطناعي
+                </span>
+
+              </button>
+
+            </div>
+
+          </div>
+
+
+          <!-- HIDDEN FILE INPUT -->
+
+          <input
+            type="file"
+            id="imageInput"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+            hidden
+          >
+
+
+          <!-- SEND BUTTON -->
+
+          <button
+            class="send-btn"
+            id="send"
+            type="button"
+            title="إرسال"
+            aria-label="إرسال الرسالة"
+          >
+            ↑
+          </button>
+
+        </div>
+
       </div>
-      <div class="composer-note">قد يخطئ T.M.D AI أحيانًا. يرجى التحقق من المعلومات المهمة.</div>
+
+
+      <div class="composer-note">
+        قد يخطئ T.M.D AI أحيانًا.
+        يرجى التحقق من المعلومات المهمة.
+      </div>
+
     </div>
+
   </main>
+
 </div>
 
-<div class="modal-backdrop hidden" id="modalBackdrop">
+
+<!-- =========================
+     SETTINGS MODAL
+========================== -->
+
+<div
+  class="modal-backdrop hidden"
+  id="modalBackdrop"
+>
+
   <div class="modal">
+
     <div class="modal-head">
-      <h3>الإعدادات</h3>
-      <button id="modalClose">×</button>
+
+      <h3>
+        الإعدادات
+      </h3>
+
+      <button
+        id="modalClose"
+        type="button"
+        title="إغلاق"
+      >
+        ×
+      </button>
+
     </div>
+
+
     <div class="settings-body">
+
       <label>
+
         المظهر
+
         <select id="themeSelect">
-          <option value="dark">داكن</option>
-          <option value="light">فاتح</option>
+
+          <option value="dark">
+            داكن
+          </option>
+
+          <option value="light">
+            فاتح
+          </option>
+
         </select>
+
       </label>
+
+
       <label>
+
         النموذج البرمجي
+
         <select id="modelSelect">
-          <option value="llama-3.3-70b-versatile">Llama 3.3 70B (موصى به)</option>
-          <option value="llama-3.1-8b-instant">Llama 3.1 8B (سريع جدًا)</option>
-          <option value="mixtral-8x7b-32768">Mixtral 8x7b</option>
+
+          <option value="llama-3.3-70b-versatile">
+            Llama 3.3 70B (موصى به)
+          </option>
+
+          <option value="llama-3.1-8b-instant">
+            Llama 3.1 8B (سريع جدًا)
+          </option>
+
+          <option value="mixtral-8x7b-32768">
+            Mixtral 8x7b
+          </option>
+
         </select>
+
       </label>
+
     </div>
+
   </div>
+
 </div>
 
-<div class="toast" id="toast"></div>
+
+<!-- =========================
+     TOAST
+========================== -->
+
+<div
+  class="toast"
+  id="toast"
+></div>
+
+
+<!-- =========================
+     APP JAVASCRIPT
+========================== -->
 
 <script src="app.js"></script>
+
 </body>
 </html>
