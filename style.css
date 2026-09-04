@@ -545,12 +545,6 @@ body.light .welcome h1 {
    MESSAGES
 ======================================== */
 
-/*
-   IMPORTANT:
-   User = RIGHT
-   AI   = LEFT
-*/
-
 .msg {
   display: flex;
 
@@ -562,7 +556,6 @@ body.light .welcome h1 {
 
   max-width: 900px;
 }
-
 
 /* User message */
 
@@ -576,7 +569,6 @@ body.light .welcome h1 {
   direction: rtl;
 }
 
-
 /* AI message */
 
 .msg.assistant,
@@ -589,7 +581,6 @@ body.light .welcome h1 {
 
   direction: ltr;
 }
-
 
 /* Avatars */
 
@@ -634,7 +625,6 @@ body.light .welcome h1 {
   border-color: rgba(230, 194, 107, 0.35);
 }
 
-
 /* Message content */
 
 .msg-content {
@@ -653,7 +643,6 @@ body.light .welcome h1 {
   box-shadow:
     0 5px 20px rgba(0, 0, 0, 0.10);
 }
-
 
 /* User bubble */
 
@@ -675,7 +664,6 @@ body.light .welcome h1 {
 
   direction: rtl;
 }
-
 
 /* AI bubble */
 
@@ -733,6 +721,8 @@ pre {
   text-align: left;
 
   border: 1px solid rgba(255, 255, 255, 0.07);
+
+  margin: 8px 0;
 }
 
 code {
@@ -791,7 +781,6 @@ body.light .composer {
   border-color: rgba(155, 117, 40, 0.20);
 }
 
-
 /* Textarea */
 
 .composer textarea {
@@ -823,7 +812,6 @@ body.light .composer {
 .composer textarea::placeholder {
   color: #777269;
 }
-
 
 /* Actions */
 
@@ -947,6 +935,8 @@ body.light .plus-menu {
   direction: rtl;
 
   transition: 0.2s;
+
+  cursor: pointer;
 }
 
 .plus-menu-item:hover {
@@ -1022,9 +1012,15 @@ body.light .plus-menu-item {
   filter: brightness(1.08);
 }
 
+.send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
 
 /* ========================================
-   IMAGE PREVIEW
+   ATTACHMENT PREVIEW (IMAGES & DOCUMENTS)
 ======================================== */
 
 .image-preview-container {
@@ -1034,23 +1030,37 @@ body.light .plus-menu-item {
 
   align-items: center;
 
-  gap: 10px;
+  gap: 12px;
 
-  padding: 5px;
+  padding: 8px 10px;
 
   direction: rtl;
 
   border-bottom:
-    1px solid rgba(205, 164, 76, 0.10);
+    1px solid rgba(205, 164, 76, 0.12);
+
+  background: rgba(205, 164, 76, 0.03);
+
+  border-radius: 12px 12px 0 0;
 }
 
 .image-preview {
-  width: 62px;
-  height: 62px;
+  width: 50px;
+  height: 50px;
 
   position: relative;
 
   flex-shrink: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  background: rgba(0, 0, 0, 0.2);
+
+  border-radius: 10px;
 }
 
 .image-preview img {
@@ -1068,26 +1078,34 @@ body.light .plus-menu-item {
 .remove-image {
   position: absolute;
 
-  top: -7px;
-  left: -7px;
+  top: -6px;
+  left: -6px;
 
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
 
   border-radius: 50%;
 
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 
-  background: #201b15;
+  background: #8b0000;
 
   color: #fff;
 
-  font-size: 15px;
+  font-size: 13px;
 
   display: flex;
 
   align-items: center;
   justify-content: center;
+
+  cursor: pointer;
+
+  transition: background 0.2s;
+}
+
+.remove-image:hover {
+  background: #b22222;
 }
 
 .image-preview-info {
@@ -1097,17 +1115,19 @@ body.light .plus-menu-item {
 
   align-items: flex-start;
 
-  gap: 2px;
+  gap: 3px;
 
   min-width: 0;
 }
 
 .image-preview-info span:first-child {
-  font-size: 12px;
+  font-size: 13px;
+
+  font-weight: 600;
 
   color: #ded4c2;
 
-  max-width: 300px;
+  max-width: 260px;
 
   overflow: hidden;
 
@@ -1116,8 +1136,12 @@ body.light .plus-menu-item {
   white-space: nowrap;
 }
 
+body.light .image-preview-info span:first-child {
+  color: #211d16;
+}
+
 .image-preview-info span:last-child {
-  font-size: 10px;
+  font-size: 11px;
 
   color: #c7a75d;
 }
@@ -1400,7 +1424,7 @@ body.light .plus-menu-item {
   }
 
   .image-preview img {
-    width: 55px;
-    height: 55px;
+    width: 45px;
+    height: 45px;
   }
 }
