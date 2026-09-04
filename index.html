@@ -27,10 +27,6 @@
 
 <div class="app">
 
-  <!-- =========================
-       SIDEBAR
-  ========================== -->
-
   <aside class="sidebar" id="sidebar">
 
     <div class="sidebar-top">
@@ -91,14 +87,8 @@
   </aside>
 
 
-  <!-- =========================
-       MAIN
-  ========================== -->
-
   <main class="main">
 
-
-    <!-- TOP BAR -->
 
     <header class="topbar">
 
@@ -135,10 +125,6 @@
     </header>
 
 
-    <!-- =========================
-         CHAT AREA
-    ========================== -->
-
     <section
       class="chat-zone"
       id="chat"
@@ -167,16 +153,10 @@
     </section>
 
 
-    <!-- =========================
-         COMPOSER
-    ========================== -->
-
     <div class="composer-zone">
 
       <div class="composer">
 
-
-        <!-- IMAGE PREVIEW -->
 
         <div
           class="image-preview-container hidden"
@@ -217,8 +197,6 @@
         </div>
 
 
-        <!-- INPUT -->
-
         <textarea
           id="input"
           rows="1"
@@ -227,12 +205,8 @@
         ></textarea>
 
 
-        <!-- ACTIONS -->
-
         <div class="composer-actions">
 
-
-          <!-- PLUS BUTTON -->
 
           <div class="plus-menu-wrapper">
 
@@ -248,12 +222,27 @@
             </button>
 
 
-            <!-- PLUS MENU -->
-
             <div
               class="plus-menu hidden"
               id="plusMenu"
             >
+
+              <button
+                class="plus-menu-item"
+                id="analyzeDocumentButton"
+                type="button"
+              >
+
+                <span class="plus-menu-icon">
+                  🔍
+                </span>
+
+                <span>
+                  تحليل الملفات
+                </span>
+
+              </button>
+
 
               <button
                 class="plus-menu-item"
@@ -293,8 +282,6 @@
           </div>
 
 
-          <!-- HIDDEN FILE INPUT -->
-
           <input
             type="file"
             id="imageInput"
@@ -302,8 +289,13 @@
             hidden
           >
 
+          <input
+            type="file"
+            id="documentInput"
+            accept=".txt,.js,.json,.html,.css,.py,.md,.csv,.pdf,.docx"
+            hidden
+          >
 
-          <!-- SEND BUTTON -->
 
           <button
             class="send-btn"
@@ -331,10 +323,6 @@
 
 </div>
 
-
-<!-- =========================
-     SETTINGS MODAL
-========================== -->
 
 <div
   class="modal-backdrop hidden"
@@ -410,19 +398,11 @@
 </div>
 
 
-<!-- =========================
-     TOAST
-========================== -->
-
 <div
   class="toast"
   id="toast"
 ></div>
 
-
-<!-- =========================
-     APP JAVASCRIPT
-========================== -->
 
 <script src="app.js"></script>
 
