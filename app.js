@@ -827,10 +827,38 @@ function bindAttachmentEvents() {
 
   if (plusButton && !plusButton.dataset.bound) {
     plusButton.dataset.bound = "1";
-    plusButton.addEventListener("click", (event) => {
+
+    const togglePlus = (event) => {
+      event.preventDefault();
       event.stopPropagation();
-      if (plusMenu?.classList.contains("hidden")) openPlusMenu();
-      else closePlusMenu();
+
+      if (plusMenu?.classList.contains("hidden")) {
+        openPlusMenu();
+      } else {
+        closePlusMenu();
+      }
+    };
+
+    plusButton.addEventListener("click", togglePlus);
+
+    plusButton.addEventListener("pointerup", (event) => {
+      if (event.pointerType !== "touch") return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (plusButton.dataset.pointerHandled === "1") return;
+
+      plusButton.dataset.pointerHandled = "1";
+      setTimeout(() => {
+        plusButton.dataset.pointerHandled = "0";
+      }, 450);
+
+      if (plusMenu?.classList.contains("hidden")) {
+        openPlusMenu();
+      } else {
+        closePlusMenu();
+      }
     });
   }
 
@@ -911,78 +939,43 @@ function bindAttachmentEvents() {
   }
 }
 
-function bindMobileTouchEvents() {
-  if (document.body.dataset.mobileTouchBound) return;
-  document.body.dataset.mobileTouchBound = "1";
-
-  const isTouchDevice =
-    window.matchMedia &&
-    window.matchMedia("(pointer: coarse)").matches;
-
-  if (!isTouchDevice) return;
-
-  let lastTouch = 0;
-
-  document.addEventListener("touchend", (event) => {
-    const target = event.target?.closest?.("#plusButton, #addImageButton, #imageEditButton, #analyzeDocumentButton, #send");
-    if (!target) return;
-
-    lastTouch = Date.now();
-    event.preventDefault();
-    event.stopPropagation();
-
-    if (target.id === "plusButton") {
-      if (plusMenu?.classList.contains("hidden")) openPlusMenu();
-      else closePlusMenu();
-      return;
-    }
-
-    if (target.id === "addImageButton" || target.id === "imageEditButton") {
-      closePlusMenu();
-      if (imageInput) {
-        imageInput.dataset.editMode = target.id === "imageEditButton" ? "1" : "0";
-        imageInput.value = "";
-        imageInput.click();
-      }
-      return;
-    }
-
-    if (target.id === "analyzeDocumentButton") {
-      closePlusMenu();
-      if (documentInput) {
-        documentInput.value = "";
-        documentInput.click();
-      }
-      return;
-    }
-
-    if (target.id === "send") {
-      if (state.busy) stopMessage();
-      else {
-        state.controller = new AbortController();
-        sendMessage();
-      }
-    }
-  }, { passive: false, capture: true });
-
-  document.addEventListener("click", (event) => {
-    if (Date.now() - lastTouch > 700) return;
-    const target = event.target?.closest?.("#plusButton, #addImageButton, #imageEditButton, #analyzeDocumentButton, #send");
-    if (target) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-    }
-  }, true);
-}
-
 function bindChatEvents() {
   if (send && !send.dataset.bound) {
     send.dataset.bound = "1";
-    send.addEventListener("click", () => {
-      if (state.busy) stopMessage();
-      else {
-        state.controller = new AbortController();
-        sendMessage();
+
+    const handleSend = (event) => {
+      event.preventDefault();
+
+      if (state.busy) {
+        stopMessage();
+        return;
+      }
+
+      state.controller = new AbortController();
+      void sendMessage();
+    };
+
+    send.addEventListener("click", handleSend);
+    send.addEventListener("pointerup", (event) => {
+      /*
+       * بعض متصفحات الهاتف قد لا تطلق click بشكل موثوق
+       * عند وجود عناصر/أنماط مخصصة. نستخدم pointerup فقط
+       * كاحتياط، مع منع التنفيذ المزدوج.
+       */
+      if (event.pointerType === "touch") {
+        event.preventDefault();
+        if (send.dataset.pointerHandled === "1") return;
+        send.dataset.pointerHandled = "1";
+        setTimeout(() => {
+          send.dataset.pointerHandled = "0";
+        }, 450);
+
+        if (state.busy) {
+          stopMessage();
+        } else {
+          state.controller = new AbortController();
+          void sendMessage();
+        }
       }
     });
   }
@@ -1000,9 +993,31 @@ function bindChatEvents() {
         event.preventDefault();
         if (!state.busy) {
           state.controller = new AbortController();
-          sendMessage();
+          void sendMessage();
         }
       }
+    });
+  }
+
+  /*
+   * دعم نماذج الهاتف إذا كان حقل الكتابة داخل <form>.
+   * يمنع إعادة تحميل الصفحة ويستخدم نفس مسار /api/chat.
+   */
+  const composerForm = input?.closest("form");
+
+  if (composerForm && !composerForm.dataset.tmdBound) {
+    composerForm.dataset.tmdBound = "1";
+
+    composerForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      if (state.busy) {
+        stopMessage();
+        return;
+      }
+
+      state.controller = new AbortController();
+      void sendMessage();
     });
   }
 }
@@ -1080,7 +1095,6 @@ function boot() {
   applyModelFallback();
   bindAttachmentEvents();
   bindChatEvents();
-  bindMobileTouchEvents();
   bindThemeAndNavigation();
   renderHistory();
   renderMessages();
