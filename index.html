@@ -8,7 +8,7 @@
   <title>T.M.D AI</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -26,7 +26,7 @@
   <main class="main">
     <header class="topbar">
       <button class="mobile-menu" id="openSidebar" type="button">☰</button>
-      <div class="model-selector"><span class="model-dot"></span><span class="model-badge" id="modelName">T.M.D Fast (Llama 3.3)</span></div>
+      <div class="model-selector"><span class="model-dot"></span><span class="model-badge" id="modelName">T.M.D Pro — GPT OSS 120B</span></div>
       <button class="theme-top" id="themeTop" type="button" title="تغيير المظهر">◑</button>
     </header>
 
@@ -75,7 +75,7 @@
     <div class="modal-head"><h3>الإعدادات</h3><button id="modalClose" type="button">×</button></div>
     <div class="settings-body">
       <label>المظهر<select id="themeSelect"><option value="dark">داكن</option><option value="light">فاتح</option></select></label>
-      <label>النموذج البرمجي<select id="modelSelect"><option value="llama-3.3-70b-versatile">Llama 3.3 70B (موصى به)</option><option value="llama-3.1-8b-instant">Llama 3.1 8B (سريع جدًا)</option><option value="mixtral-8x7b-32768">Mixtral 8x7b</option></select></label>
+      <label>النموذج<select id="modelSelect"><option value="openai/gpt-oss-120b">GPT OSS 120B — احترافي</option><option value="openai/gpt-oss-20b">GPT OSS 20B — سريع</option><option value="qwen/qwen3.8-27b">Qwen 3.8 27B — رؤية + نص</option><option value="qwen/qwen3.6-27b">Qwen 3.6 27B — رؤية + نص</option></select></label>
     </div>
   </div>
 </div>
