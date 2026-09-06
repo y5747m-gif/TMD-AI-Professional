@@ -1,161 +1,90 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <meta name="theme-color" content="#0b0b0c">
+  <meta name="description" content="T.M.D AI — مساعد الذكاء الاصطناعي المدعوم بـ Groq">
   <title>T.M.D AI</title>
-  <meta name="description" content="T.M.D AI - مساعد ذكاء اصطناعي يعمل عبر Groq">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs" type="module"></script>
-  <script>
-    window.pdfjsReady = import("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs")
-      .then(function (mod) {
-        window.pdfjsLib = mod;
-        if (window.pdfjsLib.GlobalWorkerOptions) {
-          window.pdfjsLib.GlobalWorkerOptions.workerSrc =
-            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs";
-        }
-        return mod;
-      });
-  </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body data-theme="dark">
-
+<body>
 <div class="app">
-
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-top">
-      <div class="brand">
-        <div class="brand-logo">T</div>
-        <div class="brand-name">T.M.D <span>AI</span></div>
-      </div>
-      <button class="theme-top" id="themeButton" type="button" title="تبديل المظهر">☀</button>
+      <div class="brand"><div class="brand-logo">T</div><div class="brand-name">T.M.D AI <span>✦</span></div></div>
+      <button class="sidebar-icon" id="closeSidebar" type="button" title="إغلاق القائمة">‹</button>
     </div>
-
-    <button class="new-chat" id="newChat" type="button">
-      <span class="plus">+</span>
-      <span>محادثة جديدة</span>
-    </button>
-
+    <button class="new-chat" id="newChat" type="button"><span class="plus">＋</span><b>محادثة جديدة</b></button>
     <div class="history-list" id="history"></div>
-
-    <div class="sidebar-footer">
-      <button class="footer-btn" id="clearChat" type="button">محادثة جديدة</button>
-    </div>
+    <div class="sidebar-footer"><button class="footer-btn" id="settingsBtn" type="button">⚙ الإعدادات</button></div>
   </aside>
 
   <main class="main">
     <header class="topbar">
-      <div class="model-selector">
-        <span class="model-dot"></span>
-        <select id="modelSelect" aria-label="النموذج">
-          <option value="openai/gpt-oss-120b">T.M.D Pro — GPT OSS 120B</option>
-          <option value="qwen/qwen3.8-27b">T.M.D Vision — Qwen 3.8 27B</option>
-          <option value="qwen/qwen3.6-27b">T.M.D Vision — Qwen 3.6 27B</option>
-          <option value="openai/gpt-oss-20b">T.M.D Fast — GPT OSS 20B</option>
-        </select>
-      </div>
+      <button class="mobile-menu" id="openSidebar" type="button">☰</button>
+      <div class="model-selector"><span class="model-dot"></span><span class="model-badge" id="modelName">T.M.D Fast (Llama 3.3)</span></div>
+      <button class="theme-top" id="themeTop" type="button" title="تغيير المظهر">◑</button>
     </header>
 
-    <section class="chat-zone" id="chatZone">
+    <section class="chat-zone" id="chat">
       <div class="welcome" id="welcome">
         <div class="welcome-logo">T</div>
-        <h1>مرحبًا بك في T.M.D AI</h1>
-        <p>اسألني أو أضف صورة أو ملف باستخدام زر <strong>+</strong>.</p>
-
+        <h1>بمَ يمكنني مساعدتك اليوم؟</h1>
+        <p>مساعدك الذكي المدعوم بـ Groq. اسأل، حلّل ملفًا، أو أضف صورة.</p>
         <div class="quick-actions">
-          <button type="button" data-prompt="اشرح لي الذكاء الاصطناعي بطريقة بسيطة">🤖 اشرح الذكاء الاصطناعي</button>
-          <button type="button" data-prompt="اكتب لي كود احترافي">💻 اكتب كود</button>
-          <button type="button" data-prompt="ساعدني في حل مسألة">🧮 حل مسألة</button>
-          <button type="button" data-prompt="ساعدني في الدراسة">📚 ساعدني في الدراسة</button>
+          <button type="button" data-prompt="لخّص لي هذا الموضوع بطريقة بسيطة">تلخيص موضوع</button>
+          <button type="button" data-prompt="اكتب لي خطة احترافية لهذا المشروع">خطة مشروع</button>
+          <button type="button" data-prompt="اشرح لي هذا الكود خطوة بخطوة">شرح كود</button>
         </div>
       </div>
-
-      <div id="chat"></div>
     </section>
 
-    <section class="composer-zone">
+    <div class="composer-zone">
       <div class="composer" id="composer">
-
         <div class="attachment-preview hidden" id="attachmentPreview">
-          <div class="attachment-icon" id="attachmentIcon">📎</div>
-          <div class="attachment-info">
-            <strong id="attachmentName"></strong>
-            <span id="attachmentMeta"></span>
-          </div>
-          <button type="button" data-remove aria-label="إزالة المرفق">×</button>
+          <div class="attachment-icon" id="attachmentIcon">📄</div>
+          <div class="attachment-info"><strong id="attachmentName">الملف</strong><span id="attachmentMeta">جاهز للتحليل</span></div>
+          <button id="removeAttachment" type="button" title="إزالة المرفق">×</button>
         </div>
-
-        <textarea id="input" rows="1" placeholder="اكتب رسالتك هنا..." aria-label="رسالتك"></textarea>
-
+        <textarea id="input" rows="1" maxlength="16000" placeholder="اكتب رسالتك إلى T.M.D AI..."></textarea>
         <div class="composer-actions">
           <div class="plus-menu-wrapper">
-            <button class="plus-btn" id="plusButton" type="button"
-                    aria-label="إضافة صورة أو ملف" aria-expanded="false">+</button>
-
+            <button class="plus-btn" id="plusButton" type="button" title="إضافة ملف أو صورة" aria-label="إضافة ملف أو صورة" aria-expanded="false">＋</button>
             <div class="plus-menu hidden" id="plusMenu">
-              <button class="plus-menu-item" id="addImageButton" type="button">
-                <span class="plus-menu-icon">🖼️</span>
-                <span>
-                  <b>إضافة صورة</b>
-                  <small>تحليل الصور مع رسالتك</small>
-                </span>
-              </button>
-
-              <button class="plus-menu-item" id="analyzeDocumentButton" type="button">
-                <span class="plus-menu-icon">📎</span>
-                <span>
-                  <b>إضافة ملف</b>
-                  <small>PDF أو DOCX أو ملفات نصية وبرمجية</small>
-                </span>
-              </button>
-
-              <button class="plus-menu-item" id="imageEditButton" type="button">
-                <span class="plus-menu-icon">✨</span>
-                <span>
-                  <b>اقتراح تعديل لصورة</b>
-                  <small>أرسل الصورة واكتب التعديل المطلوب</small>
-                </span>
-              </button>
+              <button class="plus-menu-item" id="analyzeDocumentButton" type="button"><span class="plus-menu-icon">📄</span><span><b>تحليل ملف</b><small>PDF · Word · Excel · TXT</small></span></button>
+              <button class="plus-menu-item" id="addImageButton" type="button"><span class="plus-menu-icon">🖼️</span><span><b>إضافة صورة</b><small>تحليل الصورة عبر Groq Vision</small></span></button>
+              <button class="plus-menu-item" id="imageEditButton" type="button"><span class="plus-menu-icon">✨</span><span><b>تعديل صورة</b><small>إرسال الصورة مع طلبك</small></span></button>
             </div>
           </div>
-
-          <button class="send-btn" id="send" type="button" aria-label="إرسال">➤</button>
-        </div>
-
-        <div class="composer-note">
-          Enter للإرسال • Shift + Enter لسطر جديد • زر + لإضافة صورة أو ملف
+          <input type="file" id="imageInput" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+          <input type="file" id="documentInput" accept=".txt,.js,.json,.html,.css,.py,.md,.csv,.pdf,.docx,.xlsx,.xls" hidden>
+          <button class="send-btn" id="send" type="button" title="إرسال" aria-label="إرسال الرسالة">↑</button>
         </div>
       </div>
-    </section>
+      <div class="composer-note">قد يخطئ T.M.D AI أحيانًا. تحقق من المعلومات المهمة.</div>
+    </div>
   </main>
-
 </div>
 
-<input id="imageInput" type="file"
-       accept="image/jpeg,image/png,image/webp,image/gif,image/*" hidden>
+<div class="modal-backdrop hidden" id="modalBackdrop">
+  <div class="modal">
+    <div class="modal-head"><h3>الإعدادات</h3><button id="modalClose" type="button">×</button></div>
+    <div class="settings-body">
+      <label>المظهر<select id="themeSelect"><option value="dark">داكن</option><option value="light">فاتح</option></select></label>
+      <label>النموذج البرمجي<select id="modelSelect"><option value="llama-3.3-70b-versatile">Llama 3.3 70B (موصى به)</option><option value="llama-3.1-8b-instant">Llama 3.1 8B (سريع جدًا)</option><option value="mixtral-8x7b-32768">Mixtral 8x7b</option></select></label>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
 
-<input id="documentInput" type="file"
-       accept=".pdf,.docx,.txt,.md,.js,.json,.html,.css,.py,.csv,.ts,.tsx,.jsx,.java,.c,.cpp,.h,.hpp,.cs,.php,.sql,.xml,.yml,.yaml,.sh,.log"
-       hidden>
-
-<div id="toast" class="toast"></div>
-
-<script src="/app.js"></script>
-<script>
-  document.querySelectorAll("[data-prompt]").forEach(function (button) {
-    button.addEventListener("click", function () {
-      var input = document.getElementById("input");
-      if (!input) return;
-      input.value = button.getAttribute("data-prompt") || "";
-      input.focus();
-      input.dispatchEvent(new Event("input"));
-    });
-  });
-</script>
+<!-- قراءة الملفات داخل المتصفح فقط؛ اتصال Groq يبقى في /api/chat و /api/image -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.5.136/pdf.min.mjs" type="module"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
