@@ -8,25 +8,40 @@ const GROQ_URL =
  * يتم استخدام GROQ_API_KEY من Vercel Environment Variables.
  */
 
-const DEFAULT_MODEL =
-  process.env.GROQ_MODEL ||
-  "openai/gpt-oss-120b";
-
-const VISION_MODEL =
-  process.env.GROQ_VISION_MODEL ||
-  "qwen/qwen3.8-27b";
-
 const ALLOWED_MODELS = new Set([
   "openai/gpt-oss-120b",
   "openai/gpt-oss-20b",
   "qwen/qwen3.6-27b",
-  "qwen/qwen3.8-27b",
-  "llama-3.3-70b-versatile",
-  "llama-3.1-8b-instant"
+  "qwen/qwen3.8-27b"
 ]);
 
-const CREATOR_REPLY =
-  "المطور ياسين عمرو عبد الرحيم، وأنشأني كي أساعدك في أي شيء.";
+const DEFAULT_MODEL =
+  ALLOWED_MODELS.has(process.env.GROQ_MODEL || "")
+    ? process.env.GROQ_MODEL
+    : "openai/gpt-oss-120b";
+
+const VISION_MODEL =
+  ALLOWED_MODELS.has(process.env.GROQ_VISION_MODEL || "") &&
+  (process.env.GROQ_VISION_MODEL === "qwen/qwen3.6-27b" || process.env.GROQ_VISION_MODEL === "qwen/qwen3.8-27b")
+    ? process.env.GROQ_VISION_MODEL
+    : "qwen/qwen3.8-27b";
+
+const CREATOR_REPLIES = [
+  "المطور ياسين عمرو عبد الرحيم هو من أنشأني وطوّرني لأساعدك في مختلف المهام.",
+  "أنا T.M.D AI، وقد أنشأني وطوّرني المطور ياسين عمرو عبد الرحيم لمساعدتك في أي شيء.",
+  "وراء إنشاء وتطوير T.M.D AI المطور ياسين عمرو عبد الرحيم، وقد صنعني لخدمتك ومساعدتك.",
+  "تم إنشائي بواسطة المطور ياسين عمرو عبد الرحيم، بهدف أن أكون مساعدًا لك في الأسئلة والبرمجة والصور والملفات وغيرها.",
+  "صاحب فكرة وتطوير T.M.D AI هو ياسين عمرو عبد الرحيم، وقد أنشأني حتى أساعدك في أي شيء تحتاجه.",
+  "المطور ياسين عمرو عبد الرحيم هو منشئ T.M.D AI ومطورها، وأنا هنا لمساعدتك وتقديم أفضل إجابة ممكنة.",
+  "أنا من تطوير ياسين عمرو عبد الرحيم، وقد أنشأني لأكون مساعدك الذكي في مختلف الاستخدامات.",
+  "تم تصميمي وإنشائي بواسطة ياسين عمرو عبد الرحيم كي أساعدك في الدراسة والبرمجة والكتابة وتحليل الصور والملفات."
+];
+
+function getCreatorReply() {
+  return CREATOR_REPLIES[
+    Math.floor(Math.random() * CREATOR_REPLIES.length)
+  ];
+}
 
 function isCreatorQuestion(text) {
   if (typeof text !== "string" || !text.trim()) {
@@ -203,7 +218,7 @@ module.exports = async function handler(req, res) {
     if (isCreatorQuestion(lastUserText)) {
       return res.status(200).json({
         ok: true,
-        reply: CREATOR_REPLY,
+        reply: getCreatorReply(),
         model: "local-creator-response"
       });
     }
@@ -267,12 +282,12 @@ module.exports = async function handler(req, res) {
        * سجل محادثة ضخمًا بالخطأ.
        */
       const safeHistory = messages
-        .slice(-8)
+        .slice(-6)
         .map((message) => {
           if (typeof message.content === "string") {
             return {
               role: message.role,
-              content: message.content.slice(0, 1600)
+              content: message.content.slice(0, 1400)
             };
           }
           return message;
@@ -294,7 +309,7 @@ module.exports = async function handler(req, res) {
       /*
        * تقليل ميزانية الإخراج لمنع تجاوز حد TPM في حساب Groq.
        */
-      max_completion_tokens: hasImage ? 1024 : 1536,
+      max_completion_tokens: hasImage ? 768 : 1200,
       stream: false
     };
 
@@ -331,11 +346,12 @@ module.exports = async function handler(req, res) {
     if (!response.ok) {
       console.error("Groq API Error:", data);
 
+      const retryAfter = response.headers.get("retry-after");
+      const message = data?.error?.message || "حدث خطأ أثناء الاتصال بخدمة Groq.";
       return res.status(response.status).json({
         ok: false,
-        error:
-          data?.error?.message ||
-          "حدث خطأ أثناء الاتصال بخدمة Groq.",
+        error: message,
+        retryAfter: retryAfter ? Number(retryAfter) : null,
         model
       });
     }
