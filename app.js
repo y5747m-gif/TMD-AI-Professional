@@ -610,7 +610,7 @@ async function buildOutgoingMessages(userText) {
 
   if (state.selectedDocument) {
     const documentText = await extractDocument(state.selectedDocument);
-    const content = limitDocumentText(documentText);
+    const content = limitDocumentText(documentText, 9000);
 
     const prompt =
       `${userText || "حلل الملف المرفق وقدم أهم المعلومات المفيدة."}\n\n` +
@@ -929,6 +929,15 @@ function bindChatEvents() {
   }
 }
 
+function updateModelLabel() {
+  const select = document.getElementById("modelSelect");
+  const name = document.getElementById("modelName");
+  if (select && name) {
+    const option = [...select.options].find((o) => o.value === state.model);
+    name.textContent = option?.textContent || state.model;
+  }
+}
+
 function ensureSafeModelOption() {
   const modelSelect = document.getElementById("modelSelect");
   if (!modelSelect) return;
@@ -941,6 +950,7 @@ function ensureSafeModelOption() {
   }
 
   modelSelect.value = state.model;
+  updateModelLabel();
 }
 
 function bindThemeAndNavigation() {
@@ -973,6 +983,11 @@ function bindThemeAndNavigation() {
 
     modelSelect.addEventListener("change", () => {
       state.model = modelSelect.value;
+      if (modelSelect.options.length && modelSelect.value) {
+        const label = modelSelect.options[modelSelect.selectedIndex]?.textContent || modelSelect.value;
+        const name = $("#modelName");
+        if (name) name.textContent = label;
+      }
       save();
     });
   }
@@ -1015,6 +1030,7 @@ function boot() {
   setTheme(state.theme);
   applyModelFallback();
   ensureSafeModelOption();
+  updateModelLabel();
   bindAttachmentEvents();
   bindChatEvents();
   bindThemeAndNavigation();
