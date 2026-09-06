@@ -46,6 +46,19 @@ const state = {
   attachmentPreviewUrl: null
 };
 
+// حماية من نسخة قديمة محفوظة في localStorage على الهاتف.
+const SAFE_DEFAULT_MODEL = "openai/gpt-oss-120b";
+const LEGACY_MODELS = new Set([
+  "llama-3.1-8b-instant",
+  "llama-3.3-70b-versatile",
+  "mixtral-8x7b-32768"
+]);
+
+if (LEGACY_MODELS.has(state.model) || !state.model) {
+  state.model = SAFE_DEFAULT_MODEL;
+  try { localStorage.setItem("tmd_model", SAFE_DEFAULT_MODEL); } catch {}
+}
+
 function loadJSON(key, fallback) {
   try {
     const value = JSON.parse(localStorage.getItem(key) || "null");
@@ -916,6 +929,20 @@ function bindChatEvents() {
   }
 }
 
+function ensureSafeModelOption() {
+  const modelSelect = document.getElementById("modelSelect");
+  if (!modelSelect) return;
+
+  if (![...modelSelect.options].some((option) => option.value === SAFE_DEFAULT_MODEL)) {
+    const option = document.createElement("option");
+    option.value = SAFE_DEFAULT_MODEL;
+    option.textContent = "GPT OSS 120B — افتراضي";
+    modelSelect.insertBefore(option, modelSelect.firstChild);
+  }
+
+  modelSelect.value = state.model;
+}
+
 function bindThemeAndNavigation() {
   const newChat = $("#newChat");
   if (newChat && !newChat.dataset.bound) {
@@ -987,6 +1014,7 @@ function boot() {
   ensureAttachmentPreview();
   setTheme(state.theme);
   applyModelFallback();
+  ensureSafeModelOption();
   bindAttachmentEvents();
   bindChatEvents();
   bindThemeAndNavigation();
