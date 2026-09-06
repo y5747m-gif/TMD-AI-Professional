@@ -2177,3 +2177,365 @@ body[data-theme="light"]
   background: #fff;
   color: #222;
 }
+
+/* =========================================================
+   T.M.D AI — Red / Black Professional Typography Layer
+   ========================================================= */
+:root {
+  --danger-red: #e50914;
+  --danger-red-soft: #ff3b4b;
+  --danger-red-dark: #6f080f;
+  --danger-line: rgba(229, 9, 20, .28);
+}
+
+html, body {
+  font-family: "IBM Plex Sans Arabic", "Cairo", sans-serif;
+}
+
+.brand-name, .top-title, .model-badge, .footer-btn, .new-chat {
+  font-family: "Inter", "Tajawal", sans-serif;
+}
+
+.welcome h1, .modal-head h3 {
+  font-family: "Tajawal", "IBM Plex Sans Arabic", sans-serif;
+  letter-spacing: -.02em;
+}
+
+.welcome p, .quick-actions button, .composer-note, .history-item, .empty-history, .plus-menu-item, .msg-label {
+  font-family: "Cairo", "IBM Plex Sans Arabic", sans-serif;
+}
+
+.msg-content, textarea, .attachment-info {
+  font-family: "IBM Plex Sans Arabic", "Cairo", sans-serif;
+}
+
+.model-dot {
+  background: var(--danger-red);
+  box-shadow: 0 0 14px rgba(229, 9, 20, .85);
+}
+
+.brand-logo, .welcome-logo {
+  background: linear-gradient(145deg, #ff3945 0%, #ba0713 48%, #56040a 100%);
+  color: #fff;
+  box-shadow: 0 10px 30px rgba(229, 9, 20, .22), inset 0 1px rgba(255,255,255,.16);
+}
+
+.brand-name span { color: var(--danger-red-soft); }
+
+.new-chat {
+  border-color: rgba(229, 9, 20, .30);
+  background: linear-gradient(180deg, rgba(229,9,20,.15), rgba(229,9,20,.05));
+  color: #ffd9dc;
+}
+
+.new-chat:hover { border-color: rgba(229,9,20,.58); }
+
+.model-badge {
+  border-color: rgba(229,9,20,.22);
+  box-shadow: 0 0 22px rgba(229,9,20,.06);
+}
+
+.quick-actions button:hover {
+  border-color: rgba(229,9,20,.48);
+  color: #ffb8bd;
+}
+
+.message.assistant .msg-avatar {
+  background: linear-gradient(145deg, #ff3945, #8b050d);
+  color: #fff;
+}
+
+.composer:focus-within {
+  border-color: rgba(229,9,20,.55);
+  box-shadow: 0 18px 60px rgba(0,0,0,.48), 0 0 0 1px rgba(229,9,20,.10), 0 0 32px rgba(229,9,20,.06);
+}
+
+.plus-btn:hover {
+  border-color: rgba(229,9,20,.55);
+  color: #ff6c75;
+}
+
+.send-btn {
+  background: linear-gradient(145deg, #ff3945, #a30611);
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(229,9,20,.22);
+}
+
+.send-btn:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 12px 28px rgba(229,9,20,.30);
+}
+
+.plus-menu {
+  border-color: rgba(229,9,20,.24);
+  box-shadow: 0 20px 55px rgba(0,0,0,.58), 0 0 25px rgba(229,9,20,.05);
+}
+
+.plus-menu-item:hover { background: rgba(229,9,20,.10); }
+
+.plus-menu-icon {
+  background: rgba(229,9,20,.11);
+  border: 1px solid rgba(229,9,20,.14);
+}
+
+.attachment-preview {
+  border-color: rgba(229,9,20,.22);
+}
+
+/* Fine typography: clear hierarchy without changing layout */
+.brand-name { font-size: 16px; font-weight: 800; }
+.top-title { font-weight: 700; }
+.welcome h1 { font-weight: 800; }
+.message .msg-content { font-weight: 500; }
+textarea { font-weight: 500; }
+
+@media (max-width: 800px) {
+  .topbar { min-height: 60px; }
+  .model-badge { max-width: 68vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chat-zone { padding-left: 10px; padding-right: 10px; }
+  .composer-zone { padding-left: 8px; padding-right: 8px; }
+  .plus-menu { max-width: calc(100vw - 28px); }
+}
+
+/* =========================================================
+   T.M.D AI — Maroon / Black / White Theme
+   نفس البنية والشكل العام، مع تغيير لوحة الألوان فقط
+   ========================================================= */
+:root {
+  --danger-red: #7a1632;
+  --danger-red-soft: #b84b69;
+  --danger-red-dark: #3a0b1a;
+  --danger-line: rgba(122, 22, 50, .34);
+  --maroon-1: #5a1026;
+  --maroon-2: #72152f;
+  --maroon-3: #8f2948;
+  --maroon-soft: #c27a8e;
+  --white-1: #ffffff;
+  --white-2: #f4f1f2;
+  --white-3: #ded7da;
+  --black-1: #070609;
+  --black-2: #0d0a0d;
+  --black-3: #151116;
+}
+
+html,
+body {
+  background: var(--black-1);
+  color: var(--white-1);
+}
+
+body {
+  background:
+    radial-gradient(
+      circle at 50% -10%,
+      rgba(122, 22, 50, .16),
+      transparent 40%
+    ),
+    linear-gradient(180deg, #080608 0%, #0d090c 100%);
+}
+
+.sidebar {
+  background: rgba(13, 10, 13, .97);
+  border-left-color: rgba(255,255,255,.08);
+}
+
+.brand-logo,
+.welcome-logo {
+  background: linear-gradient(145deg, #8f2948 0%, #72152f 52%, #3a0b1a 100%);
+  color: #fff;
+  box-shadow:
+    0 10px 30px rgba(122,22,50,.28),
+    inset 0 1px rgba(255,255,255,.16);
+}
+
+.brand-name span {
+  color: var(--maroon-soft);
+}
+
+.new-chat {
+  border-color: rgba(122,22,50,.42);
+  background: linear-gradient(180deg, rgba(122,22,50,.20), rgba(58,11,26,.14));
+  color: #f4e9ed;
+}
+
+.new-chat:hover {
+  border-color: rgba(184,75,105,.62);
+  background: linear-gradient(180deg, rgba(122,22,50,.26), rgba(58,11,26,.18));
+}
+
+.model-dot {
+  background: var(--maroon-3);
+  box-shadow: 0 0 14px rgba(143,41,72,.82);
+}
+
+.model-badge {
+  border-color: rgba(122,22,50,.34);
+  box-shadow: 0 0 22px rgba(122,22,50,.10);
+  background: rgba(18, 12, 16, .86);
+}
+
+.quick-actions button:hover {
+  border-color: rgba(184,75,105,.56);
+  color: #e7b4c1;
+}
+
+.message.assistant .msg-avatar {
+  background: linear-gradient(145deg, #8f2948, #4a0d20);
+  color: #fff;
+}
+
+.message.user .msg-avatar {
+  background: linear-gradient(145deg, #ded7da, #9c9196);
+  color: #170d11;
+}
+
+.composer:focus-within {
+  border-color: rgba(143,41,72,.68);
+  box-shadow:
+    0 18px 60px rgba(0,0,0,.50),
+    0 0 0 1px rgba(122,22,50,.16),
+    0 0 32px rgba(122,22,50,.12);
+}
+
+.plus-btn:hover {
+  border-color: rgba(184,75,105,.60);
+  color: #d99aaa;
+}
+
+.send-btn {
+  background: linear-gradient(145deg, #8f2948, #5a1026);
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(122,22,50,.28);
+}
+
+.send-btn:hover {
+  filter: brightness(1.08);
+  box-shadow: 0 12px 28px rgba(122,22,50,.36);
+}
+
+.plus-menu {
+  background: rgba(15,10,13,.98);
+  border-color: rgba(122,22,50,.38);
+  box-shadow:
+    0 20px 55px rgba(0,0,0,.62),
+    0 0 25px rgba(122,22,50,.10);
+}
+
+.plus-menu-item:hover {
+  background: rgba(122,22,50,.14);
+}
+
+.plus-menu-icon {
+  background: rgba(122,22,50,.13);
+  border-color: rgba(184,75,105,.20);
+}
+
+.attachment-preview {
+  border-color: rgba(122,22,50,.30);
+  background: rgba(20,12,16,.76);
+}
+
+.history-item.active {
+  background: rgba(122,22,50,.13);
+  border-color: rgba(122,22,50,.30);
+}
+
+.history-item:hover {
+  background: rgba(122,22,50,.09);
+}
+
+.clear:hover,
+.footer-btn:hover {
+  color: #d9a7b6;
+}
+
+/* White hierarchy */
+.top-title,
+.brand-name,
+.welcome h1,
+.modal-head h3 {
+  color: #ffffff;
+}
+
+.welcome p,
+.composer-note,
+.empty-history,
+.msg-label,
+.attachment-meta,
+.sidebar-description {
+  color: #cfc4c8;
+}
+
+textarea,
+.message-content,
+.message .msg-content {
+  color: #faf7f8;
+}
+
+/* Light mode: white / warm grey / maroon accents */
+html[data-theme="light"],
+body[data-theme="light"] {
+  background: #f8f6f7;
+  color: #24191d;
+}
+
+html[data-theme="light"] body,
+body[data-theme="light"] {
+  background:
+    radial-gradient(circle at 50% -10%, rgba(122,22,50,.08), transparent 40%),
+    linear-gradient(180deg, #ffffff 0%, #f5f1f3 100%);
+}
+
+html[data-theme="light"] .sidebar,
+body[data-theme="light"] .sidebar {
+  background: rgba(255,255,255,.96);
+  border-left-color: rgba(65,35,45,.10);
+}
+
+html[data-theme="light"] .model-badge {
+  background: #fff;
+  border-color: rgba(122,22,50,.20);
+  color: #302126;
+}
+
+html[data-theme="light"] .new-chat {
+  color: #5b2033;
+  background: linear-gradient(180deg, rgba(122,22,50,.09), rgba(122,22,50,.03));
+}
+
+html[data-theme="light"] .plus-menu {
+  background: #ffffff;
+  color: #281a20;
+  border-color: rgba(122,22,50,.18);
+}
+
+html[data-theme="light"] textarea,
+body[data-theme="light"] textarea {
+  color: #25181d;
+}
+
+html[data-theme="light"] .message.assistant .msg-avatar {
+  color: #fff;
+}
+
+@media (max-width: 800px) {
+  .app {
+    grid-template-columns: 1fr;
+  }
+
+  .main {
+    min-width: 0;
+  }
+
+  .chat-zone,
+  .composer-zone {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .message,
+  .message-inner,
+  .message-content {
+    max-width: 100%;
+  }
+}
