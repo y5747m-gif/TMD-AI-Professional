@@ -250,6 +250,10 @@ module.exports = async function handler(req, res) {
         });
       }
 
+      /*
+       * للصورة: الصورة الحالية + سؤال المستخدم فقط.
+       * لا نرسل سياق المحادثة القديم إلى نموذج الرؤية.
+       */
       finalMessages = [
         {
           role: "system",
@@ -258,20 +262,39 @@ module.exports = async function handler(req, res) {
         imageMessage
       ];
     } else {
+      /*
+       * حد إضافي على الخادم حتى لا يرسل متصفح قديم
+       * سجل محادثة ضخمًا بالخطأ.
+       */
+      const safeHistory = messages
+        .slice(-8)
+        .map((message) => {
+          if (typeof message.content === "string") {
+            return {
+              role: message.role,
+              content: message.content.slice(0, 1600)
+            };
+          }
+          return message;
+        });
+
       finalMessages = [
         {
           role: "system",
           content: SYSTEM_PROMPT
         },
-        ...messages
+        ...safeHistory
       ];
     }
 
     const requestBody = {
       model,
       messages: finalMessages,
-      temperature: model.startsWith("qwen/qwen3.") ? 0.7 : 0.7,
-      max_completion_tokens: 4096,
+      temperature: 0.7,
+      /*
+       * تقليل ميزانية الإخراج لمنع تجاوز حد TPM في حساب Groq.
+       */
+      max_completion_tokens: hasImage ? 1024 : 1536,
       stream: false
     };
 
