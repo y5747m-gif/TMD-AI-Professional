@@ -465,8 +465,8 @@ function fileToDataURL(file) {
 }
 
 async function prepareImage(file) {
-  if (!file || !file.type.startsWith("image/")) {
-    throw new Error("الملف المحدد ليس صورة.");
+  if (!file || !file.type || !file.type.startsWith("image/")) {
+    throw new Error("الملف المحدد ليس صورة مدعومة. اختر JPG أو PNG أو WEBP.");
   }
 
   if (file.size > 20 * 1024 * 1024) {
@@ -474,60 +474,44 @@ async function prepareImage(file) {
   }
 
   /*
-   * ضغط وتصغير الصورة قبل إرسالها إلى /api/chat.
-   * هذا يمنع الصور الكبيرة من الهاتف من التسبب في 413.
-   * لا يتم تغيير أي إعدادات Groq أو GROQ_API_KEY.
+   * Mobile-safe image preparation:
+   * resize/compress before sending so large phone photos do not
+   * make the /api/chat request too large.
    */
-  try {
-    const bitmap = await createImageBitmap(file);
-    const maxSide = 1600;
-    const scale = Math.min(
-      1,
-      maxSide / Math.max(bitmap.width, bitmap.height)
-    );
+  const dataUrl = await fileToDataURL(file);
 
-    const width = Math.max(1, Math.round(bitmap.width * scale));
-    const height = Math.max(1, Math.round(bitmap.height * scale));
+  return await new Promise((resolve, reject) => {
+    const img = new Image();
 
-    const canvas = document.createElement("canvas");
-    canvas.width = width;
-    canvas.height = height;
+    img.onload = () => {
+      try {
+        const maxSide = 1600;
+        const scale = Math.min(1, maxSide / Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height));
+        const width = Math.max(1, Math.round((img.naturalWidth || img.width) * scale));
+        const height = Math.max(1, Math.round((img.naturalHeight || img.height) * scale));
 
-    const ctx = canvas.getContext("2d", { alpha: false });
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d", { alpha: false });
+        if (!ctx) throw new Error("تعذر تجهيز الصورة على هذا الجهاز.");
 
-    if (!ctx) {
-      bitmap.close?.();
-      return fileToDataURL(file);
-    }
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressed = canvas.toDataURL("image/jpeg", 0.78);
+        if (!compressed || compressed.length < 100) {
+          throw new Error("تعذر تجهيز الصورة.");
+        }
+        resolve(compressed);
+      } catch (e) {
+        reject(e);
+      } finally {
+        img.src = "";
+      }
+    };
 
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, width, height);
-    ctx.drawImage(bitmap, 0, 0, width, height);
-    bitmap.close?.();
-
-    const compressed = await new Promise((resolve, reject) => {
-      canvas.toBlob(
-        (blob) => {
-          if (blob) resolve(blob);
-          else reject(new Error("تعذر ضغط الصورة."));
-        },
-        "image/jpeg",
-        0.78
-      );
-    });
-
-    const compressedFile = new File(
-      [compressed],
-      "tmd-image.jpg",
-      { type: "image/jpeg" }
-    );
-
-    return fileToDataURL(compressedFile);
-
-  } catch (error) {
-    console.warn("Image compression fallback:", error);
-    return fileToDataURL(file);
-  }
+    img.onerror = () => reject(new Error("الهاتف لم يتمكن من قراءة الصورة. اختر JPG أو PNG أو WEBP."));
+    img.src = dataUrl;
+  });
 }
 
 async function ensurePDFJS() {
@@ -843,33 +827,18 @@ function bindAttachmentEvents() {
 
   if (plusButton && !plusButton.dataset.bound) {
     plusButton.dataset.bound = "1";
-
     plusButton.addEventListener("click", (event) => {
-      event.preventDefault();
       event.stopPropagation();
-
-      if (!plusMenu) return;
-
-      if (plusMenu.classList.contains("hidden")) {
-        openPlusMenu();
-      } else {
-        closePlusMenu();
-      }
+      if (plusMenu?.classList.contains("hidden")) openPlusMenu();
+      else closePlusMenu();
     });
   }
 
   if (addImageButton && !addImageButton.dataset.bound) {
     addImageButton.dataset.bound = "1";
-
-    addImageButton.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
+    addImageButton.addEventListener("click", () => {
       closePlusMenu();
-
-      if (imageInput) {
-        imageInput.value = "";
-        imageInput.click();
-      }
+      imageInput?.click();
     });
   }
 
@@ -885,16 +854,9 @@ function bindAttachmentEvents() {
 
   if (analyzeDocumentButton && !analyzeDocumentButton.dataset.bound) {
     analyzeDocumentButton.dataset.bound = "1";
-
-    analyzeDocumentButton.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
+    analyzeDocumentButton.addEventListener("click", () => {
       closePlusMenu();
-
-      if (documentInput) {
-        documentInput.value = "";
-        documentInput.click();
-      }
+      documentInput?.click();
     });
   }
 
@@ -947,6 +909,70 @@ function bindAttachmentEvents() {
       }
     });
   }
+}
+
+function bindMobileTouchEvents() {
+  if (document.body.dataset.mobileTouchBound) return;
+  document.body.dataset.mobileTouchBound = "1";
+
+  const isTouchDevice =
+    window.matchMedia &&
+    window.matchMedia("(pointer: coarse)").matches;
+
+  if (!isTouchDevice) return;
+
+  let lastTouch = 0;
+
+  document.addEventListener("touchend", (event) => {
+    const target = event.target?.closest?.("#plusButton, #addImageButton, #imageEditButton, #analyzeDocumentButton, #send");
+    if (!target) return;
+
+    lastTouch = Date.now();
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (target.id === "plusButton") {
+      if (plusMenu?.classList.contains("hidden")) openPlusMenu();
+      else closePlusMenu();
+      return;
+    }
+
+    if (target.id === "addImageButton" || target.id === "imageEditButton") {
+      closePlusMenu();
+      if (imageInput) {
+        imageInput.dataset.editMode = target.id === "imageEditButton" ? "1" : "0";
+        imageInput.value = "";
+        imageInput.click();
+      }
+      return;
+    }
+
+    if (target.id === "analyzeDocumentButton") {
+      closePlusMenu();
+      if (documentInput) {
+        documentInput.value = "";
+        documentInput.click();
+      }
+      return;
+    }
+
+    if (target.id === "send") {
+      if (state.busy) stopMessage();
+      else {
+        state.controller = new AbortController();
+        sendMessage();
+      }
+    }
+  }, { passive: false, capture: true });
+
+  document.addEventListener("click", (event) => {
+    if (Date.now() - lastTouch > 700) return;
+    const target = event.target?.closest?.("#plusButton, #addImageButton, #imageEditButton, #analyzeDocumentButton, #send");
+    if (target) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+  }, true);
 }
 
 function bindChatEvents() {
@@ -1054,6 +1080,7 @@ function boot() {
   applyModelFallback();
   bindAttachmentEvents();
   bindChatEvents();
+  bindMobileTouchEvents();
   bindThemeAndNavigation();
   renderHistory();
   renderMessages();
