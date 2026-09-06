@@ -318,130 +318,54 @@ function limitText(
  * ============================
  */
 
-function compactMessages(
-  messages,
-  maxCharacters
-) {
+function compactMessages(messages, maxCharacters, keepImage) {
+  if (!Array.isArray(messages)) return [];
 
-  if (
-    !Array.isArray(messages)
-  ) {
+  // Images are expensive in request/token accounting. Keep only the latest
+  // image message and at most a very small text history around it.
+  if (keepImage) {
+    const latestImageIndex = [...messages].map((m, i) => ({ m, i }))
+      .reverse()
+      .find(({ m }) => Array.isArray(m?.content) && m.content.some(p => p?.type === "image_url"))?.i;
 
-    return [];
+    if (latestImageIndex == null) return compactMessages(messages, maxCharacters, false);
 
+    const out = [];
+    let chars = 0;
+    // At most two preceding text messages, then the latest image message.
+    for (let i = latestImageIndex - 1; i >= 0 && out.length < 2; i--) {
+      const m = messages[i];
+      if (!m || (m.role !== "user" && m.role !== "assistant") || typeof m.content !== "string") continue;
+      const text = m.content.trim().slice(0, 1200);
+      if (!text || chars + text.length > 2200) continue;
+      out.unshift({ role: m.role, content: text });
+      chars += text.length;
+    }
+    const imageMessage = messages[latestImageIndex];
+    const imageParts = Array.isArray(imageMessage.content)
+      ? imageMessage.content.filter(p => p?.type === "text" || p?.type === "image_url")
+      : [];
+    out.push({ role: "user", content: imageParts });
+    return out;
   }
-
 
   const result = [];
-
   let total = 0;
-
-
-  /*
-   * نبدأ من آخر الرسائل
-   * لأنها الأهم للسياق الحالي.
-   */
-  for (
-    let i =
-      messages.length - 1;
-
-    i >= 0;
-
-    i--
-  ) {
-
-    const message =
-      messages[i];
-
-
-    if (!message) {
-      continue;
-    }
-
-
-    if (
-      message.role !== "user" &&
-      message.role !== "assistant"
-    ) {
-
-      continue;
-
-    }
-
-
-    /*
-     * الرسالة متعددة المحتوى
-     * لا نقص محتواها هنا.
-     */
-    if (
-      Array.isArray(
-        message.content
-      )
-    ) {
-
-      result.unshift(
-        message
-      );
-
-      continue;
-
-    }
-
-
-    if (
-      typeof message.content !==
-      "string"
-    ) {
-
-      continue;
-
-    }
-
-
-    const text =
-      message.content.trim();
-
-
-    if (!text) {
-      continue;
-    }
-
-
-    /*
-     * حماية إضافية.
-     */
-    if (
-      total +
-      text.length >
-      maxCharacters
-    ) {
-
-      break;
-
-    }
-
-
-    result.unshift({
-
-      role:
-        message.role,
-
-      content:
-        text
-
-    });
-
-
-    total +=
-      text.length;
-
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const message = messages[i];
+    if (!message || (message.role !== "user" && message.role !== "assistant")) continue;
+    if (Array.isArray(message.content)) continue; // handled separately for image requests
+    if (typeof message.content !== "string") continue;
+    const text = message.content.trim();
+    if (!text) continue;
+    const clipped = text.slice(0, 3500);
+    if (total + clipped.length > maxCharacters) break;
+    result.unshift({ role: message.role, content: clipped });
+    total += clipped.length;
+    if (result.length >= 12) break;
   }
-
-
   return result;
-
 }
-
 
 /*
  * ============================
@@ -777,7 +701,7 @@ module.exports =
           0.7,
 
         max_completion_tokens:
-          2048,
+          1024,
 
         stream:
           false
