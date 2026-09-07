@@ -2539,3 +2539,196 @@ html[data-theme="light"] .message.assistant .msg-avatar {
     max-width: 100%;
   }
 }
+
+
+/* =========================================================
+   T.M.D AI — التعلّم الشرعي + توصيات الفيديو
+   ========================================================= */
+.learning-btn {
+  width: 100%;
+  margin-top: 9px;
+  border: 1px solid rgba(143,41,72,.35);
+  background: linear-gradient(180deg, rgba(143,41,72,.16), rgba(58,11,26,.10));
+  color: #f3e8ec;
+  padding: 11px 12px;
+  border-radius: 12px;
+  font: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: .2s ease;
+}
+.learning-btn:hover {
+  border-color: rgba(184,75,105,.65);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(122,22,50,.16);
+}
+.learning-icon {
+  font-size: 17px;
+}
+
+.learning-modal {
+  width: min(720px, 94vw);
+  max-height: 88vh;
+  overflow: auto;
+}
+.learning-subtitle {
+  margin: 3px 0 0;
+  color: #9f9297;
+  font-size: 11px;
+}
+.learning-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 10px;
+  padding-top: 16px;
+}
+.learning-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: #f4eef0;
+  background: rgba(255,255,255,.025);
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 14px;
+  padding: 13px;
+  transition: .2s ease;
+}
+.learning-card:hover {
+  border-color: rgba(184,75,105,.48);
+  background: rgba(122,22,50,.10);
+  transform: translateY(-1px);
+}
+.learning-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  background: rgba(122,22,50,.13);
+  border: 1px solid rgba(184,75,105,.16);
+  flex: 0 0 40px;
+}
+.learning-card-body {
+  min-width: 0;
+  flex: 1;
+}
+.learning-card-body b,
+.learning-card-body small,
+.mini-learning-card b,
+.mini-learning-card small,
+.video-recommendation b,
+.video-recommendation small {
+  display: block;
+}
+.learning-card-body b { font-size: 12px; }
+.learning-card-body small {
+  color: #9f9297;
+  font-size: 10px;
+  margin-top: 3px;
+  line-height: 1.6;
+}
+.learning-arrow {
+  color: #c27a8e;
+  font-size: 17px;
+}
+
+.media-recommendations {
+  max-width: 900px;
+  margin: -10px auto 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.video-recommendation,
+.mini-learning-card {
+  text-decoration: none;
+  color: #f5edef;
+  border: 1px solid rgba(184,75,105,.25);
+  background: linear-gradient(180deg, rgba(122,22,50,.13), rgba(15,10,13,.72));
+  border-radius: 13px;
+  padding: 11px 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: .2s ease;
+}
+.video-recommendation:hover,
+.mini-learning-card:hover {
+  border-color: rgba(184,75,105,.58);
+  transform: translateY(-1px);
+}
+.video-play {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #72152f;
+  color: white;
+  font-size: 13px;
+  flex: 0 0 36px;
+}
+.video-recommendation > span:nth-child(2),
+.mini-learning-card > span:nth-child(2) {
+  min-width: 0;
+  flex: 1;
+}
+.video-recommendation b,
+.mini-learning-card b {
+  font-size: 12px;
+}
+.video-recommendation small,
+.mini-learning-card small {
+  margin-top: 2px;
+  color: #a99da2;
+  font-size: 10px;
+}
+.recommendation-title {
+  color: #d5b6c0;
+  font-size: 11px;
+  padding: 3px 4px;
+}
+.mini-learning-card {
+  padding: 9px 12px;
+  background: rgba(255,255,255,.025);
+  border-color: rgba(255,255,255,.07);
+}
+.mini-learning-card > span:first-child {
+  font-size: 19px;
+}
+
+[data-theme="light"] .learning-card,
+[data-theme="light"] .mini-learning-card {
+  color: #222;
+  background: #fff;
+  border-color: #ddd;
+}
+[data-theme="light"] .learning-card-body small,
+[data-theme="light"] .video-recommendation small,
+[data-theme="light"] .mini-learning-card small {
+  color: #777;
+}
+[data-theme="light"] .video-recommendation {
+  color: #222;
+  background: #fff8fa;
+}
+[data-theme="light"] .learning-subtitle {
+  color: #777;
+}
+
+@media (max-width: 600px) {
+  .learning-grid {
+    grid-template-columns: 1fr;
+  }
+  .learning-modal {
+    width: 94vw;
+  }
+  .media-recommendations {
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+}
