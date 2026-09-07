@@ -29,6 +29,7 @@ const systemMessage = {
 إذا كان المستخدم يتحدث بالعربية فأجب بالعربية.
 إذا كان يتحدث بالإنجليزية فأجب بالإنجليزية.
 كن واضحًا ومباشرًا ومنظمًا.
+إذا كان السؤال دينيًا، أجب علميًا بحذر، ولا تدّعِ أن فيديوًّا مصدرُ الإجابة إلا إذا كان الفيديو معروضًا من القناة الشرعية المحددة في واجهة الأداة.
 عند تحليل صورة أو ملف، قدم النتيجة المفيدة للمستخدم فقط.
 إذا سأل المستخدم من صنعك أو من طورك أو من أنشأك أو أي سؤال عن نشأتك، فأجب:
 "المطور ياسين عمرو عبد الرحيم، وأنشأني كي أساعدك في أي شيء."
@@ -54,6 +55,13 @@ const state = {
  * التعلّم الشرعي + مصادر الفيديو
  * ============================================================ */
 const SHARIA_RESOURCES = [
+  {
+    icon: "🎥",
+    title: "قناة T.M.D AI الشرعية",
+    description: "المصدر الوحيد الذي تُبحث فيه فيديوهات الأسئلة الدينية.",
+    url: "https://youtube.com/channel/UCv0g_v1C6JcZALvrkDu98AQ",
+    keywords: ["دين","شرعي","قناة","فيديو","سؤال"]
+  },
   {
     icon: "❄️",
     title: "الأرشيف على التليجرام",
@@ -122,25 +130,45 @@ function getRelatedShariaResources(text) {
   return matches.length ? matches.slice(0, 3) : [];
 }
 
+function isLikelyShariaQuestion(text) {
+  const q = normalizeArabic(text);
+  if (!q) return false;
+  const terms = [
+    "الله","الدين","اسلام","الإسلام","مسلم","قران","القرآن","قرآن","سوره","سورة",
+    "حديث","احاديث","حديث","السنه","السنة","نبي","النبي","رسول","الرسول","محمد",
+    "صحابي","صحابة","شيخ","فتوى","فتاوى","حكم","حلال","حرام","واجب","سنه","سنة",
+    "فرض","مكروه","مباح","عقيدة","عقيده","توحيد","شرك","كفر","ايمان","إيمان",
+    "صلاة","الصلاه","وضوء","غسل","تيمم","اذان","أذان","صيام","رمضان","زكاة","زكاه",
+    "حج","عمرة","عمره","صدقة","صدقه","دعاء","اذكار","أذكار","ذكر","استغفار",
+    "تفسير","فقه","سيرة","سيره","تجويد","قراءة القرآن","حفظ القرآن","مسجد",
+    "جمعة","الجمعه","وتر","قيام الليل","فجر","ظهر","عصر","مغرب","عشاء",
+    "نكاح","زواج","طلاق","ميراث","ربا","بيع","شراء","يمين","نذر","كفارة","كفاره",
+    "جنة","الجنة","نار","النار","قيامة","القيامة","ملائكة","شيطان","جن",
+    "الحاد","إلحاد","شبهة","شبهه","وسواس","ذنب","ذنوب","معصية","معصيه","توبة","توبه"
+  ];
+  return terms.some(t => q.includes(normalizeArabic(t)));
+}
+
 async function searchShariaChannelOnly(userText) {
   const q = String(userText || "").trim();
-  if (!q) return null;
+  if (!q || !isLikelyShariaQuestion(q)) return null;
 
   try {
     const response = await fetch("/api/sharia-search", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: q })
+      body: JSON.stringify({ query: q }),
     });
-
     const data = await response.json().catch(() => ({}));
-
-    if (!response.ok || data.ok === false) {
+    if (!response.ok || data.ok !== true) {
       console.warn("Sharia channel search:", data?.error || response.status);
       return null;
     }
-
-    return data.video || null;
+    // لا نقبل أي نتيجة لم تثبت أنها من القناة المحددة.
+    if (data.channelId !== "UCv0g_v1C6JcZALvrkDu98AQ") return null;
+    const video = data.video;
+    if (!video || video.channelId !== "UCv0g_v1C6JcZALvrkDu98AQ") return null;
+    return video;
   } catch (error) {
     console.warn("Sharia channel search failed:", error);
     return null;
@@ -174,28 +202,51 @@ function closeLearningModal() {
 }
 
 async function addMediaRecommendationsToUI(userText) {
+  if (!isLikelyShariaQuestion(userText)) return;
+
   const video = await searchShariaChannelOnly(userText);
   if (!chat) return;
 
   const old = chat.querySelector(".media-recommendations");
   if (old) old.remove();
 
-  if (!video) return;
-
   const wrap = document.createElement("div");
   wrap.className = "media-recommendations";
 
-  const card = document.createElement("div");
-  card.className = "video-recommendation";
-  card.innerHTML = `
-    <span class="video-play">▶</span>
-    <span style="flex:1">
-      <b>${esc(video.title || "فيديو مرتبط بالسؤال")}</b>
-      <small>فيديو من القناة الشرعية المحددة فقط</small>
-    </span>
-    <a href="${esc(video.url)}" target="_blank" rel="noopener noreferrer" class="learning-arrow" aria-label="مشاهدة الفيديو">↗</a>
-  `;
+  if (!video) {
+    const empty = document.createElement("div");
+    empty.className = "video-empty";
+    empty.innerHTML = `
+      <span>📖</span>
+      <div><b>لم أجد فيديو مناسبًا في القناة الشرعية</b>
+      <small>تم البحث داخل القناة المحددة فقط، ولم يتم استخدام أي مصدر آخر.</small></div>
+    `;
+    wrap.appendChild(empty);
+    chat.appendChild(wrap);
+    return;
+  }
 
+  const card = document.createElement("a");
+  card.className = "video-external-card";
+  card.href = video.url;
+  card.target = "_blank";
+  card.rel = "noopener noreferrer";
+  card.innerHTML = `
+    <div class="video-thumb-wrap">
+      <img class="video-thumb" src="${esc(video.thumbnail)}" alt="" loading="lazy">
+      <span class="video-thumb-play">▶</span>
+      <span class="video-duration-source">YouTube</span>
+    </div>
+    <div class="video-card-info">
+      <b>${esc(video.title || "فيديو متعلق بالسؤال")}</b>
+      <span>📖 من القناة الشرعية المحددة فقط</span>
+      <small>${esc(video.channelTitle || "")}</small>
+    </div>
+    <span class="learning-arrow">↗</span>
+  `;
+  wrap.appendChild(card);
+
+  // مشغل داخلي اختياري: يبقى الفيديو نفسه من القناة، ولا توجد مصادر بديلة.
   const iframe = document.createElement("iframe");
   iframe.className = "sharia-video-frame";
   iframe.src = `https://www.youtube.com/embed/${encodeURIComponent(video.videoId)}`;
@@ -203,9 +254,8 @@ async function addMediaRecommendationsToUI(userText) {
   iframe.loading = "lazy";
   iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
   iframe.allowFullscreen = true;
-
-  wrap.appendChild(card);
   wrap.appendChild(iframe);
+
   chat.appendChild(wrap);
 }
 
