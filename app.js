@@ -159,9 +159,27 @@ function isLikelyShariaQuestion(text) {
   return terms.some(t => q.includes(normalizeArabic(t)));
 }
 
+async function classifyShariaQuestion(userText) {
+  const q = String(userText || "").trim();
+  if (!q) return false;
+  // التصنيف هنا لا يجيب عن السؤال؛ وظيفته فقط تحديد هل السؤال شرعي أم لا.
+  try {
+    const response = await fetch("/api/sharia-classify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: q })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (response.ok && typeof data.isSharia === "boolean") return data.isSharia;
+  } catch (error) {
+    console.warn("Sharia classification failed:", error);
+  }
+  return isLikelyShariaQuestion(q);
+}
+
 async function searchShariaChannelOnly(userText) {
   const q = String(userText || "").trim();
-  if (!q || !isLikelyShariaQuestion(q)) return null;
+  if (!q) return null;
 
   try {
     const response = await fetch("/api/sharia-search", {
@@ -272,7 +290,8 @@ function renderShariaResult(result) {
 }
 
 async function handleShariaQuestion(userText) {
-  if (!isLikelyShariaQuestion(userText)) return false;
+  const isSharia = await classifyShariaQuestion(userText);
+  if (!isSharia) return false;
   const result = await getShariaVideoAndSummary(userText);
   if (result.video) renderShariaResult(result);
   else {
@@ -969,12 +988,15 @@ async function sendMessage() {
     clearAttachment();
     renderMessages();
 
-    // الأسئلة الشرعية لا تُرسل إلى Groq. مصدر الإجابة هو الفيديو الشرعي فقط.
-    if (isLikelyShariaQuestion(userText) && !outgoing.imageData && !outgoing.fileData) {
-      await handleShariaQuestion(userText);
-      save();
-      renderHistory();
-      return;
+    // نتحقق دلاليًا من كل سؤال أولًا، وليس من عبارة «ما الحكم» فقط.
+    // إذا كان السؤال شرعيًا، لا نرسله إلى Groq للإجابة من معرفته العامة.
+    if (!outgoing.imageData && !outgoing.fileData) {
+      const handledAsSharia = await handleShariaQuestion(userText);
+      if (handledAsSharia) {
+        save();
+        renderHistory();
+        return;
+      }
     }
 
     /*
