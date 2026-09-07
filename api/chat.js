@@ -232,6 +232,16 @@ module.exports = async function handler(req, res) {
     const lastUserText =
       textFromMessage(lastUserMessage);
 
+    // لا نجيب عن الأسئلة الشرعية من Groq. الواجهة تعالجها من فيديوهات القناة الشرعية.
+    if (isLikelyShariaQuestion(lastUserText) && !containsImage(messages)) {
+      return res.status(200).json({
+        ok: true,
+        sharia: true,
+        reply: "",
+        model: "sharia-video-only"
+      });
+    }
+
     if (isCreatorQuestion(lastUserText)) {
       return res.status(200).json({
         ok: true,
