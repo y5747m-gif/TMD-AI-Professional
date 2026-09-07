@@ -2744,3 +2744,113 @@ html[data-theme="light"] .message.assistant .msg-avatar {
 .sharia-video-frame iframe{display:block;width:100%;height:100%;border:0}
 .sharia-watch-btn{display:block;margin:12px 14px 14px;padding:11px 14px;border-radius:12px;text-align:center;text-decoration:none;font-weight:800;background:linear-gradient(135deg,#c89b3c,#e8c66a);color:#111}
 .sharia-no-result{cursor:default}
+
+
+/* ============================================================
+   SHARIA VIDEO CARD — قناة واحدة فقط
+   ============================================================ */
+.media-recommendations{
+  width:min(760px,92%);
+  margin:16px auto 4px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.video-external-card{
+  display:grid;
+  grid-template-columns:220px 1fr auto;
+  align-items:center;
+  gap:14px;
+  text-decoration:none;
+  color:inherit;
+  padding:10px;
+  border:1px solid rgba(212,170,78,.30);
+  border-radius:18px;
+  background:linear-gradient(145deg,rgba(212,170,78,.10),rgba(255,255,255,.035));
+  box-shadow:0 12px 32px rgba(0,0,0,.18);
+  transition:.2s ease;
+}
+.video-external-card:hover{
+  transform:translateY(-2px);
+  border-color:rgba(212,170,78,.65);
+}
+.video-thumb-wrap{
+  position:relative;
+  aspect-ratio:16/9;
+  overflow:hidden;
+  border-radius:13px;
+  background:#111;
+}
+.video-thumb{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.video-thumb-play{
+  position:absolute;
+  inset:50% auto auto 50%;
+  transform:translate(-50%,-50%);
+  width:48px;height:48px;border-radius:50%;
+  display:grid;place-items:center;
+  background:rgba(0,0,0,.78);
+  color:#e4bd67;
+  font-size:20px;
+  padding-right:2px;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+}
+.video-duration-source{
+  position:absolute;
+  bottom:7px;left:7px;
+  background:rgba(0,0,0,.72);
+  color:#fff;
+  border-radius:6px;
+  padding:3px 7px;
+  font-size:10px;
+}
+.video-card-info{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+}
+.video-card-info b{
+  color:#f1d28a;
+  font-size:14px;
+  line-height:1.7;
+}
+.video-card-info span{
+  color:#d8d8d8;
+  font-size:12px;
+}
+.video-card-info small{
+  color:#9e9e9e;
+  font-size:11px;
+}
+.video-empty{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:14px 16px;
+  border:1px solid rgba(212,170,78,.22);
+  border-radius:16px;
+  background:rgba(212,170,78,.06);
+}
+.video-empty>span{font-size:25px}
+.video-empty b{display:block;color:#e4c679}
+.video-empty small{display:block;color:#aaa;margin-top:4px}
+.sharia-video-frame{
+  width:100%;
+  aspect-ratio:16/9;
+  border:0;
+  border-radius:16px;
+  background:#000;
+}
+@media(max-width:700px){
+  .video-external-card{
+    grid-template-columns:1fr;
+  }
+  .video-external-card>.learning-arrow{
+    display:none;
+  }
+}
