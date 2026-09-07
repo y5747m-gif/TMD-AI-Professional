@@ -61,31 +61,44 @@ async function getTranscript(videoId) {
   return parts.length ? parts.join(" ") : null;
 }
 
-async function summarizeTranscript(transcript) {
+async function summarizeTranscript(transcript, question) {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) throw new Error("GROQ_API_KEY غير مضبوط في Vercel.");
-  const prompt = `لخص نص الفيديو التالي فقط، فهو النص المستخرج من الفيديو نفسه.
+
+  const prompt = `أجب عن سؤال المستخدم اعتمادًا على نص الفيديو المرفق فقط.
 قواعد صارمة:
-- لا تستخدم أي معرفة خارج النص.
-- لا تضف معلومات غير موجودة.
-- لا تلخص عنوان الفيديو أو وصفه بدل النص.
-- اجعل الملخص بالعربية ومقتصرًا على المعلومات التي وردت في نص الفيديو فقط.
-- لا تضف حكمًا أو نصيحة أو معلومة من خارج النص.
-- إذا كان النص غير مكتمل أو لا يكفي للإجابة عن السؤال، لا تخترع ما ينقصه.
+- لا تستخدم أي معرفة خارج نص الفيديو.
+- لا تضف أي معلومة أو حكم أو دليل غير موجود في النص.
+- لا تعتمد على عنوان الفيديو أو وصفه.
+- استخرج فقط ما يقوله المتحدث في الفيديو مما يرتبط مباشرة بالسؤال.
+- إذا كان نص الفيديو لا يحتوي على معلومات كافية للإجابة عن السؤال، أخرج الكلمة الوحيدة: NOT_FOUND
+- إذا كانت المعلومات موجودة، لخّصها باختصار وأمانة بالعربية، دون استكمال النقص من عندك.
+- لا تقل "بحسب معرفتي" ولا تقدم رأيًا شخصيًا.
+
+سؤال المستخدم:
+${String(question || "").slice(0,4000)}
 
 نص الفيديو:
 ${chunkText(transcript)}`;
+
   const response = await fetch(GROQ_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
-    body: JSON.stringify({ model: MODEL, temperature: 0.1, messages: [
-      { role: "system", content: "أنت تلخص النص المرفق فقط دون اختلاق." },
-      { role: "user", content: prompt }
-    ] })
+    body: JSON.stringify({
+      model: MODEL,
+      temperature: 0,
+      max_completion_tokens: 900,
+      messages: [
+        { role: "system", content: "أنت تستخرج إجابة من نص الفيديو فقط. لا تخترع." },
+        { role: "user", content: prompt }
+      ]
+    })
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data?.error?.message || "فشل تلخيص نص الفيديو.");
-  return data?.choices?.[0]?.message?.content?.trim() || null;
+  if (!response.ok) throw new Error(data?.error?.message || "فشل تحليل نص الفيديو.");
+  const result = data?.choices?.[0]?.message?.content?.trim() || "";
+  if (!result || /^NOT_FOUND$/i.test(result)) return null;
+  return result;
 }
 
 module.exports = async function handler(req, res) {
@@ -105,7 +118,7 @@ module.exports = async function handler(req, res) {
     const transcript = await getTranscript(videoId);
     if (!transcript) return res.status(200).json({ ok: false });
 
-    const summary = await summarizeTranscript(transcript);
+    const summary = await summarizeTranscript(transcript, String(body.question || "").trim());
     if (!summary) return res.status(200).json({ ok: false });
     return res.status(200).json({ ok: true, summary, channelId: CHANNEL_ID, videoId });
   } catch (error) {
