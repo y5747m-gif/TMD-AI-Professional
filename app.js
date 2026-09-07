@@ -122,10 +122,56 @@ function getRelatedShariaResources(text) {
   return matches.length ? matches.slice(0, 3) : [];
 }
 
-function getVideoSearchUrl(text) {
-  const q = String(text || "").trim();
-  if (!q) return "";
-  return "https://www.youtube.com/results?search_query=" + encodeURIComponent(q);
+const SHARIA_YOUTUBE_CHANNEL_ID = "UCv0g_v1C6JcZALvrkDu98AQ";
+
+const SHARIA_QUERY_KEYWORDS = [
+  "اسلام", "إسلام", "الدين", "دين", "شرعي", "شرعية", "فتوى", "فتاوى",
+  "حكم", "حلال", "حرام", "واجب", "سنة", "بدعة", "عقيدة", "توحيد",
+  "قرآن", "قران", "سورة", "آية", "ايه", "حديث", "أحاديث", "حديث",
+  "نبي", "رسول", "صحابي", "صحابة", "صلاة", "صلاه", "زكاة", "زكاه",
+  "صيام", "رمضان", "حج", "عمرة", "وضوء", "غسل", "طهارة", "مسجد",
+  "دعاء", "أذكار", "ذكر", "استغفار", "توبة", "الجنة", "النار", "الآخرة",
+  "قيامة", "قبر", "زواج", "طلاق", "ميراث", "ربا", "بيع", "شراء",
+  "إلحاد", "الحاد", "ملحد", "شبهة", "شبهات", "شيوخ", "شيخ", "عالم", "علماء",
+  "سيرة", "تفسير", "فقه", "عبادة", "عبادات", "عمل صالح", "أعمال صالحة"
+];
+
+function isShariaQuestion(text) {
+  const q = normalizeArabic(text);
+  if (!q) return false;
+  return SHARIA_QUERY_KEYWORDS.some(keyword => q.includes(normalizeArabic(keyword)));
+}
+
+function cleanShariaSearchQuery(text) {
+  return String(text || "")
+    .replace(/https?:\/\/\S+/gi, " ")
+    .replace(/[#*_`~]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 180);
+}
+
+async function searchShariaVideo(text, signal) {
+  const query = cleanShariaSearchQuery(text);
+  if (!query || !isShariaQuestion(query)) return null;
+
+  const response = await fetch("/api/sharia-search", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      query,
+      channelId: SHARIA_YOUTUBE_CHANNEL_ID
+    }),
+    signal
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || data.ok === false) {
+    console.warn("Sharia video search:", data?.error || response.status);
+    return null;
+  }
+
+  return data.video || null;
 }
 
 function renderLearningResources() {
@@ -154,28 +200,38 @@ function closeLearningModal() {
   document.getElementById("learningBackdrop")?.classList.add("hidden");
 }
 
-function addMediaRecommendationsToUI(userText) {
-  const videoUrl = getVideoSearchUrl(userText);
+async function addMediaRecommendationsToUI(userText, video = null) {
   const related = getRelatedShariaResources(userText);
-
-  if (!chat || (!videoUrl && !related.length)) return;
+  if (!chat || (!video && !related.length)) return;
 
   const wrap = document.createElement("div");
   wrap.className = "media-recommendations";
 
-  if (videoUrl) {
-    const videoCard = document.createElement("a");
-    videoCard.className = "video-recommendation";
-    videoCard.href = videoUrl;
-    videoCard.target = "_blank";
-    videoCard.rel = "noopener noreferrer";
+  if (video) {
+    const videoCard = document.createElement("div");
+    videoCard.className = "video-recommendation sharia-video-card";
     videoCard.innerHTML = `
-      <span class="video-play">▶</span>
-      <span>
-        <b>فيديوهات مرتبطة بسؤالك</b>
-        <small>فتح نتائج فيديو مناسبة لعبارة السؤال على YouTube</small>
-      </span>
-      <span class="learning-arrow">↗</span>
+      <div class="video-card-head">
+        <span class="video-play">▶</span>
+        <span>
+          <b>🎥 فيديو شرعي مرتبط بسؤالك</b>
+          <small>تم البحث داخل القناة الشرعية المحددة فقط</small>
+        </span>
+      </div>
+      <div class="sharia-video-frame-wrap">
+        <iframe
+          class="sharia-video-frame"
+          src="https://www.youtube.com/embed/${encodeURIComponent(video.videoId)}"
+          title="${esc(video.title)}"
+          loading="lazy"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen></iframe>
+      </div>
+      <div class="sharia-video-info">
+        <strong>${esc(video.title)}</strong>
+        <small>${esc(video.channelTitle || "القناة الشرعية")}</small>
+        <a href="https://www.youtube.com/watch?v=${encodeURIComponent(video.videoId)}" target="_blank" rel="noopener noreferrer">فتح الفيديو على YouTube ↗</a>
+      </div>
     `;
     wrap.appendChild(videoCard);
   }
@@ -183,7 +239,7 @@ function addMediaRecommendationsToUI(userText) {
   if (related.length) {
     const title = document.createElement("div");
     title.className = "recommendation-title";
-    title.textContent = "📖 مصدر شرعي مرتبط بالسؤال";
+    title.textContent = "📖 مصادر شرعية مرتبطة بالسؤال";
     wrap.appendChild(title);
 
     related.forEach(resource => {
@@ -931,7 +987,12 @@ async function sendMessage() {
     save();
     renderMessages();
     renderHistory();
-    addMediaRecommendationsToUI(userText);
+
+    if (isShariaQuestion(userText)) {
+      const shariaVideo = await searchShariaVideo(userText, state.controller?.signal);
+      addMediaRecommendationsToUI(userText, shariaVideo);
+    }
+
     scrollBottom();
 
   } catch (error) {
