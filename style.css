@@ -2890,6 +2890,19 @@ html[data-theme="light"] .message.assistant .msg-avatar {
 }
 
 /* Sharia source answer */
-.sharia-summary-heading { font-weight: 800; margin-bottom: 8px; }
-.sharia-summary-text { line-height: 1.9; white-space: normal; }
-.sharia-summary-unavailable { line-height: 1.8; font-weight: 700; }
+.sharia-source-answer {
+  width: min(100%, 760px);
+  margin: 10px 0;
+  padding: 16px;
+  border: 1px solid var(--border-color, rgba(128,128,128,.22));
+  border-radius: 18px;
+  background: var(--card-bg, rgba(255,255,255,.04));
+}
+.sharia-source-answer .sharia-summary-heading {
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+.sharia-source-answer .sharia-summary-text {
+  line-height: 1.9;
+  white-space: normal;
+}
