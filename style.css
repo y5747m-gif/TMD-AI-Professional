@@ -2854,3 +2854,37 @@ html[data-theme="light"] .message.assistant .msg-avatar {
     display:none;
   }
 }
+
+/* ============================================================
+   SHARIA VIDEO SUMMARY - summary is based on video transcript
+   ============================================================ */
+.sharia-video-summary{
+  margin:12px 14px 0;
+  padding:14px;
+  border:1px solid rgba(212,175,55,.22);
+  border-radius:14px;
+  background:rgba(212,175,55,.055);
+}
+.sharia-summary-heading{font-weight:900;font-size:15px;margin-bottom:8px}
+.sharia-summary-text{line-height:1.9;font-size:14px;white-space:normal}
+.sharia-summary-loading,.sharia-summary-unavailable{font-size:13px;line-height:1.8;opacity:.78}
+.sharia-summary-link{
+  display:block;
+  margin:10px 14px 14px;
+  padding:11px 14px;
+  border-radius:12px;
+  text-align:center;
+  text-decoration:none;
+  font-weight:800;
+  background:linear-gradient(135deg,#c89b3c,#e8c66a);
+  color:#111!important;
+}
+
+.sharia-video-loading {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(212, 175, 55, .08);
+  border: 1px solid rgba(212, 175, 55, .22);
+  font-size: 13px;
+}
