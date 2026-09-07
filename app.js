@@ -122,51 +122,27 @@ function getRelatedShariaResources(text) {
   return matches.length ? matches.slice(0, 3) : [];
 }
 
-const SHARIA_CHANNEL_ID = "UCv0g_v1C6JcZALvrkDu98AQ";
-
-function isLikelyShariaQuestion(text) {
-  const q = normalizeArabic(text);
-  if (!q) return false;
-  const terms = [
-    "حكم", "فتوى", "فتوي", "هل يجوز", "هل تجوز", "يجوز", "تجوز", "حرام", "حلال",
-    "فرض", "واجب", "سنه", "سنة", "صلاه", "صلاة", "صيام", "زكاه", "زكاة", "حج", "عمره", "عمرة",
-    "وضوء", "غسل", "تيمم", "طهاره", "طهارة", "قران", "قرآن", "حديث", "تفسير", "عقيده", "عقيدة",
-    "توحيد", "شرك", "بدعه", "بدعة", "استغفار", "دعاء", "ذكر", "اذكار", "أذكار", "نذر", "يمين",
-    "طلاق", "نكاح", "زواج", "ميراث", "ربا", "بيع", "شراء", "صلاه", "مسجد", "امام", "إمام",
-    "النبي", "الرسول", "الصحابه", "الصحابة", "اسلام", "إسلام", "مسلم", "دين", "الدين", "الله", "الجنه", "الجنة", "النار",
-    "الإلحاد", "الحاد", "شبهه", "شبهة", "شبهات", "شيخ", "علماء", "داعيه", "داعية"
-  ];
-  return terms.some(t => q.includes(normalizeArabic(t)));
-}
-
-async function searchShariaChannel(userText) {
+async function searchShariaChannelOnly(userText) {
   const q = String(userText || "").trim();
-  if (!q || !isLikelyShariaQuestion(q)) return null;
+  if (!q) return null;
 
   try {
     const response = await fetch("/api/sharia-search", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        query: q,
-        channelId: SHARIA_CHANNEL_ID
-      })
+      body: JSON.stringify({ query: q })
     });
 
     const data = await response.json().catch(() => ({}));
+
     if (!response.ok || data.ok === false) {
-      console.warn("Sharia channel search failed:", data?.error || response.status);
+      console.warn("Sharia channel search:", data?.error || response.status);
       return null;
     }
 
-    // دفاع إضافي: لا نقبل أي فيديو إلا إذا أعاد YouTube نفس Channel ID المطلوب.
-    const items = Array.isArray(data.items) ? data.items.filter(item =>
-      item && item.channelId === SHARIA_CHANNEL_ID && item.videoId
-    ) : [];
-
-    return items[0] || null;
+    return data.video || null;
   } catch (error) {
-    console.warn("Sharia channel search error:", error);
+    console.warn("Sharia channel search failed:", error);
     return null;
   }
 }
@@ -198,62 +174,38 @@ function closeLearningModal() {
 }
 
 async function addMediaRecommendationsToUI(userText) {
-  const related = getRelatedShariaResources(userText);
-  const video = await searchShariaChannel(userText);
+  const video = await searchShariaChannelOnly(userText);
+  if (!chat) return;
 
-  if (!chat || (!video && !related.length)) return;
+  const old = chat.querySelector(".media-recommendations");
+  if (old) old.remove();
+
+  if (!video) return;
 
   const wrap = document.createElement("div");
   wrap.className = "media-recommendations";
 
-  if (video) {
-    const videoCard = document.createElement("div");
-    videoCard.className = "video-recommendation sharia-video-card";
-    videoCard.innerHTML = `
-      <div class="sharia-video-badge">🕌 فيديو من القناة الشرعية</div>
-      <div class="sharia-video-title">${esc(video.title || "فيديو متعلق بالسؤال")}</div>
-      <div class="sharia-video-meta">المصدر: القناة المحددة فقط</div>
-      <div class="sharia-video-frame">
-        <iframe
-          src="https://www.youtube.com/embed/${encodeURIComponent(video.videoId)}"
-          title="${esc(video.title || "فيديو شرعي")}" frameborder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowfullscreen loading="lazy"></iframe>
-      </div>
-      <a class="sharia-watch-btn" href="https://www.youtube.com/watch?v=${encodeURIComponent(video.videoId)}" target="_blank" rel="noopener noreferrer">▶ مشاهدة على YouTube</a>
-    `;
-    wrap.appendChild(videoCard);
-  } else if (isLikelyShariaQuestion(userText)) {
-    const noVideo = document.createElement("div");
-    noVideo.className = "video-recommendation sharia-no-result";
-    noVideo.innerHTML = `
-      <span class="video-play">⌕</span>
-      <span><b>لم أجد فيديو مطابقًا في القناة المحددة</b><small>لم يتم البحث في أي قناة أخرى.</small></span>
-    `;
-    wrap.appendChild(noVideo);
-  }
+  const card = document.createElement("div");
+  card.className = "video-recommendation";
+  card.innerHTML = `
+    <span class="video-play">▶</span>
+    <span style="flex:1">
+      <b>${esc(video.title || "فيديو مرتبط بالسؤال")}</b>
+      <small>فيديو من القناة الشرعية المحددة فقط</small>
+    </span>
+    <a href="${esc(video.url)}" target="_blank" rel="noopener noreferrer" class="learning-arrow" aria-label="مشاهدة الفيديو">↗</a>
+  `;
 
-  if (related.length) {
-    const title = document.createElement("div");
-    title.className = "recommendation-title";
-    title.textContent = "📖 مصدر شرعي مرتبط بالسؤال";
-    wrap.appendChild(title);
+  const iframe = document.createElement("iframe");
+  iframe.className = "sharia-video-frame";
+  iframe.src = `https://www.youtube.com/embed/${encodeURIComponent(video.videoId)}`;
+  iframe.title = video.title || "فيديو شرعي";
+  iframe.loading = "lazy";
+  iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+  iframe.allowFullscreen = true;
 
-    related.forEach(resource => {
-      const card = document.createElement("a");
-      card.className = "mini-learning-card";
-      card.href = resource.url;
-      card.target = "_blank";
-      card.rel = "noopener noreferrer";
-      card.innerHTML = `
-        <span>${resource.icon}</span>
-        <span><b>${esc(resource.title)}</b><small>${esc(resource.description)}</small></span>
-        <span>↗</span>
-      `;
-      wrap.appendChild(card);
-    });
-  }
-
+  wrap.appendChild(card);
+  wrap.appendChild(iframe);
   chat.appendChild(wrap);
 }
 
