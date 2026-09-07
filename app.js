@@ -237,7 +237,7 @@ async function searchIslamwebAnswer(userText) {
       body: JSON.stringify({ query: userText })
     });
     const data = await response.json().catch(() => ({}));
-    if (response.ok && data.ok === true && data.found && data.answer) {
+    if (response.ok && data.ok === true && data.found === true && data.answer) {
       return { title: data.title || "", answer: data.answer };
     }
   } catch (error) {
@@ -246,72 +246,62 @@ async function searchIslamwebAnswer(userText) {
   return null;
 }
 
-async function getShariaVideoAndSummary(userText) {
-  const [video, sourceAnswer] = await Promise.all([
-    searchShariaChannelOnly(userText),
-    searchIslamwebAnswer(userText)
-  ]);
-
-  // الفيديو هو واجهة المصدر المرئي. لا نسمح بملخص من النموذج إذا لم يكن لدينا نص الفيديو.
-  if (!video) return { video: null, summary: null, analyzed: false, sourceAnswer };
-  try {
-    const response = await fetch("/api/sharia-summary", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ videoId: video.videoId, channelId: "UCv0g_v1C6JcZALvrkDu98AQ" })
-    });
-    const data = await response.json().catch(() => ({}));
-    if (response.ok && data.ok === true && data.summary) {
-      return { video, summary: data.summary, analyzed: true, sourceAnswer };
-    }
-  } catch (error) {
-    console.warn("Sharia summary failed:", error);
-  }
-  return { video, summary: null, analyzed: false, sourceAnswer };
+async function getShariaVideo(userText) {
+  return await searchShariaChannelOnly(userText);
 }
 
 function renderShariaResult(result) {
-  if (!chat || !result?.video) return;
-  const video = result.video;
+  if (!chat) return;
   const wrap = document.createElement("div");
-  wrap.className = "media-recommendations";
+  wrap.className = "media-recommendations sharia-result";
 
-  const card = document.createElement("a");
-  card.className = "video-external-card";
-  card.href = video.url;
-  card.target = "_blank";
-  card.rel = "noopener noreferrer";
-  card.innerHTML = `
-    <div class="video-thumb-wrap">
-      <img class="video-thumb" src="${esc(video.thumbnail)}" alt="${esc(video.title || "فيديو شرعي")}" loading="lazy">
-      <span class="video-thumb-play">▶</span>
-      <span class="video-duration-source">YouTube</span>
-    </div>
-    <div class="video-card-info">
-      <b>${esc(video.title || "فيديو متعلق بالسؤال")}</b>
-      <span>📖 من القناة الشرعية المحددة فقط</span>
-      <small>${esc(video.channelTitle || "")}</small>
-    </div>
-    <span class="learning-arrow">↗</span>
-  `;
-  wrap.appendChild(card);
-
-  const body = document.createElement("div");
-  body.className = "sharia-video-summary";
-  if (result.sourceAnswer?.answer) {
-    body.innerHTML = `
-      <div class="sharia-summary-heading">📖 الإجابة من المصدر الشرعي</div>
-      <div class="sharia-summary-text">${esc(result.sourceAnswer.answer).replace(/\n/g, "<br>")}</div>
+  if (result.answer) {
+    const answerBox = document.createElement("div");
+    answerBox.className = "sharia-source-answer";
+    answerBox.innerHTML = `
+      <div class="sharia-summary-heading">📖 الإجابة</div>
+      <div class="sharia-summary-text">${esc(result.answer).replace(/\n/g, "<br>")}</div>
     `;
-  } else if (result.analyzed && result.summary) {
-    body.innerHTML = `
-      <div class="sharia-summary-heading">📝 ملخص محتوى الفيديو</div>
-      <div class="sharia-summary-text">${esc(result.summary).replace(/\n/g, "<br>")}</div>
-    `;
-  } else {
-    body.innerHTML = `<div class="sharia-summary-unavailable">إذا اردت معرفة الحكم بالتفصيل شاهد الفيديو</div>`;
+    wrap.appendChild(answerBox);
   }
-  wrap.appendChild(body);
+
+  if (result.video) {
+    const video = result.video;
+    const card = document.createElement("a");
+    card.className = "video-external-card";
+    card.href = video.url;
+    card.target = "_blank";
+    card.rel = "noopener noreferrer";
+    card.innerHTML = `
+      <div class="video-thumb-wrap">
+        <img class="video-thumb" src="${esc(video.thumbnail)}" alt="${esc(video.title || "فيديو متعلق بالسؤال")}" loading="lazy">
+        <span class="video-thumb-play">▶</span>
+        <span class="video-duration-source">YouTube</span>
+      </div>
+      <div class="video-card-info">
+        <b>${esc(video.title || "فيديو متعلق بالسؤال")}</b>
+        <span>▶️ فيديو متعلق بالسؤال</span>
+        <small>${esc(video.channelTitle || "")}</small>
+      </div>
+      <span class="learning-arrow">↗</span>
+    `;
+    wrap.appendChild(card);
+  }
+
+  if (!result.answer && result.video) {
+    const note = document.createElement("div");
+    note.className = "sharia-summary-unavailable";
+    note.textContent = "إذا اردت معرفة الحكم بالتفصيل شاهد الفيديو";
+    wrap.appendChild(note);
+  }
+
+  if (!result.answer && !result.video) {
+    const empty = document.createElement("div");
+    empty.className = "video-empty";
+    empty.innerHTML = `<span>📖</span><div><b>لم يتم العثور على مادة مطابقة في المصدر الشرعي.</b></div>`;
+    wrap.appendChild(empty);
+  }
+
   chat.appendChild(wrap);
   scrollBottom();
 }
@@ -319,15 +309,19 @@ function renderShariaResult(result) {
 async function handleShariaQuestion(userText) {
   const isSharia = await classifyShariaQuestion(userText);
   if (!isSharia) return false;
-  const result = await getShariaVideoAndSummary(userText);
-  if (result.video) renderShariaResult(result);
-  else {
-    const wrap = document.createElement("div");
-    wrap.className = "media-recommendations sharia-result";
-    wrap.innerHTML = `<div class="video-empty"><span>📖</span><div><b>لم يتم العثور على فيديو مطابق في القناة الشرعية.</b></div></div>`;
-    chat?.appendChild(wrap);
-    scrollBottom();
-  }
+
+  // مهم: السؤال الشرعي لا يصل إلى Groq للإجابة من المعرفة العامة.
+  // نأخذ الإجابة من إسلام ويب فقط، ونبحث عن فيديو مستقل في قناة YouTube المحددة.
+  const [sourceAnswer, video] = await Promise.all([
+    searchIslamwebAnswer(userText),
+    getShariaVideo(userText)
+  ]);
+
+  renderShariaResult({
+    answer: sourceAnswer?.answer || null,
+    answerTitle: sourceAnswer?.title || "",
+    video: video || null
+  });
   return true;
 }
 
