@@ -2888,3 +2888,8 @@ html[data-theme="light"] .message.assistant .msg-avatar {
   border: 1px solid rgba(212, 175, 55, .22);
   font-size: 13px;
 }
+
+/* Sharia source answer */
+.sharia-summary-heading { font-weight: 800; margin-bottom: 8px; }
+.sharia-summary-text { line-height: 1.9; white-space: normal; }
+.sharia-summary-unavailable { line-height: 1.8; font-weight: 700; }
