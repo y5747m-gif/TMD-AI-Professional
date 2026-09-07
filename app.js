@@ -47,7 +47,161 @@ const state = {
 };
 
 // حماية من نسخة قديمة محفوظة في localStorage على الهاتف.
-const SAFE_DEFAULT_MODEL = "openai/gpt-oss-120b";
+
+/* ============================================================
+ * التعلّم الشرعي + مصادر الفيديو
+ * ============================================================ */
+const SHARIA_RESOURCES = [
+  {
+    icon: "❄️",
+    title: "الأرشيف على التليجرام",
+    description: "أرشيف للدروس والمحتوى الشرعي.",
+    url: "https://t.me/learnyourreligion/2024",
+    keywords: ["درس","دروس","محاضرة","محاضرات","شرح","علم","تعلم","فقه","عقيدة","حديث","سيرة","تفسير","قرآن","اسلام","إسلام"]
+  },
+  {
+    icon: "📣",
+    title: "إحصائيات الدروس والخطب",
+    description: "متابعة إحصائيات الدروس والخطب.",
+    url: "https://www.facebook.com/share/p/19CRjAb6Hy/",
+    keywords: ["خطبة","خطب","درس","دروس","محاضرة","محاضرات","إحصائيات"]
+  },
+  {
+    icon: "🌲",
+    title: "أعمال صالحة تقرّبكم إلى الله",
+    description: "محتوى مقترح للأعمال الصالحة.",
+    url: "https://www.facebook.com/share/p/1CswdorcJ2/",
+    keywords: ["عمل صالح","أعمال صالحة","عبادة","عبادات","ذكر","صدقة","صلاة","صيام","الله"]
+  },
+  {
+    icon: "📖",
+    title: "قنوات كبار العلماء والدعاة",
+    description: "روابط قنوات لمزيد من التعلّم والاستفادة.",
+    url: "https://www.facebook.com/share/p/17wKHj8bNP/",
+    keywords: ["عالم","علماء","داعية","دعاة","قناة","قنوات","فتوى","فتاوى","شيخ","مشايخ"]
+  },
+  {
+    icon: "🌸",
+    title: "كارتون هادف للأطفال",
+    description: "محتوى مناسب للأطفال بعيدًا عن الموسيقى.",
+    url: "https://www.facebook.com/share/p/1VLoPJz9XC/",
+    keywords: ["طفل","أطفال","طفولة","كرتون","كارتون","ابني","ابنتي"]
+  },
+  {
+    icon: "🍀",
+    title: "الرد على شبهات الإلحاد",
+    description: "مواد للرد على الشبهات المتعلقة بالإلحاد.",
+    url: "https://www.facebook.com/share/p/1BUbWCHW6s/",
+    keywords: ["إلحاد","الحاد","ملحد","شبهة","شبهات","شك","وجود الله","أدلة"]
+  },
+  {
+    icon: "🔗",
+    title: "المصدر الإضافي",
+    description: "المصدر الذي أرسلته للتعلّم والاستفادة.",
+    url: "https://www.facebook.com/share/p/1AUKGt22Sd/",
+    keywords: ["دين","الدين","شرعي","شرعية","إسلام","اسلام"]
+  }
+];
+
+function normalizeArabic(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[إأآ]/g, "ا")
+    .replace(/ة/g, "ه")
+    .replace(/[ًٌٍَُِّْـ]/g, "")
+    .trim();
+}
+
+function getRelatedShariaResources(text) {
+  const q = normalizeArabic(text);
+  const matches = SHARIA_RESOURCES.filter(resource =>
+    resource.keywords.some(keyword => q.includes(normalizeArabic(keyword)))
+  );
+  return matches.length ? matches.slice(0, 3) : [];
+}
+
+function getVideoSearchUrl(text) {
+  const q = String(text || "").trim();
+  if (!q) return "";
+  return "https://www.youtube.com/results?search_query=" + encodeURIComponent(q);
+}
+
+function renderLearningResources() {
+  const grid = document.getElementById("learningGrid");
+  if (!grid) return;
+  grid.innerHTML = SHARIA_RESOURCES.map(resource => `
+    <a class="learning-card" href="${resource.url}" target="_blank" rel="noopener noreferrer">
+      <span class="learning-card-icon">${resource.icon}</span>
+      <span class="learning-card-body">
+        <b>${esc(resource.title)}</b>
+        <small>${esc(resource.description)}</small>
+      </span>
+      <span class="learning-arrow">↗</span>
+    </a>
+  `).join("");
+}
+
+function openLearningModal() {
+  const modal = document.getElementById("learningBackdrop");
+  if (!modal) return;
+  renderLearningResources();
+  modal.classList.remove("hidden");
+}
+
+function closeLearningModal() {
+  document.getElementById("learningBackdrop")?.classList.add("hidden");
+}
+
+function addMediaRecommendationsToUI(userText) {
+  const videoUrl = getVideoSearchUrl(userText);
+  const related = getRelatedShariaResources(userText);
+
+  if (!chat || (!videoUrl && !related.length)) return;
+
+  const wrap = document.createElement("div");
+  wrap.className = "media-recommendations";
+
+  if (videoUrl) {
+    const videoCard = document.createElement("a");
+    videoCard.className = "video-recommendation";
+    videoCard.href = videoUrl;
+    videoCard.target = "_blank";
+    videoCard.rel = "noopener noreferrer";
+    videoCard.innerHTML = `
+      <span class="video-play">▶</span>
+      <span>
+        <b>فيديوهات مرتبطة بسؤالك</b>
+        <small>فتح نتائج فيديو مناسبة لعبارة السؤال على YouTube</small>
+      </span>
+      <span class="learning-arrow">↗</span>
+    `;
+    wrap.appendChild(videoCard);
+  }
+
+  if (related.length) {
+    const title = document.createElement("div");
+    title.className = "recommendation-title";
+    title.textContent = "📖 مصدر شرعي مرتبط بالسؤال";
+    wrap.appendChild(title);
+
+    related.forEach(resource => {
+      const card = document.createElement("a");
+      card.className = "mini-learning-card";
+      card.href = resource.url;
+      card.target = "_blank";
+      card.rel = "noopener noreferrer";
+      card.innerHTML = `
+        <span>${resource.icon}</span>
+        <span><b>${esc(resource.title)}</b><small>${esc(resource.description)}</small></span>
+        <span>↗</span>
+      `;
+      wrap.appendChild(card);
+    });
+  }
+
+  chat.appendChild(wrap);
+}
+
 const LEGACY_MODELS = new Set([
   "llama-3.1-8b-instant",
   "llama-3.3-70b-versatile",
@@ -775,6 +929,8 @@ async function sendMessage() {
     save();
     renderMessages();
     renderHistory();
+    addMediaRecommendationsToUI(userText);
+    scrollBottom();
 
   } catch (error) {
     console.error("T.M.D AI request error:", error);
@@ -954,6 +1110,27 @@ function ensureSafeModelOption() {
 }
 
 function bindThemeAndNavigation() {
+  const learningBtn = $("#learningBtn");
+  if (learningBtn && !learningBtn.dataset.bound) {
+    learningBtn.dataset.bound = "1";
+    learningBtn.addEventListener("click", openLearningModal);
+  }
+
+  const learningClose = $("#learningClose");
+  if (learningClose && !learningClose.dataset.bound) {
+    learningClose.dataset.bound = "1";
+    learningClose.addEventListener("click", closeLearningModal);
+  }
+
+  const learningBackdrop = $("#learningBackdrop");
+  if (learningBackdrop && !learningBackdrop.dataset.bound) {
+    learningBackdrop.dataset.bound = "1";
+    learningBackdrop.addEventListener("click", (event) => {
+      if (event.target === learningBackdrop) closeLearningModal();
+    });
+  }
+
+
   const newChat = $("#newChat");
   if (newChat && !newChat.dataset.bound) {
     newChat.dataset.bound = "1";
