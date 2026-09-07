@@ -202,6 +202,7 @@ function closeLearningModal() {
 }
 
 async function addMediaRecommendationsToUI(userText) {
+  // الأسئلة غير الدينية تستمر في العمل بشكل طبيعي بدون أي بحث أو فيديو.
   if (!isLikelyShariaQuestion(userText)) return;
 
   const video = await searchShariaChannelOnly(userText);
@@ -223,9 +224,11 @@ async function addMediaRecommendationsToUI(userText) {
     `;
     wrap.appendChild(empty);
     chat.appendChild(wrap);
+    scrollBottom();
     return;
   }
 
+  // بطاقة الفيديو الخارجية تظهر أولًا، لكن لا يتم تحميل المشغل قبل اكتمال الملخص.
   const card = document.createElement("a");
   card.className = "video-external-card";
   card.href = video.url;
@@ -246,17 +249,69 @@ async function addMediaRecommendationsToUI(userText) {
   `;
   wrap.appendChild(card);
 
-  // مشغل داخلي اختياري: يبقى الفيديو نفسه من القناة، ولا توجد مصادر بديلة.
-  const iframe = document.createElement("iframe");
-  iframe.className = "sharia-video-frame";
-  iframe.src = `https://www.youtube.com/embed/${encodeURIComponent(video.videoId)}`;
-  iframe.title = video.title || "فيديو شرعي";
-  iframe.loading = "lazy";
-  iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
-  iframe.allowFullscreen = true;
-  wrap.appendChild(iframe);
+  const summary = document.createElement("div");
+  summary.className = "sharia-video-summary";
+  summary.innerHTML = `<div class="sharia-summary-loading">📝 جاري استخراج نص الفيديو نفسه وتلخيصه قبل تشغيل الفيديو...</div>`;
+  wrap.appendChild(summary);
+
+  const link = document.createElement("a");
+  link.className = "sharia-summary-link";
+  link.href = video.url;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.textContent = "🔗 رابط الفيديو على YouTube";
+  wrap.appendChild(link);
+
+  // Placeholder يحافظ على شكل الرسالة إلى أن ينتهي التلخيص.
+  const videoStatus = document.createElement("div");
+  videoStatus.className = "sharia-video-loading";
+  videoStatus.innerHTML = "🎬 سيتم عرض الفيديو بعد تجهيز الملخص المستند إلى نصه.";
+  wrap.appendChild(videoStatus);
 
   chat.appendChild(wrap);
+  scrollBottom();
+
+  try {
+    const response = await fetch("/api/sharia-summary", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ videoId: video.videoId, channelId: "UCv0g_v1C6JcZALvrkDu98AQ" })
+    });
+    const data = await response.json().catch(() => ({}));
+
+    if (response.ok && data.ok === true && data.summary) {
+      summary.innerHTML = `
+        <div class="sharia-summary-heading">📝 ملخص كلام الفيديو</div>
+        <div class="sharia-summary-text">${esc(data.summary).replace(/\n/g, "<br>")}</div>
+      `;
+
+      // بعد نجاح تلخيص نص الفيديو نفسه فقط، نعرض المشغل.
+      const iframe = document.createElement("iframe");
+      iframe.className = "sharia-video-frame";
+      iframe.src = `https://www.youtube.com/embed/${encodeURIComponent(video.videoId)}`;
+      iframe.title = video.title || "فيديو شرعي";
+      iframe.loading = "lazy";
+      iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+      iframe.allowFullscreen = true;
+      wrap.insertBefore(iframe, videoStatus);
+      videoStatus.remove();
+    } else {
+      summary.innerHTML = `
+        <div class="sharia-summary-heading">📝 ملخص كلام الفيديو</div>
+        <div class="sharia-summary-unavailable">${esc(data?.error || "لم تتوفر ترجمة/نص للفيديو نفسه، لذلك لم يتم اختلاق ملخص.")}</div>
+      `;
+      videoStatus.innerHTML = "⚠️ لم يتم تشغيل الفيديو تلقائيًا لأن نص الفيديو نفسه لم يتوفر للتلخيص الدقيق.";
+    }
+  } catch (error) {
+    console.warn("Sharia video summary failed:", error);
+    summary.innerHTML = `
+      <div class="sharia-summary-heading">📝 ملخص كلام الفيديو</div>
+      <div class="sharia-summary-unavailable">تعذر استخراج نص الفيديو نفسه، لذلك لم يتم اختلاق ملخص.</div>
+    `;
+    videoStatus.innerHTML = "⚠️ لم يتم تشغيل الفيديو تلقائيًا لأن النص لم يتوفر للتلخيص.";
+  }
+
+  scrollBottom();
 }
 
 const LEGACY_MODELS = new Set([
