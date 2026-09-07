@@ -161,21 +161,23 @@ function isLikelyShariaQuestion(text) {
 
 async function classifyShariaQuestion(userText) {
   const q = String(userText || "").trim();
-  if (!q) return { isSharia:false, searchQuery:q };
+  if (!q) return false;
+  // التصنيف هنا لا يجيب عن السؤال؛ وظيفته فقط تحديد هل السؤال شرعي أم لا.
   try {
     const response = await fetch("/api/sharia-classify", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query:q })
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: q })
     });
     const data = await response.json().catch(() => ({}));
-    if (response.ok && typeof data.isSharia === "boolean") {
-      return { isSharia:data.isSharia, searchQuery:data.searchQuery || q };
-    }
-  } catch (error) { console.warn("Sharia classification failed:", error); }
-  return { isSharia:isLikelyShariaQuestion(q), searchQuery:q };
+    if (response.ok && typeof data.isSharia === "boolean") return data.isSharia;
+  } catch (error) {
+    console.warn("Sharia classification failed:", error);
+  }
+  return isLikelyShariaQuestion(q);
 }
 
-async function searchShariaChannelOnly(userText, searchQuery = userText) {
+async function searchShariaChannelOnly(userText) {
   const q = String(userText || "").trim();
   if (!q) return null;
 
@@ -183,7 +185,7 @@ async function searchShariaChannelOnly(userText, searchQuery = userText) {
     const response = await fetch("/api/sharia-search", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: q, searchQuery }),
+      body: JSON.stringify({ query: q }),
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || data.ok !== true) {
@@ -305,13 +307,13 @@ function renderShariaResult(result) {
 }
 
 async function handleShariaQuestion(userText) {
-  const classification = await classifyShariaQuestion(userText);
-  if (!classification.isSharia) return false;
+  const isSharia = await classifyShariaQuestion(userText);
+  if (!isSharia) return false;
 
-  // لا نرسل السؤال الشرعي إلى /api/chat. البحث في المرجع والفيديو فقط.
+  // لا نرسل السؤال الشرعي إلى Groq. نبحث في المرجع الشرعي وفي قناة YouTube المحددة معًا.
   const [sourceAnswer, video] = await Promise.all([
     searchIslamwebAnswer(userText),
-    getShariaVideo(userText, classification.searchQuery)
+    getShariaVideo(userText)
   ]);
 
   renderShariaResult({
