@@ -229,23 +229,45 @@ function closeLearningModal() {
   document.getElementById("learningBackdrop")?.classList.add("hidden");
 }
 
+async function searchIslamwebAnswer(userText) {
+  try {
+    const response = await fetch("/api/islamweb-search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query: userText })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (response.ok && data.ok === true && data.found && data.answer) {
+      return { title: data.title || "", answer: data.answer };
+    }
+  } catch (error) {
+    console.warn("Islamweb search failed:", error);
+  }
+  return null;
+}
+
 async function getShariaVideoAndSummary(userText) {
-  const video = await searchShariaChannelOnly(userText);
-  if (!video) return { video: null, summary: null, analyzed: false };
+  const [video, sourceAnswer] = await Promise.all([
+    searchShariaChannelOnly(userText),
+    searchIslamwebAnswer(userText)
+  ]);
+
+  // الفيديو هو واجهة المصدر المرئي. لا نسمح بملخص من النموذج إذا لم يكن لدينا نص الفيديو.
+  if (!video) return { video: null, summary: null, analyzed: false, sourceAnswer };
   try {
     const response = await fetch("/api/sharia-summary", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ videoId: video.videoId, channelId: "UCv0g_v1C6JcZALvrkDu98AQ", question: userText })
+      body: JSON.stringify({ videoId: video.videoId, channelId: "UCv0g_v1C6JcZALvrkDu98AQ" })
     });
     const data = await response.json().catch(() => ({}));
     if (response.ok && data.ok === true && data.summary) {
-      return { video, summary: data.summary, analyzed: true };
+      return { video, summary: data.summary, analyzed: true, sourceAnswer };
     }
   } catch (error) {
     console.warn("Sharia summary failed:", error);
   }
-  return { video, summary: null, analyzed: false };
+  return { video, summary: null, analyzed: false, sourceAnswer };
 }
 
 function renderShariaResult(result) {
@@ -276,8 +298,16 @@ function renderShariaResult(result) {
 
   const body = document.createElement("div");
   body.className = "sharia-video-summary";
-  if (result.analyzed && result.summary) {
-    body.innerHTML = `<div class="sharia-summary-text">${esc(result.summary).replace(/\n/g, "<br>")}</div>`;
+  if (result.sourceAnswer?.answer) {
+    body.innerHTML = `
+      <div class="sharia-summary-heading">📖 الإجابة من المصدر الشرعي</div>
+      <div class="sharia-summary-text">${esc(result.sourceAnswer.answer).replace(/\n/g, "<br>")}</div>
+    `;
+  } else if (result.analyzed && result.summary) {
+    body.innerHTML = `
+      <div class="sharia-summary-heading">📝 ملخص محتوى الفيديو</div>
+      <div class="sharia-summary-text">${esc(result.summary).replace(/\n/g, "<br>")}</div>
+    `;
   } else {
     body.innerHTML = `<div class="sharia-summary-unavailable">إذا اردت معرفة الحكم بالتفصيل شاهد الفيديو</div>`;
   }
@@ -289,52 +319,15 @@ function renderShariaResult(result) {
 async function handleShariaQuestion(userText) {
   const isSharia = await classifyShariaQuestion(userText);
   if (!isSharia) return false;
-
-  // أظهر الفيديو أولًا فور العثور عليه، ولا ننتظر التحليل.
-  const video = await searchShariaChannelOnly(userText);
-
-  if (!video) {
+  const result = await getShariaVideoAndSummary(userText);
+  if (result.video) renderShariaResult(result);
+  else {
     const wrap = document.createElement("div");
     wrap.className = "media-recommendations sharia-result";
     wrap.innerHTML = `<div class="video-empty"><span>📖</span><div><b>لم يتم العثور على فيديو مطابق في القناة الشرعية.</b></div></div>`;
     chat?.appendChild(wrap);
     scrollBottom();
-    return true;
   }
-
-  renderShariaResult({ video, summary: null, analyzed: false });
-  scrollBottom();
-
-  // التحليل يحدث بعد ظهور الفيديو. عند نجاحه نستبدل رسالة المشاهدة بالملخص المستخرج من الفيديو فقط.
-  try {
-    const response = await fetch("/api/sharia-summary", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        videoId: video.videoId,
-        channelId: "UCv0g_v1C6JcZALvrkDu98AQ",
-        question: userText
-      })
-    });
-    const data = await response.json().catch(() => ({}));
-    const blocks = chat?.querySelectorAll(".sharia-video-summary");
-    const body = blocks?.[blocks.length - 1];
-
-    if (response.ok && data.ok === true && data.summary && body) {
-      body.innerHTML = `<div class="sharia-summary-text">${esc(data.summary).replace(/\n/g, "<br>")}</div>`;
-    } else if (body) {
-      body.innerHTML = `<div class="sharia-summary-unavailable">إذا اردت معرفة الحكم بالتفصيل شاهد الفيديو</div>`;
-    }
-  } catch (error) {
-    console.warn("Sharia summary failed:", error);
-    const blocks = chat?.querySelectorAll(".sharia-video-summary");
-    const body = blocks?.[blocks.length - 1];
-    if (body) {
-      body.innerHTML = `<div class="sharia-summary-unavailable">إذا اردت معرفة الحكم بالتفصيل شاهد الفيديو</div>`;
-    }
-  }
-
-  scrollBottom();
   return true;
 }
 
