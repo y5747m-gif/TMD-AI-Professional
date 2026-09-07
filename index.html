@@ -19,6 +19,9 @@
       <button class="sidebar-icon" id="closeSidebar" type="button" title="إغلاق القائمة">‹</button>
     </div>
     <button class="new-chat" id="newChat" type="button"><span class="plus">＋</span><b>محادثة جديدة</b></button>
+    <button class="learning-btn" id="learningBtn" type="button">
+      <span class="learning-icon">📖</span><b>التعلّم الشرعي</b>
+    </button>
     <div class="history-list" id="history"></div>
     <div class="sidebar-footer"><button class="footer-btn" id="settingsBtn" type="button">⚙ الإعدادات</button></div>
   </aside>
@@ -68,6 +71,19 @@
       <div class="composer-note">قد يخطئ T.M.D AI أحيانًا. تحقق من المعلومات المهمة.</div>
     </div>
   </main>
+</div>
+
+<div class="modal-backdrop hidden" id="learningBackdrop">
+  <div class="modal learning-modal">
+    <div class="modal-head">
+      <div>
+        <h3>📖 التعلّم الشرعي</h3>
+        <p class="learning-subtitle">مصادر وقنوات للتعلّم والاستفادة</p>
+      </div>
+      <button id="learningClose" type="button" aria-label="إغلاق">×</button>
+    </div>
+    <div class="learning-grid" id="learningGrid"></div>
+  </div>
 </div>
 
 <div class="modal-backdrop hidden" id="modalBackdrop">
