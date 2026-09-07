@@ -144,7 +144,17 @@ function isLikelyShariaQuestion(text) {
     "جمعة","الجمعه","وتر","قيام الليل","فجر","ظهر","عصر","مغرب","عشاء",
     "نكاح","زواج","طلاق","ميراث","ربا","بيع","شراء","يمين","نذر","كفارة","كفاره",
     "جنة","الجنة","نار","النار","قيامة","القيامة","ملائكة","شيطان","جن",
-    "الحاد","إلحاد","شبهة","شبهه","وسواس","ذنب","ذنوب","معصية","معصيه","توبة","توبه"
+    "الحاد","إلحاد","شبهة","شبهه","شبهات","وسواس","ذنب","ذنوب","معصية","معصيه","توبة","توبه",
+    "عباده","عبادة","عبادات","طاعه","طاعة","ذكر الله","الاستغفار","استغفار","رقية","رقيه",
+    "قراءة","قراءه","حفظ","سجود","ركوع","تشهد","تكبير","فاتحه","الفاتحة","استخارة","استخاره",
+    "كفاره","كفارة","نذر","يمين","صدور","دليل شرعي","دليل","شرع","شرعي","شرعية","مساله","مسألة",
+    "سؤال ديني","سؤال شرعي","الدعاء","الدعاء","الزكاة","الزكاه","الصوم","الصيام","الصلاة","الصلوات",
+    "المصحف","مصحف","آية","ايه","آيات","سور","سوره","السيرة","الصحابة","الصحابي","أهل السنة",
+    "السلف","العلماء","الداعية","داعيه","فتوى","فتاوى","الشيخ","المشايخ","التحريم","التحليل",
+    "يجوز","يجوز لي","هل يصح","هل صحيح","هل حرام","هل حلال","ما حكم","ما هو حكم","كيف يكون الحكم",
+    "ماذا قال الشرع","ماذا قال العلماء","ماذا ورد في الشرع","ماذا ورد في السنة","ماذا ورد عن النبي","ما الدليل",
+    "كيف اتوب","كيف أتوب","كيف اصلي","كيف أصلي","كيف اتوضا","كيف أتوضأ","كيف اغتسل","كيف أغتسل",
+    "ماذا افعل","ماذا أفعل","ماذا افعل اذا","ماذا أفعل إذا","هل علي","علي اثم","علي إثم"
   ];
   return terms.some(t => q.includes(normalizeArabic(t)));
 }
@@ -201,34 +211,31 @@ function closeLearningModal() {
   document.getElementById("learningBackdrop")?.classList.add("hidden");
 }
 
-async function addMediaRecommendationsToUI(userText) {
-  // الأسئلة غير الدينية تستمر في العمل بشكل طبيعي بدون أي بحث أو فيديو.
-  if (!isLikelyShariaQuestion(userText)) return;
-
+async function getShariaVideoAndSummary(userText) {
   const video = await searchShariaChannelOnly(userText);
-  if (!chat) return;
+  if (!video) return { video: null, summary: null, analyzed: false };
+  try {
+    const response = await fetch("/api/sharia-summary", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ videoId: video.videoId, channelId: "UCv0g_v1C6JcZALvrkDu98AQ" })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (response.ok && data.ok === true && data.summary) {
+      return { video, summary: data.summary, analyzed: true };
+    }
+  } catch (error) {
+    console.warn("Sharia summary failed:", error);
+  }
+  return { video, summary: null, analyzed: false };
+}
 
-  const old = chat.querySelector(".media-recommendations");
-  if (old) old.remove();
-
+function renderShariaResult(result) {
+  if (!chat || !result?.video) return;
+  const video = result.video;
   const wrap = document.createElement("div");
   wrap.className = "media-recommendations";
 
-  if (!video) {
-    const empty = document.createElement("div");
-    empty.className = "video-empty";
-    empty.innerHTML = `
-      <span>📖</span>
-      <div><b>لم أجد فيديو مناسبًا في القناة الشرعية</b>
-      <small>تم البحث داخل القناة المحددة فقط، ولم يتم استخدام أي مصدر آخر.</small></div>
-    `;
-    wrap.appendChild(empty);
-    chat.appendChild(wrap);
-    scrollBottom();
-    return;
-  }
-
-  // بطاقة الفيديو الخارجية تظهر أولًا، لكن لا يتم تحميل المشغل قبل اكتمال الملخص.
   const card = document.createElement("a");
   card.className = "video-external-card";
   card.href = video.url;
@@ -236,7 +243,7 @@ async function addMediaRecommendationsToUI(userText) {
   card.rel = "noopener noreferrer";
   card.innerHTML = `
     <div class="video-thumb-wrap">
-      <img class="video-thumb" src="${esc(video.thumbnail)}" alt="" loading="lazy">
+      <img class="video-thumb" src="${esc(video.thumbnail)}" alt="${esc(video.title || "فيديو شرعي")}" loading="lazy">
       <span class="video-thumb-play">▶</span>
       <span class="video-duration-source">YouTube</span>
     </div>
@@ -249,70 +256,35 @@ async function addMediaRecommendationsToUI(userText) {
   `;
   wrap.appendChild(card);
 
-  const summary = document.createElement("div");
-  summary.className = "sharia-video-summary";
-  summary.innerHTML = `<div class="sharia-summary-loading">📝 جاري استخراج نص الفيديو نفسه وتلخيصه قبل تشغيل الفيديو...</div>`;
-  wrap.appendChild(summary);
-
-  const link = document.createElement("a");
-  link.className = "sharia-summary-link";
-  link.href = video.url;
-  link.target = "_blank";
-  link.rel = "noopener noreferrer";
-  link.textContent = "🔗 رابط الفيديو على YouTube";
-  wrap.appendChild(link);
-
-  // Placeholder يحافظ على شكل الرسالة إلى أن ينتهي التلخيص.
-  const videoStatus = document.createElement("div");
-  videoStatus.className = "sharia-video-loading";
-  videoStatus.innerHTML = "🎬 سيتم عرض الفيديو بعد تجهيز الملخص المستند إلى نصه.";
-  wrap.appendChild(videoStatus);
-
+  const body = document.createElement("div");
+  body.className = "sharia-video-summary";
+  if (result.analyzed && result.summary) {
+    body.innerHTML = `
+      <div class="sharia-summary-heading">📝 ملخص محتوى الفيديو</div>
+      <div class="sharia-summary-text">${esc(result.summary).replace(/\n/g, "<br>")}</div>
+    `;
+  } else {
+    body.innerHTML = `<div class="sharia-summary-unavailable">إذا اردت معرفة الحكم بالتفصيل شاهد الفيديو</div>`;
+  }
+  wrap.appendChild(body);
   chat.appendChild(wrap);
   scrollBottom();
-
-  try {
-    const response = await fetch("/api/sharia-summary", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ videoId: video.videoId, channelId: "UCv0g_v1C6JcZALvrkDu98AQ" })
-    });
-    const data = await response.json().catch(() => ({}));
-
-    if (response.ok && data.ok === true && data.summary) {
-      summary.innerHTML = `
-        <div class="sharia-summary-heading">📝 ملخص كلام الفيديو</div>
-        <div class="sharia-summary-text">${esc(data.summary).replace(/\n/g, "<br>")}</div>
-      `;
-
-      // بعد نجاح تلخيص نص الفيديو نفسه فقط، نعرض المشغل.
-      const iframe = document.createElement("iframe");
-      iframe.className = "sharia-video-frame";
-      iframe.src = `https://www.youtube.com/embed/${encodeURIComponent(video.videoId)}`;
-      iframe.title = video.title || "فيديو شرعي";
-      iframe.loading = "lazy";
-      iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
-      iframe.allowFullscreen = true;
-      wrap.insertBefore(iframe, videoStatus);
-      videoStatus.remove();
-    } else {
-      summary.innerHTML = `
-        <div class="sharia-summary-heading">📝 ملخص كلام الفيديو</div>
-        <div class="sharia-summary-unavailable">${esc(data?.error || "لم تتوفر ترجمة/نص للفيديو نفسه، لذلك لم يتم اختلاق ملخص.")}</div>
-      `;
-      videoStatus.innerHTML = "⚠️ لم يتم تشغيل الفيديو تلقائيًا لأن نص الفيديو نفسه لم يتوفر للتلخيص الدقيق.";
-    }
-  } catch (error) {
-    console.warn("Sharia video summary failed:", error);
-    summary.innerHTML = `
-      <div class="sharia-summary-heading">📝 ملخص كلام الفيديو</div>
-      <div class="sharia-summary-unavailable">تعذر استخراج نص الفيديو نفسه، لذلك لم يتم اختلاق ملخص.</div>
-    `;
-    videoStatus.innerHTML = "⚠️ لم يتم تشغيل الفيديو تلقائيًا لأن النص لم يتوفر للتلخيص.";
-  }
-
-  scrollBottom();
 }
+
+async function handleShariaQuestion(userText) {
+  if (!isLikelyShariaQuestion(userText)) return false;
+  const result = await getShariaVideoAndSummary(userText);
+  if (result.video) renderShariaResult(result);
+  else {
+    const wrap = document.createElement("div");
+    wrap.className = "media-recommendations sharia-result";
+    wrap.innerHTML = `<div class="video-empty"><span>📖</span><div><b>لم يتم العثور على فيديو مطابق في القناة الشرعية.</b></div></div>`;
+    chat?.appendChild(wrap);
+    scrollBottom();
+  }
+  return true;
+}
+
 
 const LEGACY_MODELS = new Set([
   "llama-3.1-8b-instant",
@@ -997,6 +969,14 @@ async function sendMessage() {
     clearAttachment();
     renderMessages();
 
+    // الأسئلة الشرعية لا تُرسل إلى Groq. مصدر الإجابة هو الفيديو الشرعي فقط.
+    if (isLikelyShariaQuestion(userText) && !outgoing.imageData && !outgoing.fileData) {
+      await handleShariaQuestion(userText);
+      save();
+      renderHistory();
+      return;
+    }
+
     /*
      * نرسل المحادثة إلى نفس /api/chat.
      * لا يتم وضع مفتاح Groq في المتصفح.
@@ -1041,7 +1021,6 @@ async function sendMessage() {
     save();
     renderMessages();
     renderHistory();
-    await addMediaRecommendationsToUI(userText);
     scrollBottom();
 
   } catch (error) {
