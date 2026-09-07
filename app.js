@@ -161,23 +161,21 @@ function isLikelyShariaQuestion(text) {
 
 async function classifyShariaQuestion(userText) {
   const q = String(userText || "").trim();
-  if (!q) return false;
-  // التصنيف هنا لا يجيب عن السؤال؛ وظيفته فقط تحديد هل السؤال شرعي أم لا.
+  if (!q) return { isSharia:false, searchQuery:q };
   try {
     const response = await fetch("/api/sharia-classify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: q })
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query:q })
     });
     const data = await response.json().catch(() => ({}));
-    if (response.ok && typeof data.isSharia === "boolean") return data.isSharia;
-  } catch (error) {
-    console.warn("Sharia classification failed:", error);
-  }
-  return isLikelyShariaQuestion(q);
+    if (response.ok && typeof data.isSharia === "boolean") {
+      return { isSharia:data.isSharia, searchQuery:data.searchQuery || q };
+    }
+  } catch (error) { console.warn("Sharia classification failed:", error); }
+  return { isSharia:isLikelyShariaQuestion(q), searchQuery:q };
 }
 
-async function searchShariaChannelOnly(userText) {
+async function searchShariaChannelOnly(userText, searchQuery = userText) {
   const q = String(userText || "").trim();
   if (!q) return null;
 
@@ -185,7 +183,7 @@ async function searchShariaChannelOnly(userText) {
     const response = await fetch("/api/sharia-search", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: q }),
+      body: JSON.stringify({ query: q, searchQuery }),
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || data.ok !== true) {
@@ -298,7 +296,7 @@ function renderShariaResult(result) {
   if (!result.answer && !result.video) {
     const empty = document.createElement("div");
     empty.className = "video-empty";
-    empty.innerHTML = `<span>📖</span><div><b>لم يتم العثور على مادة مطابقة في المصدر الشرعي.</b></div>`;
+    empty.innerHTML = `<span>📖</span><div><b>قريبا سيتم تحديثي</b></div>`;
     wrap.appendChild(empty);
   }
 
@@ -307,14 +305,13 @@ function renderShariaResult(result) {
 }
 
 async function handleShariaQuestion(userText) {
-  const isSharia = await classifyShariaQuestion(userText);
-  if (!isSharia) return false;
+  const classification = await classifyShariaQuestion(userText);
+  if (!classification.isSharia) return false;
 
-  // مهم: السؤال الشرعي لا يصل إلى Groq للإجابة من المعرفة العامة.
-  // نأخذ الإجابة من إسلام ويب فقط، ونبحث عن فيديو مستقل في قناة YouTube المحددة.
+  // لا نرسل السؤال الشرعي إلى /api/chat. البحث في المرجع والفيديو فقط.
   const [sourceAnswer, video] = await Promise.all([
     searchIslamwebAnswer(userText),
-    getShariaVideo(userText)
+    getShariaVideo(userText, classification.searchQuery)
   ]);
 
   renderShariaResult({
