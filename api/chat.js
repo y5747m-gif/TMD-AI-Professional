@@ -165,6 +165,23 @@ const SYSTEM_PROMPT = `
 "المطور ياسين عمرو عبد الرحيم، وأنشأني كي أساعدك في أي شيء."
 `.trim();
 
+
+function isLikelyShariaQuestion(text) {
+  const q = String(text || "").toLowerCase()
+    .replace(/[إأآ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه")
+    .replace(/[ًٌٍَُِّْـ]/g, "");
+  const terms = [
+    "الله","الدين","اسلام","قران","القرآن","حديث","السنه","نبي","رسول","محمد",
+    "صحابي","شيخ","فتوى","حكم","حلال","حرام","واجب","سنه","فرض","مكروه",
+    "عقيده","توحيد","شرك","كفر","ايمان","صلاه","وضوء","غسل","تيمم","اذان",
+    "صيام","رمضان","زكاه","حج","عمره","صدقه","دعاء","اذكار","ذكر","تفسير",
+    "فقه","سيره","تجويد","مسجد","جمعه","وتر","قيام الليل","نكاح","زواج","طلاق",
+    "ميراث","ربا","يمين","نذر","كفاره","جنه","نار","قيامه","ملائكه","شيطان",
+    "جن","الحاد","شبهه","وسواس","ذنب","معصيه","توبه"
+  ];
+  return terms.some(t => q.includes(t));
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -374,7 +391,8 @@ module.exports = async function handler(req, res) {
       ok: true,
       reply: reply.trim(),
       model,
-      hasImage
+      hasImage,
+      isSharia: isLikelyShariaQuestion(lastUserText)
     });
 
   } catch (error) {
