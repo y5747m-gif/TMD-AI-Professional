@@ -17,6 +17,8 @@
  * ============================================================
  */
 
+const SAFE_DEFAULT_MODEL = "openai/gpt-oss-120b";
+
 const systemMessage = {
   role: "system",
   content: `
