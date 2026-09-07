@@ -69,8 +69,9 @@ async function summarizeTranscript(transcript) {
 - لا تستخدم أي معرفة خارج النص.
 - لا تضف معلومات غير موجودة.
 - لا تلخص عنوان الفيديو أو وصفه بدل النص.
-- اجعل الملخص نصيًا واضحًا بالعربية، في 5 إلى 10 نقاط قصيرة ثم "الخلاصة".
-- إذا كان النص غير مكتمل، لا تخترع ما ينقصه.
+- اجعل الملخص بالعربية ومقتصرًا على المعلومات التي وردت في نص الفيديو فقط.
+- لا تضف حكمًا أو نصيحة أو معلومة من خارج النص.
+- إذا كان النص غير مكتمل أو لا يكفي للإجابة عن السؤال، لا تخترع ما ينقصه.
 
 نص الفيديو:
 ${chunkText(transcript)}`;
@@ -102,10 +103,10 @@ module.exports = async function handler(req, res) {
     }
 
     const transcript = await getTranscript(videoId);
-    if (!transcript) return res.status(200).json({ ok: false, error: "لم تتوفر ترجمة/نص للفيديو نفسه من YouTube، لذلك لم يتم إنشاء ملخص غير مستند إلى كلام الفيديو." });
+    if (!transcript) return res.status(200).json({ ok: false });
 
     const summary = await summarizeTranscript(transcript);
-    if (!summary) return res.status(200).json({ ok: false, error: "تعذر إنشاء ملخص من نص الفيديو نفسه." });
+    if (!summary) return res.status(200).json({ ok: false });
     return res.status(200).json({ ok: true, summary, channelId: CHANNEL_ID, videoId });
   } catch (error) {
     console.error("sharia-summary error:", error);
