@@ -2906,3 +2906,95 @@ html[data-theme="light"] .message.assistant .msg-avatar {
   line-height: 1.9;
   white-space: normal;
 }
+
+
+/* ============================================================
+   T.M.D AI — Premium UI styles
+   ============================================================ */
+:root { --tmd-accent:#d6b05a; --tmd-accent-2:#8b5cf6; }
+body[data-ui-style="glass"] .app { background: radial-gradient(circle at 15% 10%, rgba(214,176,90,.10), transparent 30%), radial-gradient(circle at 90% 80%, rgba(139,92,246,.10), transparent 28%); }
+body[data-ui-style="glass"] .sidebar, body[data-ui-style="glass"] .topbar, body[data-ui-style="glass"] .composer { backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px); background: rgba(20,20,25,.62); border-color: rgba(255,255,255,.10); }
+body[data-ui-style="glass"] .composer { box-shadow: 0 18px 60px rgba(0,0,0,.30), inset 0 1px rgba(255,255,255,.08); }
+body[data-ui-style="glass"] .message-content, body[data-ui-style="glass"] .sharia-source-answer, body[data-ui-style="glass"] .video-external-card { backdrop-filter: blur(14px); background: rgba(255,255,255,.045); border-color: rgba(255,255,255,.09); }
+body[data-ui-style="classic"] .app { background:#101010; }
+body[data-ui-style="classic"] .sidebar, body[data-ui-style="classic"] .topbar { background:#161616; border-color:#2b2b2b; }
+body[data-ui-style="classic"] .brand-logo, body[data-ui-style="classic"] .welcome-logo { border-radius:8px; background:#d1b36a; color:#161616; box-shadow:none; }
+body[data-ui-style="classic"] .composer { border-radius:10px; background:#171717; border-color:#383838; }
+body[data-ui-style="classic"] .video-external-card { border-radius:10px; background:#151515; }
+body[data-ui-style="royal"] .app { background: radial-gradient(circle at 20% 0%, rgba(212,175,55,.14), transparent 28%), linear-gradient(135deg,#0b0a12,#15111e 60%,#0c0a10); }
+body[data-ui-style="royal"] .sidebar, body[data-ui-style="royal"] .topbar { background:rgba(18,13,28,.88); border-color:rgba(212,175,55,.18); }
+body[data-ui-style="royal"] .brand-logo, body[data-ui-style="royal"] .welcome-logo { background:linear-gradient(135deg,#d7b55a,#7b5cc7); color:#100d15; box-shadow:0 0 30px rgba(212,175,55,.18); }
+body[data-ui-style="royal"] .composer { border-color:rgba(212,175,55,.25); box-shadow:0 20px 70px rgba(0,0,0,.38); }
+.sharia-primary-video { order:-1; border:1px solid rgba(214,176,90,.32)!important; box-shadow:0 18px 45px rgba(0,0,0,.20); }
+.sharia-primary-video .video-thumb-wrap { min-height:220px; }
+.sharia-primary-video .video-card-info b { font-size:15px; }
+.sharia-result { margin-top: 8px; }
+.settings-body label + label { margin-top:2px; }
+@media (max-width:700px){ .sharia-primary-video .video-thumb-wrap{min-height:180px;} }
+
+
+/* ============================================================
+   T.M.D AI — Distinctive modern Aurora UI
+   ============================================================ */
+body[data-ui-style="aurora"] .app {
+  background:
+    radial-gradient(900px 500px at 10% 0%, rgba(88, 166, 255, .13), transparent 60%),
+    radial-gradient(800px 500px at 95% 20%, rgba(184, 92, 255, .12), transparent 58%),
+    radial-gradient(700px 500px at 50% 100%, rgba(58, 210, 170, .08), transparent 60%),
+    var(--bg, #0b0d12);
+}
+body[data-ui-style="aurora"] .sidebar,
+body[data-ui-style="aurora"] .topbar {
+  background: color-mix(in srgb, var(--panel, #11151d) 82%, transparent);
+  backdrop-filter: blur(24px) saturate(135%);
+  -webkit-backdrop-filter: blur(24px) saturate(135%);
+  border-color: rgba(255,255,255,.09);
+}
+body[data-ui-style="aurora"] .brand-logo,
+body[data-ui-style="aurora"] .welcome-logo {
+  border-radius: 18px;
+  background: linear-gradient(135deg, #9be7ff, #8f7cff 48%, #71e6c2);
+  color: #080a10;
+  box-shadow: 0 14px 45px rgba(116, 139, 255, .25), inset 0 1px rgba(255,255,255,.55);
+}
+body[data-ui-style="aurora"] .composer {
+  border-radius: 26px;
+  background: color-mix(in srgb, var(--panel, #11151d) 86%, transparent);
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  box-shadow: 0 22px 80px rgba(0,0,0,.30), 0 0 0 1px rgba(255,255,255,.04) inset;
+}
+body[data-ui-style="aurora"] .message-content,
+body[data-ui-style="aurora"] .sharia-source-answer,
+body[data-ui-style="aurora"] .video-external-card {
+  border-radius: 22px;
+  background: rgba(255,255,255,.035);
+  border-color: rgba(255,255,255,.075);
+  box-shadow: 0 12px 45px rgba(0,0,0,.12);
+}
+body[data-ui-style="aurora"] .send-btn {
+  border-radius: 16px;
+  box-shadow: 0 10px 28px rgba(100,120,255,.22);
+}
+body[data-theme="light"][data-ui-style="aurora"] .app {
+  background:
+    radial-gradient(900px 500px at 10% 0%, rgba(88, 166, 255, .12), transparent 60%),
+    radial-gradient(800px 500px at 95% 20%, rgba(184, 92, 255, .10), transparent 58%),
+    #f5f7fb;
+}
+body[data-theme="light"][data-ui-style="aurora"] .sidebar,
+body[data-theme="light"][data-ui-style="aurora"] .topbar,
+body[data-theme="light"][data-ui-style="aurora"] .composer {
+  background: rgba(255,255,255,.78);
+  border-color: rgba(20,30,50,.09);
+}
+
+/* Clear theme controls */
+.theme-top {
+  display: inline-grid;
+  place-items: center;
+  transition: transform .2s ease, background .2s ease;
+}
+.theme-top:hover { transform: translateY(-1px) rotate(8deg); }
+.settings-body label { gap: 10px; }
+.settings-body select { cursor: pointer; }
