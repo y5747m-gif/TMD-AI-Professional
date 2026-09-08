@@ -1,302 +1,387 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#c9a227">
-  <title>T.M.D AI — المساعد الديني</title>
-  <link id="favicon" rel="icon" href="">
-  <link rel="stylesheet" href="/style.css">
+  <title>TMD AI Professional - المنصة الإسلامية المتخصصة</title>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0f172a;
+      --bg-card: #1e293b;
+      --bg-chat: #0f172a;
+      --accent-gold: #c5a059;
+      --accent-gold-hover: #dfb260;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #334155;
+      --user-msg-bg: #1e293b;
+      --bot-msg-bg: #172554;
+      --badge-bg: #1e3a8a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Sidebar Styling */
+    .sidebar {
+      width: 320px;
+      background-color: #090d16;
+      border-left: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      padding: 24px 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .brand-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #c5a059, #8a6d2f);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 20px;
+      color: #0f172a;
+      box-shadow: 0 4px 12px rgba(197, 160, 89, 0.3);
+    }
+
+    .brand-title h1 {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .brand-title p {
+      font-size: 11px;
+      color: var(--accent-gold);
+      letter-spacing: 0.5px;
+    }
+
+    .config-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+
+    .config-card h3 {
+      font-size: 13px;
+      color: var(--accent-gold);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 8px;
+      color: var(--text-muted);
+    }
+
+    .status-value {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .badge-strict {
+      background: rgba(197, 160, 89, 0.15);
+      color: var(--accent-gold);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      border: 1px solid rgba(197, 160, 89, 0.3);
+    }
+
+    /* Main Chat Container */
+    .chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background-color: var(--bg-primary);
+      position: relative;
+    }
+
+    .chat-header {
+      height: 70px;
+      border-bottom: 1px solid var(--border-color);
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #0d1322;
+    }
+
+    .chat-header h2 {
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      background-color: #22c55e;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #22c55e;
+    }
+
+    .messages-box {
+      flex: 1;
+      padding: 28px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .message {
+      max-width: 80%;
+      line-height: 1.7;
+      font-size: 14.5px;
+      border-radius: 14px;
+      padding: 16px 20px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.user {
+      align-self: flex-start;
+      background: var(--user-msg-bg);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.bot {
+      align-self: flex-end;
+      background: var(--bot-msg-bg);
+      border: 1px solid rgba(197, 160, 89, 0.3);
+      color: var(--text-main);
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .message-header {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent-gold);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .reference-box {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.15);
+      font-size: 12px;
+      color: #cbd5e1;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    /* Input Area */
+    .input-container {
+      padding: 20px 28px;
+      background-color: #0d1322;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .input-box {
+      display: flex;
+      gap: 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 6px 12px;
+      transition: all 0.2s ease;
+    }
+
+    .input-box:focus-within {
+      border-color: var(--accent-gold);
+      box-shadow: 0 0 0 2px rgba(197, 160, 89, 0.2);
+    }
+
+    textarea {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 14px;
+      resize: none;
+      padding: 10px;
+      height: 48px;
+    }
+
+    button {
+      background: linear-gradient(135deg, var(--accent-gold), #967431);
+      color: #0f172a;
+      border: none;
+      border-radius: 8px;
+      padding: 0 24px;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, var(--accent-gold-hover), var(--accent-gold));
+      transform: translateY(-1px);
+    }
+  </style>
 </head>
-
 <body>
-  <div id="overlay" class="overlay"></div>
 
-  <div class="app">
-    <aside id="sidebar" class="sidebar">
-      <div class="brand">
-        <div id="brandIcon" class="brand-icon">T</div>
-        <div>
-          <strong id="siteName">T.M.D AI</strong>
-          <span id="siteDescription">المساعد الديني</span>
-        </div>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">TMD</div>
+      <div class="brand-title">
+        <h1>TMD AI Professional</h1>
+        <p>المساعد الشرعي الأكاديمي</p>
       </div>
-
-      <button id="newChat" class="new-chat">＋ محادثة جديدة</button>
-
-      <div class="quick-title">اقتراحات سريعة</div>
-      <div id="suggestions"></div>
-
-      <div class="sidebar-bottom">
-        <div class="status">
-          <i></i>
-          النظام جاهز
-        </div>
-
-        <button id="ownerButton" class="sidebar-action">
-          ⚙️ لوحة المالك
-        </button>
-
-        <button id="theme" class="sidebar-action">
-          ☼ تغيير المظهر
-        </button>
-
-        <button id="clearChat" class="clear">
-          مسح المحادثة
-        </button>
-      </div>
-    </aside>
-
-    <main class="main">
-      <header class="topbar">
-        <button id="menuBtn" class="icon-btn mobile-only">☰</button>
-
-        <span class="top-title">
-          <span id="topSiteName">T.M.D AI</span>
-          <i></i>
-        </span>
-
-        <button id="topTheme" class="icon-btn">☼</button>
-      </header>
-
-      <section id="chat" class="chat">
-        <div id="welcome" class="welcome">
-          <div id="welcomeLogo" class="welcome-logo">T</div>
-
-          <h1>
-            مرحبًا بك في
-            <span id="welcomeSiteName">T.M.D AI</span>
-          </h1>
-
-          <p id="welcomeDescription">
-            مساعدك الذكي للبرمجة، الدراسة، الكتابة وحل المشكلات.
-          </p>
-
-          <div id="welcomeCards" class="welcome-cards"></div>
-        </div>
-      </section>
-
-      <div class="composer-wrap">
-        <form id="composer" class="composer">
-          <button
-            id="plusButton"
-            class="plus-button"
-            type="button"
-            aria-label="إضافة"
-            aria-expanded="false"
-          >
-            ＋
-          </button>
-
-          <textarea
-            id="input"
-            rows="1"
-            maxlength="12000"
-            placeholder="اكتب رسالتك هنا..."
-          ></textarea>
-
-          <button id="send" type="submit" aria-label="إرسال">
-            ➤
-          </button>
-        </form>
-
-        <div id="plusMenu" class="plus-menu" aria-hidden="true">
-          <button id="imageUploadButton" type="button">
-            🖼️ تحليل صورة
-          </button>
-
-          <button id="imageEditButton" type="button">
-            ✨ اقتراح تعديلات للصورة
-          </button>
-        </div>
-
-        <div id="imagePreview" class="image-preview" hidden>
-          <img id="previewImage" alt="معاينة الصورة">
-          <button id="removeImage" type="button">×</button>
-        </div>
-
-        <div class="hint">
-          Enter للإرسال · Shift + Enter لسطر جديد · + لإضافة صورة
-        </div>
-      </div>
-    </main>
-  </div>
-
-  <input
-    id="imageInput"
-    type="file"
-    accept="image/jpeg,image/png,image/webp,image/gif"
-    hidden
-  >
-
-  <div id="ownerModal" class="modal" hidden>
-    <div class="modal-card owner-card">
-      <button id="closeOwnerModal" class="modal-close" type="button">×</button>
-
-      <div class="modal-header">
-        <div class="modal-logo">⚙️</div>
-        <div>
-          <h2>لوحة مالك T.M.D AI</h2>
-          <p>تغيير شكل الموقع لجميع المستخدمين</p>
-        </div>
-      </div>
-
-      <section id="ownerLoginSection">
-        <form id="ownerLoginForm" class="owner-login-form">
-          <label>
-            كلمة مرور المالك
-            <input
-              id="ownerPassword"
-              type="password"
-              autocomplete="current-password"
-              placeholder="أدخل كلمة مرور المالك"
-              required
-            >
-          </label>
-
-          <button class="primary-button" type="submit">
-            دخول لوحة المالك
-          </button>
-
-          <div id="ownerLoginError" class="form-message error"></div>
-        </form>
-      </section>
-
-      <section id="ownerPanelSection" hidden>
-        <div class="settings-grid">
-          <label>
-            اسم الموقع
-            <input id="settingSiteName" type="text">
-          </label>
-
-          <label>
-            وصف الموقع
-            <input id="settingDescription" type="text">
-          </label>
-
-          <label>
-            اسم المطور
-            <input id="settingDeveloper" type="text">
-          </label>
-
-          <label>
-            نص الشعار
-            <input id="settingLogoText" type="text" maxlength="4">
-          </label>
-
-          <label>
-            اللون الرئيسي
-            <input id="settingPrimaryColor" type="color">
-          </label>
-
-          <label>
-            لون النص
-            <input id="settingTextColor" type="color">
-          </label>
-
-          <label>
-            لون الخلفية
-            <input id="settingBackgroundColor" type="color">
-          </label>
-
-          <label>
-            لون اللوحات
-            <input id="settingPanelColor" type="color">
-          </label>
-
-          <label>
-            لون الحدود
-            <input id="settingBorderColor" type="color">
-          </label>
-
-          <label>
-            لون أيقونات القائمة
-            <input id="settingSidebarIconColor" type="color">
-          </label>
-
-          <label class="full">
-            رابط الشعار
-            <input
-              id="settingLogoUrl"
-              type="url"
-              placeholder="https://..."
-            >
-          </label>
-
-          <label class="full">
-            رابط الأيقونة Favicon
-            <input
-              id="settingFaviconUrl"
-              type="url"
-              placeholder="https://..."
-            >
-          </label>
-
-          <label class="full">
-            رابط خلفية الموقع
-            <input
-              id="settingBackgroundImage"
-              type="url"
-              placeholder="https://..."
-            >
-          </label>
-        </div>
-
-        <div class="upload-row">
-          <label class="upload-box">
-            🖼️ رفع شعار
-            <input id="logoFileInput" type="file" accept="image/*" hidden>
-          </label>
-
-          <label class="upload-box">
-            🌄 رفع خلفية
-            <input id="backgroundFileInput" type="file" accept="image/*" hidden>
-          </label>
-        </div>
-
-        <div class="switches">
-          <label class="switch-row">
-            <input id="settingShowWelcome" type="checkbox">
-            <span>إظهار واجهة الترحيب</span>
-          </label>
-
-          <label class="switch-row">
-            <input id="settingShowSuggestions" type="checkbox">
-            <span>إظهار الاقتراحات</span>
-          </label>
-
-          <label class="switch-row">
-            <input id="settingShowDeveloper" type="checkbox">
-            <span>إظهار اسم المطور</span>
-          </label>
-
-          <label class="switch-row">
-            <input id="settingEnableImageTools" type="checkbox">
-            <span>تفعيل أدوات الصور</span>
-          </label>
-        </div>
-
-        <div class="settings-actions">
-          <button id="saveSettings" class="primary-button" type="button">
-            حفظ التغييرات
-          </button>
-
-          <button id="ownerLogout" class="secondary-button" type="button">
-            تسجيل خروج المالك
-          </button>
-        </div>
-
-        <div id="settingsMessage" class="form-message"></div>
-      </section>
     </div>
-  </div>
 
-  <footer id="developer" class="developer">
-    المطور: ياسين عمرو عبد الرحيم
-  </footer>
+    <div class="config-card">
+      <h3><i>📜</i> إعدادات الفحص والمراجع</h3>
+      <div class="status-item">
+        <span>وضع الإجابة:</span>
+        <span class="badge-strict">صارم بالمراجع</span>
+      </div>
+      <div class="status-item">
+        <span>درجة الابتكار:</span>
+        <span class="status-value">0.1 (دقة عالية)</span>
+      </div>
+      <div class="status-item">
+        <span>حد أدنى للمطابقة:</span>
+        <span class="status-value">70%</span>
+      </div>
+      <div class="status-item">
+        <span>فحص القناة:</span>
+        <span class="status-value" style="color: #22c55e;">مفعل (نشط)</span>
+      </div>
+    </div>
 
-  <script src="/app.js"></script>
+    <div class="config-card" style="margin-top: auto;">
+      <p style="font-size: 11px; color: var(--text-muted); line-height: 1.5; text-align: center;">
+        تم ضبط النظام لمنع الإجابة من خارج المراجع المعتمدة بالقناة والتدقيق الصريح في كل مسألة.
+      </p>
+    </div>
+  </aside>
+
+  <!-- Main Chat -->
+  <main class="chat-container">
+    <header class="chat-header">
+      <h2><span class="status-dot"></span> جلسة البحث الشرعي والتدقيق المباشر</h2>
+      <span style="font-size: 12px; color: var(--text-muted);">الإصدار المتخصص 2.5</span>
+    </header>
+
+    <div class="messages-box" id="chatBox">
+      <div class="message bot">
+        <div class="message-header">
+          <span>TMD AI Assistant</span>
+          <span>موثق</span>
+        </div>
+        أهلاً بك. أنا مساعدك الشرعي الأكاديمي. يمكنك طرح سؤالك الآن، وسيتم الفحص والمطابقة الصريحة مع المراجع المتاحة في القناة والمكتبة مع التوثيق المباشر.
+      </div>
+    </div>
+
+    <div class="input-container">
+      <div class="input-box">
+        <textarea id="userInput" placeholder="اكتب سؤالك الشرعي هنا للبحث والفحص في القناة والمراجع..."></textarea>
+        <button id="sendBtn" onclick="sendMessage()">بحث وإجابة</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    async function sendMessage() {
+      const input = document.getElementById('userInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const chatBox = document.getElementById('chatBox');
+
+      // Append User Message
+      const userMsg = document.createElement('div');
+      userMsg.className = 'message user';
+      userMsg.innerHTML = `<div class="message-header"><span>المستخدم</span></div>\${text}`;
+      chatBox.appendChild(userMsg);
+      input.value = '';
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      // Loading Indicator
+      const loadingMsg = document.createElement('div');
+      loadingMsg.className = 'message bot';
+      loadingMsg.innerHTML = '<i>جاري الفحص والبحث الدقيق في المراجع والقناة...</i>';
+      chatBox.appendChild(loadingMsg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text })
+        });
+
+        const data = await res.json();
+        chatBox.removeChild(loadingMsg);
+
+        const botMsg = document.createElement('div');
+        botMsg.className = 'message bot';
+
+        let refHtml = '';
+        if (data.references && data.references.length > 0) {
+          refHtml = `<div class="reference-box"><strong>المراجع المعتمدة في الإجابة (\${data.references.length}):</strong><br>` +
+            data.references.map(r => `• \${r.title} (\${r.source})`).join('<br>') + `</div>`;
+        }
+
+        botMsg.innerHTML = `<div class="message-header"><span>TMD AI Assistant</span><span>موثق</span></div>\${data.reply}\${refHtml}`;
+        chatBox.appendChild(botMsg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      } catch (err) {
+        chatBox.removeChild(loadingMsg);
+        const errorMsg = document.createElement('div');
+        errorMsg.className = 'message bot';
+        errorMsg.innerHTML = 'حدث خطأ في الاتصال بالنظام.';
+        chatBox.appendChild(errorMsg);
+      }
+    }
+  </script>
 </body>
 </html>
-
-
