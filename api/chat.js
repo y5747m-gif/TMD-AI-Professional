@@ -1,86 +1,84 @@
-const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
-const CHANNEL_ID = process.env.YOUTUBE_CHANNEL_ID || "UCv0g_v1C6JcZALvrkDu98AQ";
-const CHANNEL_URL = `https://www.youtube.com/channel/${CHANNEL_ID}`;
+// api/chat.js
+// Handler for Gemini Chat API with strict Islamic reference enforcement and professional UI capabilities
 
-function cleanMessages(messages) {
-  return messages.filter(m => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string")
-    .slice(-12).map(m => ({ role: m.role, content: m.content.trim().slice(0, 10000) })).filter(m => m.content);
-}
+const SYSTEM_PROMPT = `
+أنت مساعد إسلامي متخصص وأكاديمي متطور (TMD AI Professional).
+مهمتك هي الإجابة على الأسئلة الدينية والشرعية بناءً فقط وحصرياً على المراجع والمصادر والأحاديث والفتاوى المتاحة في قاعدة البيانات والقناة المعتمدة.
 
-function htmlDecode(s = "") {
-  return s.replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>');
-}
+القواعد الصارمة والإلزامية للرد:
+1. الصراحة والوضوح المباشر: قدم إجابة صريحة ومباشرة تماماً في بداية الرد دون مقدمات إنشائية أو بلاغية.
+2. الالتزام المطلق بالمراجع: استند حصراً إلى النصوص والمراجع المجنية من البحث الداخلي والقناة.
+3. التدقيق وعدم التخمين: إذا لم تجد نصاً صريحاً في المراجع المتاحة، أجب بوضوح: "لم يتم العثور على إجابة صريحة لهذه المسألة ضمن المراجع المتاحة بالقناة/المكتبة." ولا تقم بالتخمين أو الإجابة من خارج المراجع.
+4. التوثيق الأكاديمي: اذكر اسم المصدر، الكتاب، أو رقم الحديث/الفتوى بوضوح عند كل استشهاد.
+5. الترتيب والاحترافية: صمّم الرد باستخدام التنسيق الأنيق (عناوين، نقاط، اقتباسات) ليعكس طابعاً أكاديمياً فاخراً.
+`;
 
-function stripHtml(s = "") {
-  return htmlDecode(s.replace(/<script[\s\S]*?<\/script>/gi,'').replace(/<style[\s\S]*?<\/style>/gi,'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim());
-}
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
 
-async function searchIslamweb(query) {
-  const q = encodeURIComponent(query.slice(0, 220));
-  const url = `${process.env.ISLAMWEB_BASE_URL || 'https://islamweb.net/ar/fatwa/'}?searchType=4&searchKey=${q}`;
   try {
-    const r = await fetch(url, { headers: { 'User-Agent': 'TMD-Religious-AI/1.0' }, signal: AbortSignal.timeout(12000) });
-    if (!r.ok) throw new Error(`Islamweb HTTP ${r.status}`);
-    const html = await r.text();
-    const results = [];
-    const re = /<a[^>]+href=["']([^"']*\/ar\/fatwa\/[^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi;
-    let m;
-    while ((m = re.exec(html)) && results.length < 8) {
-      const title = stripHtml(m[2]);
-      if (!title || title.length < 8 || /المزيد|فتاوى|الفتوى/.test(title)) continue;
-      const href = new URL(m[1], 'https://islamweb.net').href;
-      if (!results.some(x => x.url === href)) results.push({ title: title.slice(0,180), url: href, source: 'إسلام ويب' });
+    const { message, history } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ error: 'Message is required' });
     }
-    return { query, results: results.slice(0,5), searchUrl: url };
-  } catch (e) {
-    return { query, results: [], searchUrl: url, error: e.message };
+
+    // Call search module to retrieve matched references
+    const searchModule = await import('./sharia-search.js');
+    const searchResults = await searchModule.searchReferences(message, {
+      topK: 10,
+      minScore: 0.70,
+      searchInChannel: true
+    });
+
+    const contextText = searchResults.length > 0
+      ? searchResults.map((r, i) => `[مرجع ${i+1}]: ${r.title}
+المصدر: ${r.source}
+النص: ${r.content}`).join('
+
+')
+      : "لا توجد مراجع مطابقة في قاعدة البيانات لهذه المسألة.";
+
+    // Construct request payload to AI Model
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ error: 'GEMINI_API_KEY environment variable is missing.' });
+    }
+
+    const payload = {
+      contents: [
+        { role: 'user', parts: [{ text: `${SYSTEM_PROMPT}
+
+المراجع المتاحة من البحث:
+${contextText}
+
+سؤال المستخدم:
+${message}` }] }
+      ],
+      generationConfig: {
+        temperature: parseFloat(process.env.TEMPERATURE || '0.1'),
+        maxOutputTokens: parseInt(process.env.MAX_TOKENS || '2000', 10)
+      }
+    };
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "حدث خطأ أثناء معالجة الطلب.";
+
+    return res.status(200).json({
+      reply,
+      references: searchResults,
+      sourcesCount: searchResults.length
+    });
+  } catch (error) {
+    console.error('Error in Chat API:', error);
+    return res.status(500).json({ error: 'Internal Server Error', details: error.message });
   }
 }
-
-async function searchChannel(query) {
-  const key = process.env.YOUTUBE_API_KEY;
-  if (!key) return { results: [], error: 'لم يتم إعداد YOUTUBE_API_KEY', channelUrl: CHANNEL_URL };
-  const url = new URL('https://www.googleapis.com/youtube/v3/search');
-  url.searchParams.set('part','snippet'); url.searchParams.set('type','video'); url.searchParams.set('channelId',CHANNEL_ID);
-  url.searchParams.set('q',query.slice(0,120)); url.searchParams.set('maxResults','6'); url.searchParams.set('relevanceLanguage','ar');
-  try {
-    const r = await fetch(url, { signal: AbortSignal.timeout(10000) });
-    const data = await r.json();
-    if (!r.ok) throw new Error(data?.error?.message || `YouTube HTTP ${r.status}`);
-    return { results:(data.items||[]).filter(x => x?.id?.videoId).map(x => ({
-      title:x.snippet.title, description:x.snippet.description, publishedAt:x.snippet.publishedAt,
-      url:`https://www.youtube.com/watch?v=${x.id.videoId}`, thumbnail:x.snippet.thumbnails?.medium?.url || x.snippet.thumbnails?.default?.url,
-      channelTitle:x.snippet.channelTitle, channelId:x.snippet.channelId
-    })), channelUrl:CHANNEL_URL };
-  } catch (e) { return { results:[], error:e.message, channelUrl:CHANNEL_URL }; }
-}
-
-module.exports = async function handler(req,res){
-  res.setHeader('Cache-Control','no-store');
-  res.setHeader('Access-Control-Allow-Origin','*');
-  res.setHeader('Access-Control-Allow-Methods','POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers','Content-Type');
-  if(req.method==='OPTIONS') return res.status(204).end();
-  if(req.method!=='POST') return res.status(405).json({ok:false,error:'استخدم POST.'});
-  const apiKey=process.env.GROQ_API_KEY;
-  if(!apiKey) return res.status(500).json({ok:false,error:'GROQ_API_KEY غير موجود في Vercel.'});
-  try{
-    const body=typeof req.body==='string'?JSON.parse(req.body||'{}'):(req.body||{});
-    const messages=cleanMessages(Array.isArray(body.messages)?body.messages:[]);
-    if(!messages.length) return res.status(400).json({ok:false,error:'اكتب سؤالك الديني أولًا.'});
-    const question=messages.filter(m=>m.role==='user').at(-1)?.content || '';
-    const [islamweb,youtube]=await Promise.all([searchIslamweb(question),searchChannel(question)]);
-    const evidence = [
-      ...islamweb.results.map(x=>`- ${x.title} | ${x.url}`),
-      ...youtube.results.map(x=>`- فيديو: ${x.title} | ${x.url}`)
-    ].join('\n') || 'لا توجد نتائج مصدرية متاحة الآن.';
-    const system=`أنت T.M.D AI، مساعد إسلامي متخصص في الإجابة عن الأسئلة الدينية فقط.\n\nقواعد صارمة:\n1) لا تجب عن الأسئلة غير الدينية؛ قل باختصار إنك مخصص للأسئلة الشرعية.\n2) لا تخترع آية أو حديثًا أو فتوى أو اسم عالم أو رقم فتوى.\n3) استخدم نتائج المصادر التي يرسلها النظام كمرجع أساسي، واذكر المصدر بوضوح.\n4) إذا لم توجد مادة كافية في المصادر، صرّح بذلك ولا تملأ الفراغ بتخمين.\n5) إذا كانت المسألة فتوى شخصية أو شديدة الحساسية، قدم المعلومات المتاحة مع التنبيه إلى مراجعة مفتٍ مؤهل.\n6) عند وجود خلاف معتبر، اذكره بوضوح ولا توهم أن قولًا واحدًا محل إجماع.\n7) أجب بالعربية وبأسلوب هادئ ومنظم.\n8) لا تقل إنك مفتي أو جهة إفتاء رسمية.\n\nالمصادر المسترجعة للسؤال الحالي:\n${evidence}`;
-    const model=process.env.GROQ_MODEL||'llama-3.3-70b-versatile';
-    const r=await fetch(GROQ_URL,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${apiKey}`},body:JSON.stringify({model,messages:[{role:'system',content:system},...messages],temperature:0.15,max_tokens:1800})});
-    const data=await r.json().catch(()=>({}));
-    if(!r.ok) return res.status(502).json({ok:false,error:data?.error?.message||`Groq HTTP ${r.status}`});
-    const text=data?.choices?.[0]?.message?.content?.trim()||'';
-    if(!text) return res.status(502).json({ok:false,error:'لم تُرجع خدمة الذكاء الاصطناعي نصًا.'});
-    return res.status(200).json({ok:true,message:text,model,religious:true,sources:{islamweb:islamweb.results,videos:youtube.results,channelUrl:CHANNEL_URL,islamwebSearchUrl:islamweb.searchUrl},sourceErrors:{islamweb:islamweb.error||null,youtube:youtube.error||null}});
-  }catch(e){console.error(e);return res.status(500).json({ok:false,error:'حدث خطأ داخلي أثناء معالجة السؤال.'});}
-};
