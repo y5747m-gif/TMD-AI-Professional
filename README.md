@@ -1,62 +1,23 @@
-# T.M.D AI Professional — النسخة الجديدة
+[README.md](https://github.com/user-attachments/files/31964148/README.md)
+# T.M.D AI — Religious Edition
 
-هذه النسخة تعمل على:
+نسخة متخصصة للأسئلة الدينية فقط. عند السؤال: يبحث النظام في إسلام ويب، ويبحث في قناة YouTube المحددة فقط عبر YouTube Data API، ثم يمرر النتائج إلى محرك الإجابة.
 
-- Vercel
-- Groq API
-- Vercel Blob
-- JavaScript / HTML / CSS فقط في الواجهة
+## المصادر الثابتة
+- Islamweb: https://islamweb.net/ar/
+- YouTube channel ID: UCv0g_v1C6JcZALvrkDu98AQ
 
-## المتطلبات
+## متغيرات Vercel
+- GROQ_API_KEY
+- GROQ_MODEL (اختياري)
+- YOUTUBE_API_KEY
+- YOUTUBE_CHANNEL_ID=UCv0g_v1C6JcZALvrkDu98AQ
+- ISLAMWEB_BASE_URL=https://islamweb.net/ar/fatwa/
+- OWNER_SECRET
+- BLOB_READ_WRITE_TOKEN (اختياري للإعدادات)
 
-أضف في Vercel Environment Variables:
+## ملاحظة YouTube
+لا يوجد بحث عام في YouTube. طلب البحث يرسل `channelId` مع `type=video`، لذلك النتائج مقيدة بالقناة المحددة. وفق توثيق YouTube Data API، معامل `channelId` يقيد النتائج بالفيديوهات التي أنشأتها القناة.
 
-1. `GROQ_API_KEY`
-2. `GROQ_MODEL`
-3. `GROQ_VISION_MODEL`
-4. `OWNER_SECRET`
-5. `BLOB_READ_WRITE_TOKEN`
-
-القيم المقترحة:
-
-```text
-GROQ_MODEL=llama-3.3-70b-versatile
-GROQ_VISION_MODEL=qwen/qwen3.6-27b
-```
-
-## Vercel Blob
-
-من مشروع Vercel افتح Storage ثم أنشئ Blob Store، واربطه بالمشروع حتى تتم إضافة `BLOB_READ_WRITE_TOKEN` إلى البيئة.
-
-يستخدم المشروع Blob لحفظ:
-
-- إعدادات الموقع
-- شعار الموقع
-- خلفية الموقع
-
-## تسجيل المالك
-
-المستخدم العادي لا يحتاج تسجيل دخول.
-
-المالك يضغط:
-
-`⚙️ لوحة المالك`
-
-ثم يدخل قيمة `OWNER_SECRET`.
-
-لا تضع `OWNER_SECRET` داخل ملفات JavaScript.
-
-## الصور
-
-زر `+` بجوار خانة الكتابة يتيح:
-
-- تحليل صورة
-- اقتراح تعديلات على صورة
-
-التحليل يتم بواسطة نموذج Groq متعدد الوسائط.
-
-هذه النسخة لا تدّعي أنها تعدّل ملف الصورة فعليًا؛ وضع "اقتراح تعديلات" يعطي تعليمات دقيقة للتعديل. تنفيذ تعديل/توليد الصورة نفسها يحتاج خدمة صور إضافية.
-
-## ملاحظة عن المجانية
-
-Vercel Blob له حدود استخدام في خطة Hobby، وGroq له حدود/أسعار بحسب الحساب والنموذج. لذلك لا يوجد ضمان لاستخدام غير محدود مجانًا. هذه البنية لا تحتاج OpenAI API.
+## ملاحظة دينية
+الأداة ليست جهة إفتاء رسمية. عند عدم كفاية المصدر أو كون المسألة شخصية/حساسة، يجب الرجوع إلى مفتٍ مؤهل.
