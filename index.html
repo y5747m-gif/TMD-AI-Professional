@@ -2,106 +2,301 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <meta name="theme-color" content="#0b0b0c">
-  <meta name="description" content="T.M.D AI — مساعد الذكاء الاصطناعي المدعوم بـ Groq">
-  <title>T.M.D AI</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#c9a227">
+  <title>T.M.D AI — المساعد الديني</title>
+  <link id="favicon" rel="icon" href="">
+  <link rel="stylesheet" href="/style.css">
 </head>
+
 <body>
-<div class="app">
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-top">
-      <div class="brand"><div class="brand-logo">T</div><div class="brand-name">T.M.D AI <span>✦</span></div></div>
-      <button class="sidebar-icon" id="closeSidebar" type="button" title="إغلاق القائمة">‹</button>
-    </div>
-    <button class="new-chat" id="newChat" type="button"><span class="plus">＋</span><b>محادثة جديدة</b></button>
-    <button class="learning-btn" id="learningBtn" type="button">
-      <span class="learning-icon">📖</span><b>التعلّم الشرعي</b>
-    </button>
-    <div class="history-list" id="history"></div>
-    <div class="sidebar-footer"><button class="footer-btn" id="settingsBtn" type="button">⚙ الإعدادات</button></div>
-  </aside>
+  <div id="overlay" class="overlay"></div>
 
-  <main class="main">
-    <header class="topbar">
-      <button class="mobile-menu" id="openSidebar" type="button">☰</button>
-      <div class="model-selector"><span class="model-dot"></span><span class="model-badge" id="modelName">T.M.D Pro — GPT OSS 120B</span></div>
-      <button class="theme-top" id="themeTop" type="button" title="تبديل الوضع الداكن/الفاتح" aria-label="تبديل الوضع الداكن/الفاتح">◐</button>
-    </header>
-
-    <section class="chat-zone" id="chat">
-      <div class="welcome" id="welcome">
-        <div class="welcome-logo">T</div>
-        <h1>بمَ يمكنني مساعدتك اليوم؟</h1>
-        <p>مساعدك الذكي المتعدد النماذج. اسأل، حلّل ملفًا، أو أضف صورة.</p>
-        <div class="quick-actions">
-          <button type="button" data-prompt="لخّص لي هذا الموضوع بطريقة بسيطة">تلخيص موضوع</button>
-          <button type="button" data-prompt="اكتب لي خطة احترافية لهذا المشروع">خطة مشروع</button>
-          <button type="button" data-prompt="اشرح لي هذا الكود خطوة بخطوة">شرح كود</button>
+  <div class="app">
+    <aside id="sidebar" class="sidebar">
+      <div class="brand">
+        <div id="brandIcon" class="brand-icon">T</div>
+        <div>
+          <strong id="siteName">T.M.D AI</strong>
+          <span id="siteDescription">المساعد الديني</span>
         </div>
       </div>
-    </section>
 
-    <div class="composer-zone">
-      <div class="composer" id="composer">
-        <div class="attachment-preview hidden" id="attachmentPreview">
-          <div class="attachment-icon" id="attachmentIcon">📄</div>
-          <div class="attachment-info"><strong id="attachmentName">الملف</strong><span id="attachmentMeta">جاهز للتحليل</span></div>
-          <button id="removeAttachment" type="button" title="إزالة المرفق">×</button>
+      <button id="newChat" class="new-chat">＋ محادثة جديدة</button>
+
+      <div class="quick-title">اقتراحات سريعة</div>
+      <div id="suggestions"></div>
+
+      <div class="sidebar-bottom">
+        <div class="status">
+          <i></i>
+          النظام جاهز
         </div>
-        <textarea id="input" rows="1" maxlength="16000" placeholder="اكتب رسالتك إلى T.M.D AI..."></textarea>
-        <div class="composer-actions">
-          <div class="plus-menu-wrapper">
-            <button class="plus-btn" id="plusButton" type="button" title="إضافة ملف أو صورة" aria-label="إضافة ملف أو صورة" aria-expanded="false">＋</button>
-            <div class="plus-menu hidden" id="plusMenu">
-              <button class="plus-menu-item" id="analyzeDocumentButton" type="button"><span class="plus-menu-icon">📄</span><span><b>تحليل ملف</b><small>PDF · Word · Excel · TXT</small></span></button>
-              <button class="plus-menu-item" id="addImageButton" type="button"><span class="plus-menu-icon">🖼️</span><span><b>إضافة صورة</b><small>تحليل الصورة عبر Groq Vision</small></span></button>
-              <button class="plus-menu-item" id="imageEditButton" type="button"><span class="plus-menu-icon">✨</span><span><b>تعديل صورة</b><small>إرسال الصورة مع طلبك</small></span></button>
-            </div>
-          </div>
-          <input type="file" id="imageInput" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
-          <input type="file" id="documentInput" accept=".txt,.js,.json,.html,.css,.py,.md,.csv,.pdf,.docx,.xlsx,.xls" hidden>
-          <button class="send-btn" id="send" type="button" title="إرسال" aria-label="إرسال الرسالة">↑</button>
+
+        <button id="ownerButton" class="sidebar-action">
+          ⚙️ لوحة المالك
+        </button>
+
+        <button id="theme" class="sidebar-action">
+          ☼ تغيير المظهر
+        </button>
+
+        <button id="clearChat" class="clear">
+          مسح المحادثة
+        </button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button id="menuBtn" class="icon-btn mobile-only">☰</button>
+
+        <span class="top-title">
+          <span id="topSiteName">T.M.D AI</span>
+          <i></i>
+        </span>
+
+        <button id="topTheme" class="icon-btn">☼</button>
+      </header>
+
+      <section id="chat" class="chat">
+        <div id="welcome" class="welcome">
+          <div id="welcomeLogo" class="welcome-logo">T</div>
+
+          <h1>
+            مرحبًا بك في
+            <span id="welcomeSiteName">T.M.D AI</span>
+          </h1>
+
+          <p id="welcomeDescription">
+            مساعدك الذكي للبرمجة، الدراسة، الكتابة وحل المشكلات.
+          </p>
+
+          <div id="welcomeCards" class="welcome-cards"></div>
+        </div>
+      </section>
+
+      <div class="composer-wrap">
+        <form id="composer" class="composer">
+          <button
+            id="plusButton"
+            class="plus-button"
+            type="button"
+            aria-label="إضافة"
+            aria-expanded="false"
+          >
+            ＋
+          </button>
+
+          <textarea
+            id="input"
+            rows="1"
+            maxlength="12000"
+            placeholder="اكتب رسالتك هنا..."
+          ></textarea>
+
+          <button id="send" type="submit" aria-label="إرسال">
+            ➤
+          </button>
+        </form>
+
+        <div id="plusMenu" class="plus-menu" aria-hidden="true">
+          <button id="imageUploadButton" type="button">
+            🖼️ تحليل صورة
+          </button>
+
+          <button id="imageEditButton" type="button">
+            ✨ اقتراح تعديلات للصورة
+          </button>
+        </div>
+
+        <div id="imagePreview" class="image-preview" hidden>
+          <img id="previewImage" alt="معاينة الصورة">
+          <button id="removeImage" type="button">×</button>
+        </div>
+
+        <div class="hint">
+          Enter للإرسال · Shift + Enter لسطر جديد · + لإضافة صورة
         </div>
       </div>
-      <div class="composer-note">قد يخطئ T.M.D AI أحيانًا. تحقق من المعلومات المهمة.</div>
-    </div>
-  </main>
-</div>
-
-<div class="modal-backdrop hidden" id="learningBackdrop">
-  <div class="modal learning-modal">
-    <div class="modal-head">
-      <div>
-        <h3>📖 التعلّم الشرعي</h3>
-        <p class="learning-subtitle">مصادر وقنوات للتعلّم والاستفادة</p>
-      </div>
-      <button id="learningClose" type="button" aria-label="إغلاق">×</button>
-    </div>
-    <div class="learning-grid" id="learningGrid"></div>
+    </main>
   </div>
-</div>
 
-<div class="modal-backdrop hidden" id="modalBackdrop">
-  <div class="modal">
-    <div class="modal-head"><h3>الإعدادات</h3><button id="modalClose" type="button">×</button></div>
-    <div class="settings-body">
-      <label>المظهر<select id="themeSelect"><option value="dark">داكن</option><option value="light">فاتح</option></select></label>
-      <label>ستايل الواجهة<select id="uiStyleSelect"><option value="obsidian">Obsidian — T.M.D</option><option value="glass">Glass — زجاجي</option><option value="classic">Classic — كلاسيكي</option><option value="royal">Royal — فاخر</option><option value="aurora">Aurora — مستقبلي</option></select></label>
-      <label>النموذج<select id="modelSelect"><option value="openai/gpt-oss-120b">GPT OSS 120B — احترافي</option><option value="openai/gpt-oss-20b">GPT OSS 20B — سريع</option><option value="qwen/qwen3.8-27b">Qwen 3.8 27B — رؤية + نص</option><option value="qwen/qwen3.6-27b">Qwen 3.6 27B — رؤية + نص</option></select></label>
+  <input
+    id="imageInput"
+    type="file"
+    accept="image/jpeg,image/png,image/webp,image/gif"
+    hidden
+  >
+
+  <div id="ownerModal" class="modal" hidden>
+    <div class="modal-card owner-card">
+      <button id="closeOwnerModal" class="modal-close" type="button">×</button>
+
+      <div class="modal-header">
+        <div class="modal-logo">⚙️</div>
+        <div>
+          <h2>لوحة مالك T.M.D AI</h2>
+          <p>تغيير شكل الموقع لجميع المستخدمين</p>
+        </div>
+      </div>
+
+      <section id="ownerLoginSection">
+        <form id="ownerLoginForm" class="owner-login-form">
+          <label>
+            كلمة مرور المالك
+            <input
+              id="ownerPassword"
+              type="password"
+              autocomplete="current-password"
+              placeholder="أدخل كلمة مرور المالك"
+              required
+            >
+          </label>
+
+          <button class="primary-button" type="submit">
+            دخول لوحة المالك
+          </button>
+
+          <div id="ownerLoginError" class="form-message error"></div>
+        </form>
+      </section>
+
+      <section id="ownerPanelSection" hidden>
+        <div class="settings-grid">
+          <label>
+            اسم الموقع
+            <input id="settingSiteName" type="text">
+          </label>
+
+          <label>
+            وصف الموقع
+            <input id="settingDescription" type="text">
+          </label>
+
+          <label>
+            اسم المطور
+            <input id="settingDeveloper" type="text">
+          </label>
+
+          <label>
+            نص الشعار
+            <input id="settingLogoText" type="text" maxlength="4">
+          </label>
+
+          <label>
+            اللون الرئيسي
+            <input id="settingPrimaryColor" type="color">
+          </label>
+
+          <label>
+            لون النص
+            <input id="settingTextColor" type="color">
+          </label>
+
+          <label>
+            لون الخلفية
+            <input id="settingBackgroundColor" type="color">
+          </label>
+
+          <label>
+            لون اللوحات
+            <input id="settingPanelColor" type="color">
+          </label>
+
+          <label>
+            لون الحدود
+            <input id="settingBorderColor" type="color">
+          </label>
+
+          <label>
+            لون أيقونات القائمة
+            <input id="settingSidebarIconColor" type="color">
+          </label>
+
+          <label class="full">
+            رابط الشعار
+            <input
+              id="settingLogoUrl"
+              type="url"
+              placeholder="https://..."
+            >
+          </label>
+
+          <label class="full">
+            رابط الأيقونة Favicon
+            <input
+              id="settingFaviconUrl"
+              type="url"
+              placeholder="https://..."
+            >
+          </label>
+
+          <label class="full">
+            رابط خلفية الموقع
+            <input
+              id="settingBackgroundImage"
+              type="url"
+              placeholder="https://..."
+            >
+          </label>
+        </div>
+
+        <div class="upload-row">
+          <label class="upload-box">
+            🖼️ رفع شعار
+            <input id="logoFileInput" type="file" accept="image/*" hidden>
+          </label>
+
+          <label class="upload-box">
+            🌄 رفع خلفية
+            <input id="backgroundFileInput" type="file" accept="image/*" hidden>
+          </label>
+        </div>
+
+        <div class="switches">
+          <label class="switch-row">
+            <input id="settingShowWelcome" type="checkbox">
+            <span>إظهار واجهة الترحيب</span>
+          </label>
+
+          <label class="switch-row">
+            <input id="settingShowSuggestions" type="checkbox">
+            <span>إظهار الاقتراحات</span>
+          </label>
+
+          <label class="switch-row">
+            <input id="settingShowDeveloper" type="checkbox">
+            <span>إظهار اسم المطور</span>
+          </label>
+
+          <label class="switch-row">
+            <input id="settingEnableImageTools" type="checkbox">
+            <span>تفعيل أدوات الصور</span>
+          </label>
+        </div>
+
+        <div class="settings-actions">
+          <button id="saveSettings" class="primary-button" type="button">
+            حفظ التغييرات
+          </button>
+
+          <button id="ownerLogout" class="secondary-button" type="button">
+            تسجيل خروج المالك
+          </button>
+        </div>
+
+        <div id="settingsMessage" class="form-message"></div>
+      </section>
     </div>
   </div>
-</div>
-<div class="toast" id="toast"></div>
 
-<!-- قراءة الملفات داخل المتصفح فقط؛ اتصال Groq يبقى في /api/chat و /api/image -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.5.136/pdf.min.mjs" type="module"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="app.js"></script>
+  <footer id="developer" class="developer">
+    المطور: ياسين عمرو عبد الرحيم
+  </footer>
+
+  <script src="/app.js"></script>
 </body>
 </html>
+
+
