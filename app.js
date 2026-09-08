@@ -431,7 +431,7 @@ function setTheme(theme) {
 }
 
 function setUIStyle(style) {
-  const allowed = new Set(["obsidian", "glass", "classic", "royal"]);
+  const allowed = new Set(["obsidian", "glass", "classic", "royal", "aurora"]);
   state.uiStyle = allowed.has(style) ? style : "obsidian";
   document.documentElement.dataset.uiStyle = state.uiStyle;
   document.body.dataset.uiStyle = state.uiStyle;
