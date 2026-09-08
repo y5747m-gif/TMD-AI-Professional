@@ -41,6 +41,7 @@ const state = {
   conversations: loadJSON("tmd_conversations", []),
   currentConversationId: localStorage.getItem("tmd_current_conversation") || null,
   theme: localStorage.getItem("tmd_theme") || "dark",
+  uiStyle: localStorage.getItem("tmd_ui_style") || "obsidian",
   model: localStorage.getItem("tmd_model") || "openai/gpt-oss-120b",
   busy: false,
   controller: null,
@@ -133,31 +134,35 @@ function getRelatedShariaResources(text) {
 function isLikelyShariaQuestion(text) {
   const q = normalizeArabic(text);
   if (!q) return false;
-
   const terms = [
-    "الله","الرب","الدين","اسلام","مسلم","قران","سوره","ايه","حديث","احاديث","سنه","نبي","رسول","محمد",
-    "صحابي","صحابه","شيخ","فتوى","فتاوى","حكم","حلال","حرام","واجب","فرض","مكروه","مباح","عقيده","توحيد",
-    "شرك","كفر","ايمان","صلاه","صليت","اصلي","صلاتي","ركعه","ركعات","سجود","سجده","ركوع","تشهد","وضوء",
-    "اتوضا","توضات","غسل","اغتسل","تيمم","اذان","اقامه","صيام","صوم","رمضان","زكاه","حج","عمره","صدقه",
-    "دعاء","اذكار","ذكر","استغفار","تفسير","فقه","سيره","تجويد","مصحف","مسجد","جمعه","وتر","قيام الليل",
-    "تهجد","فجر","ظهر","عصر","مغرب","عشاء","نكاح","زواج","زوجي","زوجتي","طلاق","خلع","عده","ميراث","ورث",
-    "ربا","قرض","يمين","حلف","نذر","كفاره","جنه","نار","قيامه","ملائكه","شيطان","جن","الحاد","ملحد",
-    "شبهه","شبهات","وسواس","ذنب","ذنوب","معصيه","توبه","عباده","طاعه","رقيه","حجاب","نقاب","عوره","اختلاط",
-    "موسيقى","اغاني","علماء","داعيه","سلف","اهل السنه","السنه النبويه","الصحابه","السيره النبويه","شرع","شرعي","شرعيه"
+    "الله","الدين","اسلام","الإسلام","مسلم","قران","القرآن","قرآن","سوره","سورة",
+    "حديث","احاديث","حديث","السنه","السنة","نبي","النبي","رسول","الرسول","محمد",
+    "صحابي","صحابة","شيخ","فتوى","فتاوى","حكم","حلال","حرام","واجب","سنه","سنة",
+    "فرض","مكروه","مباح","عقيدة","عقيده","توحيد","شرك","كفر","ايمان","إيمان",
+    "صلاة","الصلاه","وضوء","غسل","تيمم","اذان","أذان","صيام","رمضان","زكاة","زكاه",
+    "حج","عمرة","عمره","صدقة","صدقه","دعاء","اذكار","أذكار","ذكر","استغفار",
+    "تفسير","فقه","سيرة","سيره","تجويد","قراءة القرآن","حفظ القرآن","مسجد",
+    "جمعة","الجمعه","وتر","قيام الليل","فجر","ظهر","عصر","مغرب","عشاء",
+    "نكاح","زواج","طلاق","ميراث","ربا","بيع","شراء","يمين","نذر","كفارة","كفاره",
+    "جنة","الجنة","نار","النار","قيامة","القيامة","ملائكة","شيطان","جن",
+    "الحاد","إلحاد","شبهة","شبهه","شبهات","وسواس","ذنب","ذنوب","معصية","معصيه","توبة","توبه",
+    "عباده","عبادة","عبادات","طاعه","طاعة","ذكر الله","الاستغفار","استغفار","رقية","رقيه",
+    "قراءة","قراءه","حفظ","سجود","ركوع","تشهد","تكبير","فاتحه","الفاتحة","استخارة","استخاره",
+    "كفاره","كفارة","نذر","يمين","صدور","دليل شرعي","دليل","شرع","شرعي","شرعية","مساله","مسألة",
+    "سؤال ديني","سؤال شرعي","الدعاء","الدعاء","الزكاة","الزكاه","الصوم","الصيام","الصلاة","الصلوات",
+    "المصحف","مصحف","آية","ايه","آيات","سور","سوره","السيرة","الصحابة","الصحابي","أهل السنة",
+    "السلف","العلماء","الداعية","داعيه","فتوى","فتاوى","الشيخ","المشايخ","التحريم","التحليل",
+    "يجوز","يجوز لي","هل يصح","هل صحيح","هل حرام","هل حلال","ما حكم","ما هو حكم","كيف يكون الحكم",
+    "ماذا قال الشرع","ماذا قال العلماء","ماذا ورد في الشرع","ماذا ورد في السنة","ماذا ورد عن النبي","ما الدليل",
+    "كيف اتوب","كيف أتوب","كيف اصلي","كيف أصلي","كيف اتوضا","كيف أتوضأ","كيف اغتسل","كيف أغتسل",
+    "ماذا افعل","ماذا أفعل","ماذا افعل اذا","ماذا أفعل إذا","هل علي","علي اثم","علي إثم"
   ];
-
-  const patterns = [
-    /هل\s+(يجوز|يصح|ينفع|حرام|حلال|علي|يلزمني)/,
-    /ماذا\s+(افعل|يجب|قال|ورد)/,
-    /كيف\s+(اصلي|اتوضا|اغتسل|اصوم|اتوب|احج|اعتمر|ازكي)/,
-    /لماذا\s+(فرض|شرع|حرم|يجب|نصلي|نصوم)/,
-    /ما\s+(الدليل|معنى|معني|الفرق)\s+(في|بين|عن|على)?/,
-    /ماذا\s+قال\s+(النبي|الرسول|الله|العلماء|الصحابه)/,
-    /ماذا\s+ورد\s+(في|عن|من)\s+(القران|السنه|النبي|الحديث)/,
-    /هل\s+علي\s+(اثم|ذنب|كفاره)/
-  ];
-
-  return patterns.some(pattern => pattern.test(q)) || terms.some(term => q.includes(normalizeArabic(term)));
+  if (terms.some(t => q.includes(normalizeArabic(t)))) return true;
+  // صياغات دينية غير مباشرة: وجود مصطلح شرعي في أي مكان داخل سؤال استفهامي يكفي.
+  const questionWords = ["هل","كيف","لماذا","ماذا","ما","متى","أين","من","هل يمكن","ماذا افعل","ماذا أفعل","ازاي","إزاي","كيفاش"];
+  const hasQuestionForm = questionWords.some(w => q.startsWith(normalizeArabic(w)) || q.includes(" " + normalizeArabic(w) + " "));
+  const broadReligious = ["ربنا","ربي","ربى","الرسول","النبي","القرآن","الحديث","الدين","المسجد","الصلاة","الصيام","الزكاة","الحج","العمرة","الدعاء","الذكر","التوبة","الذنوب","الحسنات","السيئات","الجنة","النار","الفتنة","القبلة","المؤذن","الإمام","الوضوء","الطهارة","الزواج","الطلاق","الميراث","الصدقة","الكفارة","اليمين","النذر"];
+  return hasQuestionForm && broadReligious.some(t => q.includes(normalizeArabic(t)));
 }
 
 async function classifyShariaQuestion(userText) {
@@ -257,20 +262,10 @@ function renderShariaResult(result) {
   const wrap = document.createElement("div");
   wrap.className = "media-recommendations sharia-result";
 
-  if (result.answer) {
-    const answerBox = document.createElement("div");
-    answerBox.className = "sharia-source-answer";
-    answerBox.innerHTML = `
-      <div class="sharia-summary-heading">📖 الإجابة</div>
-      <div class="sharia-summary-text">${esc(result.answer).replace(/\n/g, "<br>")}</div>
-    `;
-    wrap.appendChild(answerBox);
-  }
-
   if (result.video) {
     const video = result.video;
     const card = document.createElement("a");
-    card.className = "video-external-card";
+    card.className = "video-external-card sharia-primary-video";
     card.href = video.url;
     card.target = "_blank";
     card.rel = "noopener noreferrer";
@@ -282,13 +277,24 @@ function renderShariaResult(result) {
       </div>
       <div class="video-card-info">
         <b>${esc(video.title || "فيديو متعلق بالسؤال")}</b>
-        <span>▶️ فيديو متعلق بالسؤال</span>
+        <span>🎥 الفيديو المتعلق بالسؤال</span>
         <small>${esc(video.channelTitle || "")}</small>
       </div>
       <span class="learning-arrow">↗</span>
     `;
     wrap.appendChild(card);
   }
+
+  if (result.answer) {
+    const answerBox = document.createElement("div");
+    answerBox.className = "sharia-source-answer";
+    answerBox.innerHTML = `
+      <div class="sharia-summary-heading">📖 الإجابة</div>
+      <div class="sharia-summary-text">${esc(result.answer).replace(/\n/g, "<br>")}</div>
+    `;
+    wrap.appendChild(answerBox);
+  }
+
 
   if (!result.answer && result.video) {
     const note = document.createElement("div");
@@ -371,6 +377,7 @@ function save() {
   localStorage.setItem("tmd_conversations", JSON.stringify(state.conversations));
   localStorage.setItem("tmd_current_conversation", state.currentConversationId || "");
   localStorage.setItem("tmd_theme", state.theme);
+  localStorage.setItem("tmd_ui_style", state.uiStyle);
   localStorage.setItem("tmd_model", state.model);
 }
 
@@ -420,6 +427,16 @@ function setTheme(theme) {
   document.documentElement.dataset.theme = state.theme;
   document.body.dataset.theme = state.theme;
   if (themeSelect) themeSelect.value = state.theme;
+  save();
+}
+
+function setUIStyle(style) {
+  const allowed = new Set(["obsidian", "glass", "classic", "royal"]);
+  state.uiStyle = allowed.has(style) ? style : "obsidian";
+  document.documentElement.dataset.uiStyle = state.uiStyle;
+  document.body.dataset.uiStyle = state.uiStyle;
+  const select = document.getElementById("uiStyleSelect");
+  if (select) select.value = state.uiStyle;
   save();
 }
 
@@ -1273,12 +1290,37 @@ function bindThemeAndNavigation() {
     newChat.addEventListener("click", newConversation);
   }
 
-  const themeButton = $("#themeButton");
+  const themeButton = $("#themeButton") || $("#themeTop");
   if (themeButton && !themeButton.dataset.bound) {
     themeButton.dataset.bound = "1";
     themeButton.addEventListener("click", () => {
       setTheme(state.theme === "dark" ? "light" : "dark");
     });
+  }
+
+  const settingsBtn = $("#settingsBtn");
+  const modalBackdrop = $("#modalBackdrop");
+  const modalClose = $("#modalClose");
+  const openSettings = () => modalBackdrop?.classList.remove("hidden");
+  const closeSettings = () => modalBackdrop?.classList.add("hidden");
+  if (settingsBtn && !settingsBtn.dataset.bound) {
+    settingsBtn.dataset.bound = "1";
+    settingsBtn.addEventListener("click", openSettings);
+  }
+  if (modalClose && !modalClose.dataset.bound) {
+    modalClose.dataset.bound = "1";
+    modalClose.addEventListener("click", closeSettings);
+  }
+  if (modalBackdrop && !modalBackdrop.dataset.bound) {
+    modalBackdrop.dataset.bound = "1";
+    modalBackdrop.addEventListener("click", (event) => { if (event.target === modalBackdrop) closeSettings(); });
+  }
+
+  const uiStyleSelect = $("#uiStyleSelect");
+  if (uiStyleSelect && !uiStyleSelect.dataset.bound) {
+    uiStyleSelect.dataset.bound = "1";
+    uiStyleSelect.value = state.uiStyle;
+    uiStyleSelect.addEventListener("change", () => setUIStyle(uiStyleSelect.value));
   }
 
   if (themeSelect && !themeSelect.dataset.bound) {
@@ -1341,6 +1383,7 @@ function boot() {
   ensureUI();
   ensureAttachmentPreview();
   setTheme(state.theme);
+  setUIStyle(state.uiStyle);
   applyModelFallback();
   ensureSafeModelOption();
   updateModelLabel();
