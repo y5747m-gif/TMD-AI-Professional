@@ -162,7 +162,8 @@ function isLikelyShariaQuestion(text) {
 async function classifyShariaQuestion(userText) {
   const q = String(userText || "").trim();
   if (!q) return false;
-  // التصنيف هنا لا يجيب عن السؤال؛ وظيفته فقط تحديد هل السؤال شرعي أم لا.
+
+  // التصنيف الدلالي هو الأساس؛ لا نعتمد على أن السؤال يبدأ بـ "ما حكم".
   try {
     const response = await fetch("/api/sharia-classify", {
       method: "POST",
@@ -174,6 +175,7 @@ async function classifyShariaQuestion(userText) {
   } catch (error) {
     console.warn("Sharia classification failed:", error);
   }
+
   return isLikelyShariaQuestion(q);
 }
 
@@ -185,14 +187,13 @@ async function searchShariaChannelOnly(userText) {
     const response = await fetch("/api/sharia-search", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ query: q }),
+      body: JSON.stringify({ query: q })
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || data.ok !== true) {
       console.warn("Sharia channel search:", data?.error || response.status);
       return null;
     }
-    // لا نقبل أي نتيجة لم تثبت أنها من القناة المحددة.
     if (data.channelId !== "UCv0g_v1C6JcZALvrkDu98AQ") return null;
     const video = data.video;
     if (!video || video.channelId !== "UCv0g_v1C6JcZALvrkDu98AQ") return null;
@@ -310,7 +311,8 @@ async function handleShariaQuestion(userText) {
   const isSharia = await classifyShariaQuestion(userText);
   if (!isSharia) return false;
 
-  // لا نرسل السؤال الشرعي إلى Groq. نبحث في المرجع الشرعي وفي قناة YouTube المحددة معًا.
+  // مهم: السؤال الشرعي لا يصل إلى Groq للإجابة من المعرفة العامة.
+  // نأخذ الإجابة من إسلام ويب فقط، ونبحث عن فيديو مستقل في قناة YouTube المحددة.
   const [sourceAnswer, video] = await Promise.all([
     searchIslamwebAnswer(userText),
     getShariaVideo(userText)
