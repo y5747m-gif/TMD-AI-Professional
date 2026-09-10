@@ -1,0 +1,32 @@
+# ------------------------------ متغيرات البيئة ------------------------------
+.env
+.env.local
+.env.*.local
+
+# ------------------------------ قاعدة البيانات -----------------------------
+# ملفات SQLite المحلية (كبيرة ومتغيّرة) — تُبنى بأمر: npm run ingest
+mishkat/data/*.db
+mishkat/data/*.db-wal
+mishkat/data/*.db-shm
+mishkat/data/*.sqlite
+mishkat/data/*.sqlite3
+mishkat/data/tmp/
+mishkat/data/logs/
+
+# نسخة JSON المفهرسة: صغيرة ويُنصح برفعها للنشر على Vercel
+!mishkat/data/index.json
+
+# ------------------------------ عام ----------------------------------------
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+.vercel
+coverage/
+dist/
+build/
+__pycache__/
+*.pyc
+.idea/
+.vscode/
