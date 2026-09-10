@@ -592,13 +592,38 @@ function mapVideoRow(r) {
  * ============================================================== */
 
 class JsonStore {
-  constructor(filePath) {
+  /**
+   * @param {string} filePath مسار ملف الفهرس (يُستخدم للتصدير والحفظ)
+   * @param {object} [embedded] بيانات الفهرس جاهزة (مضمَّنة في حزمة النشر)
+   */
+  constructor(filePath, embedded = null) {
     this.kind = "json";
     this.filePath = filePath;
     this.videos = new Map();
     this.docs = [];
     this.logs = [];
-    this.load();
+    if (embedded && Array.isArray(embedded.videos)) this.apply(embedded);
+    else this.load();
+  }
+
+  apply(data) {
+    for (const v of data.videos || []) {
+      this.videos.set(v.id, {
+        ...v,
+        segments: (v.segments || []).map((s, i) => ({
+          idx: i,
+          startMs: s[0],
+          endMs: s[1],
+          text: s[2],
+          norm: normalizeArabic(s[2])
+        }))
+      });
+    }
+    this.docs = (data.docs || []).map((d, i) => ({
+      ...d,
+      id: i + 1,
+      norm: normalizeArabic(`${d.title || ""} ${d.ref || ""} ${d.text || ""}`)
+    }));
   }
 
   load() {
@@ -895,7 +920,7 @@ let _store = null;
  * @param {{forceJson?:boolean, dbPath?:string, jsonPath?:string, reload?:boolean}} opts
  */
 function openStore(opts = {}) {
-  if (_store && !opts.reload && !opts.forceJson) return _store;
+  if (_store && !opts.reload && !opts.forceJson && opts.jsonData === undefined) return _store;
 
   const dbPath = opts.dbPath || config.DB_PATH;
   const jsonPath = opts.jsonPath || config.JSON_INDEX_PATH;
@@ -912,7 +937,7 @@ function openStore(opts = {}) {
       }
     }
   }
-  _store = new JsonStore(jsonPath);
+  _store = new JsonStore(jsonPath, opts.jsonData || null);
   return _store;
 }
 

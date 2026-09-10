@@ -509,6 +509,13 @@ const server = http.createServer(async (req, res) => {
     if (pathname === "/api/search" && req.method === "POST") return handleSearch(req, res);
     if (pathname === "/api/videos" && req.method === "GET") return handleVideos(req, res, url);
 
+    if (pathname === "/api/video" && req.method === "GET") {
+      // الصيغة الموحّدة (تعمل محليًا وعلى Vercel): /api/video?id=VIDEO_ID
+      const videoId = decodeURIComponent(url.searchParams.get("id") || url.searchParams.get("v") || "");
+      if (!videoId) return sendJson(res, 400, { ok: false, error: "معرّف الفيديو مطلوب (id)." });
+      return handleVideo(req, res, videoId, url);
+    }
+
     if (pathname.startsWith("/api/video/") && req.method === "GET") {
       const videoId = decodeURIComponent(pathname.replace("/api/video/", ""));
       return handleVideo(req, res, videoId, url);

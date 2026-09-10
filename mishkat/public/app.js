@@ -9,7 +9,7 @@ const API = {
   ask: "/api/ask",
   search: "/api/search",
   videos: "/api/videos",
-  video: (id) => `/api/video/${encodeURIComponent(id)}`,
+  video: (id) => `/api/video?id=${encodeURIComponent(id)}`,
   ingest: "/api/ingest",
   purgeDemo: "/api/purge-demo",
   summarize: "/api/summarize"

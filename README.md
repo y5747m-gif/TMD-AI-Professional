@@ -53,7 +53,7 @@ cp .env.example .env     # ثم ضع مفتاحًا واحدًا مثل GEMINI_A
 | `npm run export` | تصدير نسخة `mishkat/data/index.json` (للنشر أو النسخ الاحتياطي) |
 | `npm run purge-demo` | حذف البيانات التجريبية |
 | `npm run doctor` | فحص شامل للتشغيل (الإصدار، الشبكة، القاعدة، المفاتيح) |
-| `npm test` | تشغيل 56 اختبارًا (وحدات + خادم + تكامل شامل) |
+| `npm test` | تشغيل 69 اختبارًا (وحدات + خادم + تكامل شامل + مسارات Vercel) |
 
 **بدون مفتاح YouTube:** الأداة تسرد الفيديوهات وتستخرج النصوص باستخراج مباشر من واجهة يوتيوب.
 **مع مفتاح YouTube Data API** (`YOUTUBE_API_KEY`): سرد أسرع وأدق مع المدة وعدد المشاهدات.
@@ -118,7 +118,7 @@ node mishkat/cli.js add-doc --title "قاعدة فقهية" --text "..." --ref "
 | `POST /api/ask` | `{ message, mode, history, stream }` — إجابة (SSE أو JSON) |
 | `POST /api/search` | `{ query, topK }` — نصوص فقط مع التوقيت والروابط |
 | `GET /api/videos?q=&limit=` | قائمة الفيديوهات المفهرسة |
-| `GET /api/video/:id?q=` | التفريغ الكامل أو البحث داخله |
+| `GET /api/video?id=<ID>&q=` | التفريغ الكامل أو البحث داخله (وتعمل أيضًا صيغة `/api/video/<ID>`) |
 | `POST /api/summarize` | `{ videoId }` — تلخيص الدرس |
 | `POST /api/ingest` | سحب القناة/فيديو (يتطلب `MISHKAT_ADMIN_TOKEN`) مع بثّ التقدّم |
 | `POST /api/purge-demo` | حذف البيانات التجريبية (يتطلب المدير) |
@@ -132,21 +132,33 @@ node mishkat/cli.js add-doc --title "قاعدة فقهية" --text "..." --ref "
 1. اسحب النصوص محليًا: `npm run ingest`
 2. صدّر النسخة المفهرسة: `npm run export` → `mishkat/data/index.json`
 3. ارفع المستودع إلى GitHub واربطه بـ Vercel، واضبط متغيّرات البيئة (مفتاح المزوّد + `YOUTUBE_CHANNEL_ID`).
-4. ملف `vercel.json` المرفق يوجّه `/api/*` إلى `api/mishkat.js` ويقدّم الواجهة من `mishkat/public`.
+4. `vercel.json` يقدّم الواجهة من `mishkat/public` ويضمّن ملف الفهرس مع الدوال:
 
-> ملاحظة: `api/mishkat.js` يعمل على `index.json` ولا يدعم السحب (Ingest) — إن طلبتَ السحب من الموقع المنشور فستظهر رسالة تشرح الطريقة الصحيحة.
+```
+api/health.js    api/config.js   api/stats.js    api/videos.js  api/video.js
+api/ask.js       api/search.js   api/summarize.js api/suggest.js
+api/ingest.js    api/purge-demo.js   ← تُرجع 501 بشرح واضح (السحب محلي فقط)
+```
+
+كل ملف سطران فقط، والمنطق كله في `mishkat/lib/vehand.js` — فلا حاجة إلى إعادات كتابة (rewrites) هشّة.
+
+> ملاحظة: النسخة المنشورة **للقراءة فقط**: لا تدعم السحب (Ingest) ولا تعديل قاعدة البيانات؛
+> حدّث البيانات بالسحب محليًا ثم أعد نشر `index.json`.
 
 ---
 
-## ٧) التحقق من الجودة (٥٦ اختبارًا ناجحًا)
+## ٧) التحقق من الجودة (٦٩ اختبارًا ناجحًا)
 
 ```bash
-npm test        # 56/56 ✅
+npm test        # 69/69 ✅
 ```
 
 * **اختبارات الوحدات**: تطبيع العربية، المرادفات، التصنيف، تحليل الترجمات (json3/srv3)،
   تنظيف التكرار، تقسيم المقاطع، الروابط والتوقيتات.
 * **اختبارات الخادم**: كل مسارات API، البثّ SSE، حماية المسارات، صلاحيات المدير، المتجر البديل.
+* **اختبار مسارات Vercel** (`mishkat/test/vercel.test.js`): يستدعي ملفات `api/*.js` نفسها
+  عبر خادم يحاكي بيئة Serverless، ويتأكد من أن كل مسار في الواجهة له ملف مقابل في `api/`
+  وأن النسخة المنشورة (القراءة فقط) تعمل.
 * **اختبار تكاملي شامل** (`mishkat/test/e2e.test.js`): يُشغّل خادمًا محليًا **يحاكي يوتيوب**
   (صفحة القناة + متابعة التحميل + واجهة المشغّل + ملف الترجمة) وخادمًا **يحاكي مزوّد الذكاء الاصطناعي**،
   ثم يُنفّذ المسار كاملًا:
@@ -202,12 +214,13 @@ mishkat/
 │   ├── ingest.js           خط سحب البيانات الكامل
 │   ├── retrieve.js         محرك الاسترجاع والترجيح والتوثيق
 │   ├── ai.js               محرك الذكاء الاصطناعي + المحرك الاستخراجي + التلخيص
+│   ├── vehand.js           معالج Vercel الموحّد (نسخة القراءة فقط)
 │   └── demo.js             بيانات تجريبية موسومة بوضوح
 ├── public/                 الواجهة (index.html / app.js / style.css)
 ├── test/                   الوحدات + الخادم + اختبار تكاملي شامل (node:test)
 ├── scripts/test.js         مشغّل الاختبارات
 └── data/                   mishkat.db (محلية) + index.json (للنشر)
-api/mishkat.js              مسار Vercel الوحيد (نسخة قراءة فقط)
+api/*.js                    مسارات Vercel (11 مسارًا، سطران لكل ملف) → mishkat/lib/vehand.js
 vercel.json                 إعدادات النشر
 legacy/tmd-v1/              النسخة القديمة (mock) — للرجوع فقط، يمكن حذفها
 ```

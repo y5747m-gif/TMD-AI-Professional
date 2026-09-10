@@ -2,8 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
   "framework": null,
-  "buildCommand": null,
-  "outputDirectory": null,
   "headers": [
     {
       "source": "/api/(.*)",
@@ -14,15 +12,14 @@
     }
   ],
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/mishkat?path=$1" },
     { "source": "/", "destination": "/mishkat/public/index.html" },
     { "source": "/index.html", "destination": "/mishkat/public/index.html" },
     { "source": "/app.js", "destination": "/mishkat/public/app.js" },
     { "source": "/style.css", "destination": "/mishkat/public/style.css" },
-    { "source": "/assets/(.*)", "destination": "/mishkat/public/assets/$1" }
+    { "source": "/favicon.ico", "destination": "/mishkat/public/favicon.ico" }
   ],
   "functions": {
-    "api/mishkat.js": {
+    "api/*.js": {
       "maxDuration": 60,
       "includeFiles": "mishkat/data/**"
     }
