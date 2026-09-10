@@ -448,6 +448,72 @@ function handleConfig(res) {
   });
 }
 
+/** فحص تشغيل شامل (نفس فحوص النسخة المنشورة على Vercel) */
+function handleDiagnose(res) {
+  const checks = [];
+  const add = (name, level, detail = "") => checks.push({ name, level, detail });
+
+  add("إصدار Node.js", "ok", process.version);
+  add(
+    "قاعدة البيانات",
+    store.stats().segments > 0 ? "ok" : "warn",
+    `${store.kind} — ${store.stats().videos} فيديو / ${store.stats().segments} مقطع (${config.DB_PATH})`
+  );
+  add(
+    "هل القاعدة مفهرسة؟",
+    store.stats().segments > 0 ? "ok" : "warn",
+    store.stats().segments ? "جاهزة للأسئلة" : "شغّل: npm run ingest"
+  );
+  if (store.stats().demoVideos) {
+    add("بيانات تجريبية", "warn", `${store.stats().demoVideos} فيديو — احذفها بـ npm run purge-demo`);
+  }
+  const provider = ai.providerInfo();
+  add(
+    "محرك الذكاء الاصطناعي",
+    provider.enabled ? "ok" : "warn",
+    provider.enabled ? `${provider.label} — ${provider.model}` : "لا يوجد مفتاح API؛ المحرك الاستخراجي سيعمل"
+  );
+  const keyReport = ["GEMINI_API_KEY", "GROQ_API_KEY", "OPENAI_API_KEY", "OPENROUTER_API_KEY", "YOUTUBE_API_KEY"];
+  add(
+    "متغيرات البيئة",
+    keyReport.some((k) => !!process.env[k]) ? "ok" : "warn",
+    keyReport.map((k) => `${k}: ${process.env[k] ? "مضبوط" : "غير مضبوط"}`).join(" • ")
+  );
+  add(
+    "حماية لوحة الإدارة",
+    config.SERVER.adminToken ? "ok" : "warn",
+    config.SERVER.adminToken ? "مضبوطة بكلمة مرور" : "غير مضبوطة (مناسب للتطوير المحلي)"
+  );
+  try {
+    const probe = retrieve.search(store, "الصلاة", { topK: 1 });
+    add(
+      "اختبار استرجاع",
+      probe.results.length ? "ok" : "warn",
+      probe.results.length ? `نجح — أفضل نتيجة عند ${probe.results[0].time}` : "لا نتائج"
+    );
+  } catch (err) {
+    add("اختبار استرجاع", "fail", String(err.message || err));
+  }
+  add("ملفات الواجهة", fs.existsSync(path.join(config.SERVER.publicDir, "index.html")) ? "ok" : "fail", config.SERVER.publicDir);
+
+  const failed = checks.filter((c) => c.level === "fail").length;
+  const warned = checks.filter((c) => c.level === "warn").length;
+  return sendJson(res, 200, {
+    ok: failed === 0,
+    summary:
+      failed === 0 && warned === 0
+        ? "كل الفحوص ناجحة."
+        : failed === 0
+        ? `لا أخطاء، و${warned} تنبيه اختياري.`
+        : `${failed} خطأ يجب إصلاحه.`,
+    checks,
+    stats: store.stats(),
+    provider,
+    indexFile: config.JSON_INDEX_PATH,
+    channel: { id: config.CHANNEL_ID, url: config.CHANNEL_URL }
+  });
+}
+
 function handleStats(res) {
   const readiness = retrieve.readiness(store);
   return sendJson(res, 200, {
@@ -537,6 +603,7 @@ const server = http.createServer(async (req, res) => {
 
     if (pathname === "/api/config" && req.method === "GET") return handleConfig(res);
     if (pathname === "/api/stats" && req.method === "GET") return handleStats(res);
+    if (pathname === "/api/diagnose" && req.method === "GET") return handleDiagnose(res);
     if (pathname === "/api/suggest" && req.method === "GET") return handleSuggest(req, res, url);
 
     if (pathname === "/api/ask" && req.method === "POST") {
@@ -567,6 +634,33 @@ const server = http.createServer(async (req, res) => {
     if (pathname === "/api/missing" && req.method === "GET") return handleMissing(res, url);
     if (pathname === "/api/summarize" && req.method === "POST") return handleSummarize(req, res);
     if (pathname === "/api/purge-demo" && req.method === "POST") return handlePurgeDemo(req, res);
+
+    if (pathname === "/api/chat" && req.method === "POST") {
+      return sendJson(res, 200, {
+        ok: true,
+        upgraded: true,
+        message: require("./lib/legacy").UPGRADE_MESSAGE,
+        sources: []
+      });
+    }
+
+    if (pathname === "/api/settings" && req.method === "GET") {
+      return sendJson(res, 200, {
+        ok: true,
+        upgraded: true,
+        settings: { siteName: config.APP.name, siteDescription: config.APP.tagline }
+      });
+    }
+
+    // مسارات النسخة القديمة: رسالة واضحة بدل خطأ غامض
+    const RETIRED = ["/api/image", "/api/upload", "/api/owner-login", "/api/owner-logout", "/api/references-search"];
+    if (RETIRED.includes(pathname)) {
+      return sendJson(res, 200, {
+        ok: false,
+        upgraded: true,
+        error: `المسار ${pathname} أُزيل في النسخة الجديدة «مشكاة».`
+      });
+    }
 
     if (pathname.startsWith("/api/")) {
       return sendJson(res, 404, { ok: false, error: "مسار API غير معروف" });

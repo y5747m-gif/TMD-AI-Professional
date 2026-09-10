@@ -59,7 +59,13 @@ function getStore() {
   }
 
   const file = loadIndexFile();
-  store = openStore({ forceJson: true, jsonPath: file, jsonData: embedded || null });
+  try {
+    store = openStore({ forceJson: true, jsonPath: file, jsonData: embedded || null });
+  } catch (err) {
+    // لا نُسقط الطلب: نُعيد متجرًا فارغًا ليُكمل المعالج بإجابة واضحة
+    store = openStore({ forceJson: true, jsonPath: file, jsonData: { videos: [], docs: [] } });
+    store.logEvent("error", "store", `تعذّر تحميل الفهرس: ${err.message}`);
+  }
   return store;
 }
 
@@ -270,6 +276,124 @@ function handleVideos(res, query) {
   });
 }
 
+/* ---------------- التشخيص ---------------- */
+
+const EXPECTED_ROUTES = [
+  "ask", "config", "diagnose", "health", "import", "ingest", "missing",
+  "purge-demo", "search", "stats", "suggest", "summarize", "video", "videos"
+];
+
+/** فحص شامل لبيئة النشر: يشرح أي خلل بدل أن يُظهر خطأ غامضًا */
+function buildDiagnosis() {
+  const checks = [];
+  const add = (name, level, detail = "") => checks.push({ name, level, detail });
+
+  // 1) النسخة والبيئة
+  add("إصدار Node.js", "ok", process.version);
+  add(
+    "بيئة Vercel",
+    process.env.VERCEL ? "ok" : "warn",
+    process.env.VERCEL
+      ? `النشر: ${process.env.VERCEL_ENV || "unknown"} — الإصدار ${process.env.VERCEL_GIT_COMMIT_REF || "—"}`
+      : "ليست بيئة Vercel (تشغيل محلي)"
+  );
+
+  // 2) ملف الفهرس
+  const file = loadIndexFile();
+  let fileOk = false;
+  let fileSize = 0;
+  try {
+    fileOk = fs.existsSync(file);
+    if (fileOk) fileSize = fs.statSync(file).size;
+  } catch (_) {
+    fileOk = false;
+  }
+  add(
+    "ملف الفهرس mishkat/data/index.json",
+    fileOk ? "ok" : "fail",
+    fileOk
+      ? `${(fileSize / 1024).toFixed(1)} كيلوبايت — ${file}`
+      : `غير موجود في ${file} — نفّذ npm run ingest ثم npm run export وارفع الملف`
+  );
+
+  // 3) تحميل المتجر
+  let stats = null;
+  try {
+    stats = getStore().stats();
+    add(
+      `قاعدة البيانات (${stats.store})`,
+      stats.segments > 0 ? "ok" : "warn",
+      `${stats.videos} فيديو / ${stats.segments} مقطع${stats.demoVideos ? ` / ${stats.demoVideos} فيديو تجريبي` : ""}`
+    );
+    if (!stats.segments) {
+      add("هل القاعدة مفهرسة؟", "warn", "شغّل npm run ingest محليًا ثم انشر mishkat/data/index.json");
+    }
+  } catch (err) {
+    add("تحميل قاعدة البيانات", "fail", String(err.message || err));
+  }
+
+  // 4) محرك الذكاء
+  const provider = ai.providerInfo();
+  add(
+    "محرك الذكاء الاصطناعي",
+    provider.enabled ? "ok" : "warn",
+    provider.enabled
+      ? `${provider.label} — ${provider.model}`
+      : "لا يوجد مفتاح API؛ ستعمل الأداة بالمحرك الاستخراجي (تعرض النصوص والتوقيت والروابط)"
+  );
+
+  // 5) توفر المففاتيح (بدون كشف القيم أبدًا)
+  const keyReport = [
+    ["GEMINI_API_KEY", !!process.env.GEMINI_API_KEY],
+    ["GROQ_API_KEY", !!process.env.GROQ_API_KEY],
+    ["OPENAI_API_KEY", !!process.env.OPENAI_API_KEY],
+    ["OPENROUTER_API_KEY", !!process.env.OPENROUTER_API_KEY],
+    ["YOUTUBE_API_KEY", !!process.env.YOUTUBE_API_KEY],
+    ["MISHKAT_ADMIN_TOKEN", !!process.env.MISHKAT_ADMIN_TOKEN]
+  ];
+  add(
+    "متغيرات البيئة",
+    keyReport.some(([, set]) => set) ? "ok" : "warn",
+    keyReport.map(([k, set]) => `${k}: ${set ? "مضبوط" : "غير مضبوط"}`).join(" • ")
+  );
+
+  // 6) تحقق فعلي من الاسترجاع
+  try {
+    const probe = retrieve.search(getStore(), "الصلاة", { topK: 1 });
+    add(
+      "اختبار استرجاع حقيقي",
+      probe.results.length ? "ok" : "warn",
+      probe.results.length
+        ? `تم العثور على نص (${probe.results[0].time}) — الاسترجاع يعمل`
+        : "لم يُعثر على نص لكلمة «الصلاة» — تحقق من محتوى الفهرس"
+    );
+  } catch (err) {
+    add("اختبار الاسترجاع", "fail", String(err.message || err));
+  }
+
+  // 7) مسارات API
+  add("مسارات API", "ok", `${EXPECTED_ROUTES.length} مسارًا: /api/${EXPECTED_ROUTES.join(" • /api/")}`);
+
+  const failed = checks.filter((c) => c.level === "fail").length;
+  const warned = checks.filter((c) => c.level === "warn").length;
+
+  return {
+    ok: failed === 0,
+    summary:
+      failed === 0 && warned === 0
+        ? "كل الفحوص ناجحة — الأداة جاهزة للعمل."
+        : failed === 0
+        ? `لا أخطاء، و${warned} تنبيه (المفاتيح/البيانات اختيارية).`
+        : `${failed} خطأ يجب إصلاحه${warned ? ` و${warned} تنبيه` : ""}.`,
+    checks,
+    stats,
+    provider,
+    indexFile: file,
+    routes: EXPECTED_ROUTES.map((r) => `/api/${r}`),
+    channel: { id: config.CHANNEL_ID, url: config.CHANNEL_URL }
+  };
+}
+
 /* ---------------- الموجّه ---------------- */
 
 /**
@@ -303,6 +427,11 @@ function createVercelHandler(forcedRoute) {
       }
 
       if (route === "config") return handleConfig(res);
+
+      if (route === "diagnose") {
+        res.setHeader("cache-control", "no-store");
+        return sendJson(res, 200, buildDiagnosis());
+      }
 
       if (route === "stats") {
         const db = getStore();
@@ -397,4 +526,4 @@ function routeHandler(route) {
   return createVercelHandler(route);
 }
 
-module.exports = { createVercelHandler, routeHandler, getStore, loadIndexFile };
+module.exports = { createVercelHandler, routeHandler, getStore, loadIndexFile, buildDiagnosis };

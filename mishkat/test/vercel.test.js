@@ -246,3 +246,96 @@ test("جدول المسارات في api/ مكتمل ويطابق واجهة ا�
     assert.ok(files.includes(`${name}.js`), `لا يوجد api/${name}.js للمسار ${ep}`);
   }
 });
+
+/* ==============================================================
+ *  حماية من خطأ 500 الحقيقي: ESM داخل مشروع CommonJS
+ * ============================================================== */
+
+test("لا يوجد أي ملف api/*.js يستخدم صيغة ESM (سبب خطأ 500 سابقًا)", () => {
+  const dir = path.join(ROOT, "api");
+  const offenders = [];
+  for (const file of fs.readdirSync(dir).filter((f) => f.endsWith(".js"))) {
+    const code = fs.readFileSync(path.join(dir, file), "utf8");
+    if (/^\s*(export\s+(default|const|function|async)|import\s+[\w*{])/m.test(code)) {
+      offenders.push(file);
+    }
+  }
+  assert.deepEqual(offenders, [], `ملفات تستخدم ESM داخل مشروع CommonJS: ${offenders.join(", ")}`);
+
+  // ولا يوجد type:module يخدع المطوّر
+  const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
+  assert.notEqual(pkg.type, "module", "المشروع CommonJS؛ لا تضع type:module بدون تحويل كل الملفات");
+});
+
+test("كل ملفات api/*.js تُحمَّل فعليًا بلا انهيار (CommonJS)", () => {
+  const dir = path.join(ROOT, "api");
+  for (const file of fs.readdirSync(dir).filter((f) => f.endsWith(".js"))) {
+    const loaded = require(path.join(dir, file));
+    assert.equal(typeof loaded, "function", `api/${file} يجب أن يُصدّر دالة معالج`);
+  }
+});
+
+test("كل ملفات mishkat/lib/*.js تُحمَّل بلا أخطاء صيغة", () => {
+  const dir = path.join(ROOT, "mishkat", "lib");
+  for (const file of fs.readdirSync(dir).filter((f) => f.endsWith(".js"))) {
+    assert.doesNotThrow(() => require(path.join(dir, file)), `فشل تحميل mishkat/lib/${file}`);
+  }
+});
+
+/* ==============================================================
+ *  طبقة التوافق للمسارات القديمة + التشخيص
+ * ============================================================== */
+
+test("المسارات القديمة تُرجع رسالة واضحة (لا 500 ولا انهيار)", async () => {
+  const chat = await (
+    await fetch(`${base}/api/chat`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ messages: [{ role: "user", content: "مرحبا" }] })
+    })
+  ).json();
+  assert.equal(chat.ok, true);
+  assert.equal(chat.upgraded, true);
+  assert.ok(chat.message.includes("مشكاة"));
+  assert.ok(chat.message.includes("أعد تحميل"));
+
+  const settings = await (await fetch(`${base}/api/settings`)).json();
+  assert.equal(settings.ok, true);
+  assert.ok(settings.settings.siteName.length > 0);
+
+  for (const retired of ["image", "upload", "owner-login", "owner-logout", "references-search"]) {
+    const data = await (await fetch(`${base}/api/${retired}`)).json();
+    assert.equal(data.upgraded, true, `api/${retired}`);
+    assert.ok(data.error.includes(retired));
+  }
+});
+
+test("GET /api/diagnose يُرجع فحوصًا كاملة وحكمًا واضحًا", async () => {
+  const data = await (await fetch(`${base}/api/diagnose`)).json();
+  assert.equal(typeof data.ok, "boolean");
+  assert.ok(data.summary.length > 5);
+  assert.ok(Array.isArray(data.checks) && data.checks.length >= 5);
+  for (const c of data.checks) {
+    assert.ok(["ok", "warn", "fail"].includes(c.level), `مستوى غير معروف: ${c.level}`);
+    assert.ok(c.name && c.name.length > 0);
+  }
+  // الفحص يشمل: ملف الفهرس، القاعدة، محرك الذكاء، اختبار استرجاع حقيقي
+  const names = data.checks.map((c) => c.name).join(" | ");
+  assert.ok(names.includes("ملف الفهرس"));
+  assert.ok(names.includes("محرك الذكاء"));
+  assert.ok(names.includes("استرجاع"));
+  // لا يُكشف أي قيمة مفتاح سرّي
+  assert.ok(!JSON.stringify(data).includes("test-key"));
+});
+
+test("التشخيص يكتشف غياب ملف الفهرس ويشرح الحل", () => {
+  const vehand = require(path.join(ROOT, "mishkat", "lib", "vehand.js"));
+  const diagnosis = vehand.buildDiagnosis();
+  assert.ok(Array.isArray(diagnosis.checks));
+  const indexCheck = diagnosis.checks.find((c) => c.name.includes("ملف الفهرس"));
+  assert.ok(indexCheck);
+  assert.ok(["ok", "fail"].includes(indexCheck.level));
+  if (indexCheck.level === "fail") {
+    assert.ok(indexCheck.detail.includes("npm run ingest"));
+  }
+});

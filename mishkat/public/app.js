@@ -14,7 +14,8 @@ const API = {
   purgeDemo: "/api/purge-demo",
   summarize: "/api/summarize",
   import: "/api/import",
-  missing: "/api/missing"
+  missing: "/api/missing",
+  diagnose: "/api/diagnose"
 };
 
 const state = {
@@ -236,6 +237,30 @@ function markdownToHtml(md) {
 /* =============================================================
    3) طلبات الشبكة و SSE
    ============================================================= */
+
+/**
+ * يترجم أخطاء HTTP إلى رسالة عربية قابلة للتنفيذ
+ * (بدل «HTTP 500» الغامضة).
+ */
+function explainHttpError(status, serverMessage = "") {
+  if (serverMessage) return serverMessage;
+  if (status === 500 || status === 502 || status === 503) {
+    return (
+      "تعذّر على الخادم تنفيذ الطلب (خطأ 500). الأسباب الشائعة: " +
+      "النسخة المنشورة قديمة أو غير مكتملة • ملف mishkat/data/index.json غير موجود • مفتاح API غير صحيح. " +
+      "افتح ⚙ ثم «🩺 فحص تشغيل الأداة» لمعرفة السبب بدقة."
+    );
+  }
+  if (status === 404) {
+    return (
+      "المسار المطلوب غير موجود على هذا النشر (خطأ 404). " +
+      "إن كان الموقع منشورًا على Vercel فالنسخة الجديدة «مشكاة» لم تُنشر بعد — فعّل النشر من فرع العمل أو أنشئ طلب دمج."
+    );
+  }
+  if (status === 401 || status === 403) return "هذه العملية تتطلب كلمة مرور المدير (MISHKAT_ADMIN_TOKEN).";
+  if (status === 429) return "عدد الطلبات كبير — انتظر قليلًا ثم أعد المحاولة.";
+  return `تعذّر تنفيذ الطلب (خطأ ${status}).`;
+}
 
 async function getJson(url) {
   const res = await fetch(url, { headers: { accept: "application/json" } });
@@ -478,8 +503,22 @@ async function ask(question, opts = {}) {
     });
 
     if (!res.ok || !res.body) {
-      // عودة إلى الوضع غير المتدفق
-      throw new Error(`stream-unavailable-${res.status}`);
+      // ليس بثًّا: نحاول قراءة سبب الخطأ من الخادم
+      let serverMsg = "";
+      try {
+        const data = await res.json();
+        serverMsg = data.error || data.message || "";
+      } catch (_) {
+        try {
+          const raw = await res.text();
+          if (raw && raw.length < 500 && !raw.trim().startsWith("<")) serverMsg = raw.trim();
+        } catch (_e) {
+          /* تجاهل */
+        }
+      }
+      const err = new Error(explainHttpError(res.status, serverMsg));
+      err.isFatal = true;
+      throw err;
     }
 
     await readSse(res, (event, data) => {
@@ -511,6 +550,12 @@ async function ask(question, opts = {}) {
   } catch (err) {
     if (err.name === "AbortError") {
       bubble.innerHTML = markdownToHtml(answerText || "_تم إيقاف الإجابة._");
+    } else if (err.isFatal) {
+      bubble.innerHTML = `<p>${escapeHtml(err.message)}</p>
+        <div class="btn-row" style="margin-top:10px">
+          <button class="ghost-btn" onclick="document.getElementById('adminModal').hidden=false;document.getElementById('runDiagnose').click()">🩺 فحص تشغيل الأداة</button>
+        </div>`;
+      toast("تعذّر تنفيذ السؤال — راجع نتيجة الفحص", "err");
     } else {
       // محاولة غير متدفقة
       try {
@@ -521,8 +566,9 @@ async function ask(question, opts = {}) {
         renderSources(sourcesBox, sources, docs);
         bubble.innerHTML = markdownToHtml(answerText);
       } catch (err2) {
-        bubble.innerHTML = `<p class="muted">تعذّر تنفيذ السؤال: ${escapeHtml(err2.message || err.message)}</p>`;
-        toast(err2.message || String(err.message || err), "err");
+        const message = explainHttpError(0, err2.message || err.message);
+        bubble.innerHTML = `<p class="muted">تعذّر تنفيذ السؤال: ${escapeHtml(message)}</p>`;
+        toast("تعذّر تنفيذ السؤال", "err");
       }
     }
   } finally {
@@ -674,6 +720,33 @@ async function saveTranscript() {
 async function refreshAfterImport(videoId) {
   await Promise.all([loadStats(), loadVideos($("videoSearch").value), loadMissing()]);
   if (videoId) await openVideoModal(videoId);
+}
+
+/** فحص تشغيل الأداة وعرض النتيجة بشكل مقروء */
+async function runDiagnose() {
+  const box = $("diagnoseBox");
+  box.hidden = false;
+  box.innerHTML = `<span class="spinner"></span> جارٍ الفحص…`;
+  try {
+    const data = await getJson(API.diagnose);
+    const marks = { ok: "✅", warn: "⚠️", fail: "❌" };
+    box.innerHTML =
+      `<div class="diag-summary ${data.ok ? "ok" : "fail"}">${escapeHtml(data.summary || "")}</div>` +
+      (data.checks || [])
+        .map(
+          (c) => `<div class="diag-row">
+            <span class="mark">${marks[c.level] || "•"}</span>
+            <span>
+              <span class="diag-name">${escapeHtml(c.name)}</span>
+              ${c.detail ? ` — <span class="diag-detail">${escapeHtml(c.detail)}</span>` : ""}
+            </span>
+          </div>`
+        )
+        .join("");
+  } catch (err) {
+    const status = Number((err.message || "").match(/خطأ (\d+)/)?.[1] || 0);
+    box.innerHTML = `<div class="diag-summary fail">${escapeHtml(explainHttpError(status, err.message))}</div>`;
+  }
 }
 
 async function loadMissing() {
@@ -1063,6 +1136,7 @@ function bindEvents() {
     if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) saveTranscript();
   });
   $("loadMissing").addEventListener("click", loadMissing);
+  $("runDiagnose").addEventListener("click", runDiagnose);
   $("inVideoSearchBtn").addEventListener("click", () => {
     if (state.currentVideoId) openVideoModal(state.currentVideoId, 0, $("inVideoSearch").value.trim());
   });

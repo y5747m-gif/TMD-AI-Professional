@@ -1,0 +1,32 @@
+# =============================================================================
+#  إعدادات Vercel: ما الذي لا يُرفع مع النشر
+#  الغرض: نشر نظيف وسريع، ومنع أي ملف قديم من الظهور على الموقع المنشور.
+# =============================================================================
+
+# النسخة القديمة (T.M.D AI v1) — للرجوع المحلي فقط، لا تُنشر
+legacy/
+
+# الاختبارات وأدوات التطوير
+mishkat/test/
+mishkat/scripts/
+node_modules/
+.npm/
+
+# قاعدة البيانات المحلية (الثقيلة والمتغيّرة) — يُنشر ملف index.json فقط
+mishkat/data/*.db
+mishkat/data/*.db-wal
+mishkat/data/*.db-shm
+mishkat/data/*.sqlite
+mishkat/data/*.sqlite3
+mishkat/data/tmp/
+mishkat/data/logs/
+
+# ملفات بيئة ووثائق لا حاجة لها في النشر
+.env
+.env.*
+.git/
+.gitignore
+*.md
+!README.md
+coverage/
+*.log

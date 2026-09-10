@@ -292,3 +292,37 @@ test("GET /api/missing يسرد الفيديوهات التي تحتاج نصً�
   assert.ok(!data.videos.some((v) => v.id === "vidAdha00001"));
   assert.ok(data.hint.includes("cli.js import"));
 });
+
+/* ==============================================================
+ *  رسائل واضحة بدل الأخطاء الغامضة (خبرة تشخيص 500)
+ * ============================================================== */
+
+test("GET /api/diagnose يعمل محليًا ويشخّص الحالة", async () => {
+  const data = await (await fetch(`${base}/api/diagnose`)).json();
+  assert.equal(typeof data.ok, "boolean");
+  assert.ok(data.checks.length >= 6);
+  assert.ok(data.checks.some((c) => c.name.includes("قاعدة البيانات")));
+  assert.ok(data.checks.some((c) => c.name.includes("ملفات الواجهة")));
+  assert.ok(data.stats);
+});
+
+test("المسار القديم /api/chat يعطي رسالة تحديث لا انهيارًا", async () => {
+  const data = await (
+    await fetch(`${base}/api/chat`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ messages: [] })
+    })
+  ).json();
+  assert.equal(data.ok, true);
+  assert.ok(data.message.includes("مشكاة"));
+  assert.equal(data.upgraded, true);
+});
+
+test("المسارات القديمة الأخرى تُرجع رسالة إزالة واضحة", async () => {
+  for (const retired of ["/api/image", "/api/upload", "/api/owner-login", "/api/references-search"]) {
+    const data = await (await fetch(`${base}${retired}`)).json();
+    assert.equal(data.upgraded, true, retired);
+    assert.ok(data.error.includes(retired));
+  }
+});
