@@ -12,6 +12,7 @@
     }
   ],
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index?path=$1" },
     { "source": "/", "destination": "/mishkat/public/index.html" },
     { "source": "/index.html", "destination": "/mishkat/public/index.html" },
     { "source": "/app.js", "destination": "/mishkat/public/app.js" },
@@ -19,7 +20,7 @@
     { "source": "/favicon.ico", "destination": "/mishkat/public/favicon.ico" }
   ],
   "functions": {
-    "api/*.js": {
+    "api/index.js": {
       "maxDuration": 60,
       "includeFiles": "mishkat/data/**"
     }

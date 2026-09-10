@@ -26,6 +26,7 @@ const retrieve = require("./retrieve");
 const ai = require("./ai");
 const arabic = require("./arabic");
 const importer = require("./import");
+const legacy = require("./legacy");
 
 /* ---------------- متجر البيانات (يُخزَّن بين الطلبات) ---------------- */
 
@@ -283,6 +284,16 @@ const EXPECTED_ROUTES = [
   "purge-demo", "search", "stats", "suggest", "summarize", "video", "videos"
 ];
 
+/**
+ * مسارات النسخة القديمة (T.M.D AI v1) — تُخدَم بطبقة التوافق بدل أن تُرجع 500.
+ * وجودها ضروري لأن بعض المتصفحات تحتفظ بواجهة قديمة في الذاكرة المؤقتة.
+ */
+const COMPAT_ROUTES = [
+  "chat", "settings", "image", "upload", "owner-login", "owner-logout",
+  "references-search", "islamweb-search", "sharia-search", "sharia-classify",
+  "sharia-summary", "mishkat"
+];
+
 /** فحص شامل لبيئة النشر: يشرح أي خلل بدل أن يُظهر خطأ غامضًا */
 function buildDiagnosis() {
   const checks = [];
@@ -372,7 +383,33 @@ function buildDiagnosis() {
   }
 
   // 7) مسارات API
-  add("مسارات API", "ok", `${EXPECTED_ROUTES.length} مسارًا: /api/${EXPECTED_ROUTES.join(" • /api/")}`);
+  add(
+    "مسارات API",
+    "ok",
+    `${EXPECTED_ROUTES.length} مسارًا في دالة واحدة (api/index.js): /api/${EXPECTED_ROUTES.join(" • /api/")}`
+  );
+  // عدد دوال Serverless: الخطة المجانية تسمح بـ 12 لكل نشر، وتجاوزها يُفشل النشر كاملًا
+  let functionCount = 1;
+  try {
+    const apiDir = path.join(process.cwd(), "api");
+    if (fs.existsSync(apiDir)) {
+      functionCount = fs.readdirSync(apiDir).filter((f) => f.endsWith(".js") && !f.startsWith("_")).length;
+    }
+  } catch (_) {
+    functionCount = 1;
+  }
+  add(
+    "دوال النشر (حد Vercel المجاني 12)",
+    functionCount <= 12 ? "ok" : "fail",
+    functionCount <= 12
+      ? `${functionCount} دالة Serverless — كل المسارات تُخدَم عبر api/index.js وإعادة كتابة /api/(.*) → /api/index?path=$1`
+      : `${functionCount} دالة! تجاوز الحد المسموح (12) ⟹ يفشل النشر كاملًا. اجمع المسارات في api/index.js`
+  );
+  add(
+    "توافق المسارات القديمة",
+    "ok",
+    `${COMPAT_ROUTES.length} مسارًا قديمًا تُخدَم برسالة واضحة: /api/${COMPAT_ROUTES.join(" • /api/")}`
+  );
 
   const failed = checks.filter((c) => c.level === "fail").length;
   const warned = checks.filter((c) => c.level === "warn").length;
@@ -512,6 +549,22 @@ function createVercelHandler(forcedRoute) {
           error:
             "سحب النصوص يعمل محليًا فقط (npm run ingest). ثم انسخ mishkat/data/index.json وأعد النشر على Vercel."
         });
+      }
+
+      if (route === "index" || route === "routes") {
+        return sendJson(res, 200, {
+          ok: true,
+          service: "مشكاة — Mishkat API",
+          routes: EXPECTED_ROUTES.map((r) => `/api/${r}`),
+          compat: COMPAT_ROUTES.map((r) => `/api/${r}`),
+          note: "دالة Vercel واحدة تخدم كل المسارات عبر إعادة كتابة /api/(.*) → /api/index?path=$1 (حد الخطة المجانية: 12 دالة)."
+        });
+      }
+
+      if (COMPAT_ROUTES.includes(route)) {
+        if (route === "chat") return legacy.chatShim(req, res);
+        if (route === "settings") return legacy.settingsShim(req, res);
+        return legacy.retiredShim(route)(req, res);
       }
 
       return sendJson(res, 404, { ok: false, error: `مسار غير معروف: ${route}` });

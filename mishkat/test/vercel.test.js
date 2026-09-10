@@ -58,25 +58,22 @@ function writeTestIndex() {
   return data;
 }
 
-/** يحاكي بيئة Vercel: يستدعي ملف api مباشرة بـ (req, res) */
+/**
+ * يحاكي بيئة Vercel بدقة:
+ *   دالة واحدة api/index.js + إعادة كتابة vercel.json
+ *   /api/x?y=1  ⟶  /api/index?path=x&y=1
+ * (نفس ما تفعله المنصة: المعاملات الأصلية تبقى ويُضاف path)
+ */
 function startVercelServer() {
   return new Promise((resolve) => {
     const server = http.createServer(async (req, res) => {
       const url = new URL(req.url, "http://127.0.0.1");
-      // /api/video?id=... => ملف api/video.js ، و /api/x => api/x.js
-      const name = url.pathname.replace(/^\/api\/?/, "").split("/")[0] || "health";
-      let mod;
-      try {
-        mod = require(path.join(ROOT, "api", `${name}.js`));
-      } catch (_) {
-        try {
-          mod = require(path.join(ROOT, "api", `${name.replace(/-/g, "_")}.js`));
-        } catch (_e) {
-          res.statusCode = 404;
-          return res.end(JSON.stringify({ ok: false, error: `no function for ${name}` }));
-        }
-      }
-      req.query = Object.fromEntries(url.searchParams.entries());
+      const name = url.pathname.replace(/^\/api\/?/, "");
+      const mod = require(path.join(ROOT, "api", "index.js"));
+      const params = new URLSearchParams(url.searchParams);
+      if (name) params.set("path", name);
+      req.url = `/api/index${params.toString() ? `?${params.toString()}` : ""}`;
+      req.query = Object.fromEntries(params.entries());
       await mod(req, res);
     });
     server.listen(0, "127.0.0.1", () => resolve(server));
@@ -217,34 +214,46 @@ test("مسار غير معروف يعطي 404 بصيغة JSON", async () => {
   assert.equal(res.status, 404);
 });
 
-test("جدول المسارات في api/ مكتمل ويطابق واجهة الويب", () => {
+test("دالة نشر واحدة فقط داخل api/ (حد Vercel المجاني = 12 دالة)", () => {
   const files = fs.readdirSync(path.join(ROOT, "api")).filter((f) => f.endsWith(".js"));
-  for (const required of [
-    "ask.js",
-    "config.js",
-    "health.js",
-    "ingest.js",
-    "purge-demo.js",
-    "search.js",
-    "stats.js",
-    "suggest.js",
-    "summarize.js",
-    "video.js",
-    "videos.js"
-  ]) {
-    assert.ok(files.includes(required), `الملف الناقص: api/${required}`);
-  }
+  const limit = 12; // Hobby plan: أقصى عدد دوال Serverless لكل نشر
+  assert.ok(
+    files.length <= limit,
+    `عدد دوال النشر ${files.length} يتجاوز حد الخطة المجانية (${limit}) ⟹ يفشل النشر كاملًا`
+  );
+  assert.deepEqual(files, ["index.js"], "يجب أن تكون كل المسارات في دالة واحدة api/index.js");
 
-  // كل مسار في الواجهة يجب أن يقابل مسارًا في api/
+  // إعادة الكتابة التي تُوصل كل /api/* إلى الدالة الواحدة
+  const vj = JSON.parse(fs.readFileSync(path.join(ROOT, "vercel.json"), "utf8"));
+  const apiRewrite = (vj.rewrites || []).find((r) => r.source === "/api/(.*)");
+  assert.ok(apiRewrite, "vercel.json يجب أن يعيد كتابة /api/(.*)");
+  assert.equal(apiRewrite.destination, "/api/index?path=$1");
+  assert.ok(vj.functions["api/index.js"], "إعداد الدالة يجب أن يشير إلى api/index.js");
+  assert.equal(vj.functions["api/*.js"], undefined, "لا يُسمح بإعداد يطابق ملفات متعددة (كان يضاعف الدوال)");
+});
+
+test("كل مسار تستدعيه الواجهة موجود فعلًا في الموجّه", async () => {
+  const files = fs.readdirSync(path.join(ROOT, "api")).filter((f) => f.endsWith(".js"));
+  assert.ok(files.length > 0);
+
+  // مسارات الواجهة الحالية
   const app = fs.readFileSync(path.join(ROOT, "mishkat", "public", "app.js"), "utf8");
-  const endpoints = [...app.matchAll(/^\s*(?:ask|search|videos|summarize|ingest|stats|config|purgeDemo|health):\s*"([^"]+)"/gm)].map(
+  const endpoints = [...app.matchAll(/^\s*(?:ask|search|videos|summarize|ingest|stats|config|purgeDemo|health|import|missing|diagnose|video):\s*"([^"]+)"/gm)].map(
     (m) => m[1]
   );
   assert.ok(endpoints.length >= 6, `عدد المسارات المكتشفة: ${endpoints.length}`);
+
+  // كل مسار يستجيب فعليًا عبر الدالة الواحدة (لا 404 من المنصة)
   for (const ep of endpoints) {
-    const name = ep.replace(/^\/api\//, "").split("?")[0];
-    assert.ok(files.includes(`${name}.js`), `لا يوجد api/${name}.js للمسار ${ep}`);
+    const res = await fetch(`${base}${ep.startsWith("/") ? ep : `/${ep}`}`, { method: ep.includes("/search") ? "POST" : "GET" });
+    assert.notEqual(res.status, 404, `المسار ${ep} غير موجود في الموجّه`);
   }
+
+  // وفهرس المسارات نفسه يشرح كل شيء
+  const routes = await (await fetch(`${base}/api/`)).json();
+  assert.equal(routes.ok, true);
+  assert.ok(routes.routes.includes("/api/ask"));
+  assert.ok(routes.compat.includes("/api/chat"));
 });
 
 /* ==============================================================
@@ -303,7 +312,17 @@ test("المسارات القديمة تُرجع رسالة واضحة (لا 500
   assert.equal(settings.ok, true);
   assert.ok(settings.settings.siteName.length > 0);
 
-  for (const retired of ["image", "upload", "owner-login", "owner-logout", "references-search"]) {
+  for (const retired of [
+    "image",
+    "upload",
+    "owner-login",
+    "owner-logout",
+    "references-search",
+    "islamweb-search",
+    "sharia-search",
+    "sharia-classify",
+    "sharia-summary"
+  ]) {
     const data = await (await fetch(`${base}/api/${retired}`)).json();
     assert.equal(data.upgraded, true, `api/${retired}`);
     assert.ok(data.error.includes(retired));
@@ -324,6 +343,10 @@ test("GET /api/diagnose يُرجع فحوصًا كاملة وحكمًا واضح
   assert.ok(names.includes("ملف الفهرس"));
   assert.ok(names.includes("محرك الذكاء"));
   assert.ok(names.includes("استرجاع"));
+  // فحص حد الدوال (الخطة المجانية = 12) يجب أن يظهر بحالة سليمة
+  const fnCheck = data.checks.find((c) => c.name.includes("دوال النشر"));
+  assert.ok(fnCheck, "فحص عدد دوال النشر مطلوب في التشخيص");
+  assert.equal(fnCheck.level, "ok", fnCheck.detail);
   // لا يُكشف أي قيمة مفتاح سرّي
   assert.ok(!JSON.stringify(data).includes("test-key"));
 });
