@@ -21,6 +21,7 @@ const retrieve = require("./lib/retrieve");
 const ai = require("./lib/ai");
 const { ingestChannel, ingestOneVideo } = require("./lib/ingest");
 const youtube = require("./lib/youtube");
+const importer = require("./lib/import");
 
 const store = openStore();
 
@@ -366,6 +367,46 @@ async function handleSummarize(req, res) {
   }
 }
 
+async function handleImport(req, res) {
+  const body = await readBody(req);
+  if (!isAdmin(req, body)) {
+    return sendJson(res, 401, {
+      ok: false,
+      error: "إدخال النصوص يتطلب كلمة مرور المدير (MISHKAT_ADMIN_TOKEN)."
+    });
+  }
+
+  const videoId = String(body.videoId || body.id || body.url || "").trim();
+  const content = String(body.content || body.text || "");
+  if (!videoId) return sendJson(res, 400, { ok: false, error: "معرّف الفيديو أو رابط يوتيوب مطلوب." });
+  if (!content.trim()) return sendJson(res, 400, { ok: false, error: "الصق نص الدرس أو ارفع ملف الترجمة." });
+
+  try {
+    const result = await importer.importTranscript(store, videoId, content, {
+      format: body.format || "auto",
+      filename: body.filename || "",
+      replace: body.replace !== false,
+      title: body.title || "",
+      durationS: Number(body.durationS || 0) || undefined,
+      fetchMeta: body.fetchMeta !== false
+    });
+    try {
+      store.exportJsonIndex();
+    } catch (_) {
+      /* اختياري */
+    }
+    return sendJson(res, 200, { ok: true, result });
+  } catch (err) {
+    return sendJson(res, 400, { ok: false, error: String(err.message || err) });
+  }
+}
+
+function handleMissing(res, url) {
+  const limit = Number(url.searchParams.get("limit") || 200);
+  const report = importer.missingTranscripts(store, { limit });
+  return sendJson(res, 200, { ok: true, ...report });
+}
+
 async function handlePurgeDemo(req, res) {
   const body = await readBody(req);
   if (!isAdmin(req, body)) {
@@ -522,6 +563,8 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (pathname === "/api/ingest" && req.method === "POST") return handleIngest(req, res);
+    if (pathname === "/api/import" && req.method === "POST") return handleImport(req, res);
+    if (pathname === "/api/missing" && req.method === "GET") return handleMissing(res, url);
     if (pathname === "/api/summarize" && req.method === "POST") return handleSummarize(req, res);
     if (pathname === "/api/purge-demo" && req.method === "POST") return handlePurgeDemo(req, res);
 

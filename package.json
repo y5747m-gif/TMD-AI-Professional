@@ -3,7 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "description": "مشكاة — أداة ذكاء اصطناعي للإجابة على الأسئلة الدينية من نصوص قناة يوتيوب، مع قاعدة بيانات محلية وتوثيق كل نص برابط الفيديو وتوقيته.",
-  "keywords": ["mishkat", "مشكاة", "islamic-ai", "youtube-transcript", "sqlite", "fts5", "rag"],
+  "keywords": [
+    "mishkat",
+    "مشكاة",
+    "islamic-ai",
+    "youtube-transcript",
+    "sqlite",
+    "fts5",
+    "rag"
+  ],
   "license": "MIT",
   "engines": {
     "node": ">=20"
@@ -22,6 +30,8 @@
     "purge-demo": "node mishkat/cli.js purge-demo",
     "export": "node mishkat/cli.js export",
     "doctor": "node mishkat/cli.js doctor",
-    "test": "node mishkat/scripts/test.js"
+    "test": "node mishkat/scripts/test.js",
+    "import": "node mishkat/cli.js import",
+    "missing": "node mishkat/cli.js missing"
   }
 }

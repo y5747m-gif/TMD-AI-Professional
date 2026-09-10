@@ -254,6 +254,96 @@ function cmdPurgeDemo() {
   log(`${C.green}✓ تم حذف ${removed} فيديو تجريبي والمستندات التجريبية.${C.reset}`);
 }
 
+async function cmdImport(flags) {
+  const importer = require("./lib/import");
+  const store = openStore();
+  const replace = flags["no-replace"] ? false : true;
+  const fetchMeta = flags["no-meta"] ? false : true;
+
+  // (أ) من مجلد
+  if (flags.dir) {
+    title(`استيراد ملفات الترجمة من: ${flags.dir}`);
+    const summary = await importer.importDirectory(store, String(flags.dir), {
+      replace,
+      fetchMeta,
+      onProgress: (p) => {
+        if (p.status === "ok") log(`  ${C.green}✓${C.reset} ${p.file} → ${p.chunks} مقطع (${p.videoId})`);
+        else if (p.status === "skipped") log(`  ${C.gold}↺${C.reset} ${p.file} — ${p.reason || "تم تخطيه"}`);
+        else log(`  ${C.red}✗${C.reset} ${p.file} — ${p.reason}`);
+      }
+    });
+    title("الخلاصة");
+    log(`  نجح: ${summary.ok} | فشل: ${summary.failed} | تُخطّي: ${summary.skipped}`);
+    log(`  المقاطع المضافة: ${summary.chunks} — الأحرف: ${summary.chars}`);
+    if (summary.failures.length) {
+      log(`\n${C.dim}ملفات لم تُستورد:${C.reset}`);
+      summary.failures.slice(0, 10).forEach((f) => log(`  - ${f.file}: ${f.reason}`));
+    }
+    log(`\n${C.dim}تلميح: سمِّ الملف بمعرّف الفيديو، مثل: vidSalah0001.srt${C.reset}`);
+    return;
+  }
+
+  // (ب) نص مكتوب أو ملف
+  const videoId = flags.video || flags.url || "";
+  let content = flags.text ? String(flags.text) : "";
+  if (!content && flags.file) {
+    const file = path.resolve(String(flags.file));
+    if (!fs.existsSync(file)) {
+      log(`${C.red}الملف غير موجود:${C.reset} ${file}`);
+      process.exit(1);
+    }
+    content = fs.readFileSync(file, "utf8");
+    flags.filename = path.basename(file);
+  }
+  if (!videoId || !content) {
+    log(`${C.red}الاستخدام:${C.reset}
+  node mishkat/cli.js import --video <ID> --file <ملف.srt|vtt|txt> [--replace] [--no-meta]
+  node mishkat/cli.js import --video <ID> --text "نص الدرس…"
+  node mishkat/cli.js import --dir <مجلد ملفات الترجمة>`);
+    process.exit(1);
+  }
+
+  title(`إدخال النص للفيديو: ${videoId}`);
+  try {
+    const res = await importer.importTranscript(store, videoId, content, {
+      format: flags.format || "auto",
+      filename: flags.filename || "",
+      replace,
+      fetchMeta,
+      title: flags.title || "",
+      durationS: flags.duration ? Number(flags.duration) : undefined
+    });
+    log(`${C.green}✓ تم الإدخال${C.reset}`);
+    log(`  العنوان       : ${res.title}`);
+    log(`  الصيغة        : ${res.format}`);
+    log(`  المقاطع       : ${res.chunks} (من ${res.segments} سطرًا)`);
+    log(`  الأحرف        : ${res.chars}`);
+    if (res.channelVerified === false) log(`  ${C.gold}⚠ ${res.warnings[0]}${C.reset}`);
+    res.warnings.filter((w) => !w.includes("ليست من القناة")).forEach((w) => log(`  ${C.gold}⚠ ${w}${C.reset}`));
+    log(`  الرابط        : ${C.cyan}https://www.youtube.com/watch?v=${res.videoId}${C.reset}`);
+  } catch (err) {
+    log(`${C.red}✗ تعذّر الإدخال:${C.reset} ${err.message}`);
+    process.exit(1);
+  }
+}
+
+function cmdMissing(flags) {
+  const store = openStore();
+  const report = require("./lib/import").missingTranscripts(store, { limit: Number(flags.limit || 50) });
+  title("الفيديوهات التي لا يوجد لها نص");
+  log(`  إجمالي الفيديوهات : ${report.total}`);
+  log(`  ${C.green}مفهرسة بنص${C.reset}       : ${report.indexed}`);
+  log(`  ${C.gold}تحتاج نصًا${C.reset}        : ${report.missing}`);
+  if (report.videos.length) {
+    log("");
+    report.videos.forEach((v, i) => {
+      log(`${i + 1}. ${v.title}`);
+      log(`   ${C.cyan}${v.url}${C.reset} ${C.dim}— ${v.reason}${C.reset}`);
+    });
+    log(`\n${C.dim}${report.hint}${C.reset}`);
+  }
+}
+
 async function cmdDoctor() {
   const checks = [];
   /** level: ok | warn | fail */
@@ -352,6 +442,13 @@ async function main() {
     case "ingest":
       await cmdIngest(flags);
       break;
+    case "import":
+    case "add-transcript":
+      await cmdImport(flags);
+      break;
+    case "missing":
+      cmdMissing(flags);
+      break;
     case "ask":
       await cmdAsk(arg, flags);
       break;
@@ -393,6 +490,10 @@ async function main() {
   stats                                     إحصاءات
   videos [--q كلمة] [--limit N]             سرد الفيديوهات
   video <id> [--q كلمة]                     عرض نص فيديو
+  import --video ID --file subs.srt         إدخال نص/ترجمة لفيديو
+  import --video ID --text "نص الدرس"       إدخال نص ملصوق مباشرة
+  import --dir ./subtitles                  استيراد مجلد ملفات ترجمة
+  missing [--limit N]                       الفيديوهات التي تحتاج نصًا
   add-doc --title .. --text ..              إضافة مستند مرجعي
   export [--out ملف]                        تصدير نسخة JSON
   seed-demo | purge-demo                    بيانات تجريبية

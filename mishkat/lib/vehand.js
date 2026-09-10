@@ -25,6 +25,7 @@ const { openStore } = require("./db");
 const retrieve = require("./retrieve");
 const ai = require("./ai");
 const arabic = require("./arabic");
+const importer = require("./import");
 
 /* ---------------- متجر البيانات (يُخزَّن بين الطلبات) ---------------- */
 
@@ -354,6 +355,21 @@ function createVercelHandler(forcedRoute) {
       if (route === "summarize") {
         if (req.method !== "POST") return sendJson(res, 405, { ok: false, error: "استخدم POST." });
         return handleSummarize(req, res, await readBody(req));
+      }
+
+      if (route === "missing") {
+        return sendJson(res, 200, { ok: true, ...importer.missingTranscripts(getStore(), { limit: Number(query.limit || 200) }) });
+      }
+
+      if (route === "import") {
+        // النسخة المنشورة للقراءة فقط: لا يمكن تعديل البيانات على Vercel
+        return sendJson(res, 501, {
+          ok: false,
+          readOnly: true,
+          error:
+            "إدخال النصوص يعمل محليًا: افتح الفيديو ثم «＋ أضف نصًا» على http://localhost:3000، " +
+            "أو استخدم node mishkat/cli.js import، ثم انسخ mishkat/data/index.json وأعد النشر."
+        });
       }
 
       if (route === "ingest" || route === "purge-demo") {

@@ -127,7 +127,9 @@ function buildChunks(segments, opts = {}) {
     const wouldExceed = current.length + seg.text.length + 1 > chunkChars;
     const tooLong = seg.endMs - current.startMs > maxMs;
     const longPause = gap > 3500;
-    if ((wouldExceed || tooLong || longPause) && current.length >= 120) {
+    // نُنهي المقطع عند: امتلاء الأحرف (بشرط ألا يكون صغيرًا جدًا)، أو تجاوز المدة، أو وقفة طويلة
+    const mustFlush = (wouldExceed && current.length >= 120) || tooLong || longPause;
+    if (mustFlush) {
       flush();
       if (!current) {
         current = { startMs: seg.startMs, endMs: seg.endMs, parts: [seg.text], length: seg.text.length };

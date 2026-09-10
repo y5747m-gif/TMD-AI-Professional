@@ -12,7 +12,9 @@ const API = {
   video: (id) => `/api/video?id=${encodeURIComponent(id)}`,
   ingest: "/api/ingest",
   purgeDemo: "/api/purge-demo",
-  summarize: "/api/summarize"
+  summarize: "/api/summarize",
+  import: "/api/import",
+  missing: "/api/missing"
 };
 
 const state = {
@@ -342,7 +344,12 @@ function renderSources(container, sources, docs) {
     container.appendChild(el("div", "sources-title", `النصوص من القناة (${sources.length})`));
     sources.forEach((s, i) => {
       const card = el("div", "source-card");
-      const badge = s.sourceKind === "demo" ? '<span class="badge">بيانات تجريبية</span>' : "";
+      const badge =
+        s.sourceKind === "demo"
+          ? '<span class="badge">بيانات تجريبية</span>'
+          : s.sourceKind === "manual" || s.sourceKind === "manual-external"
+          ? '<span class="badge manual">نص مُدخل يدويًا</span>'
+          : "";
       card.innerHTML = `
         <div class="source-head">
           <span class="source-num">${i + 1}</span>
@@ -567,9 +574,12 @@ async function openVideoModal(videoId, startMs = 0, query = "") {
     const box = $("transcript");
     box.innerHTML = "";
     if (!data.segments.length) {
-      box.innerHTML = `<p class="muted">لا يوجد نص مفهرس لهذا الفيديو${query ? " مطابق للبحث" : ""}.</p>`;
+      box.innerHTML = `<p class="muted">لا يوجد نص مفهرس لهذا الفيديو${query ? " مطابق للبحث" : ""} — أضف نصه من زر «＋ أضف نصًا» بالأعلى.</p>`;
+      $("importPanel").hidden = false;
+      $("importLog").hidden = true;
       return;
     }
+    $("importPanel").hidden = true;
     const frag = document.createDocumentFragment();
     let target = null;
     for (const s of data.segments) {
@@ -598,6 +608,98 @@ async function openVideoModal(videoId, startMs = 0, query = "") {
     }
   } catch (err) {
     $("transcript").innerHTML = `<p class="muted">تعذّر تحميل النص: ${escapeHtml(err.message)}</p>`;
+  }
+}
+
+/* ---------- إدخال النص يدويًا ---------- */
+
+async function saveTranscript() {
+  const videoId = state.currentVideoId;
+  if (!videoId) return;
+  const text = $("importText").value;
+  const file = $("importFile").files?.[0] || null;
+  const logBox = $("importLog");
+  const show = (msg, cls = "") => {
+    logBox.hidden = false;
+    logBox.innerHTML = `<div class="${cls}">${escapeHtml(msg)}</div>`;
+  };
+
+  if (!text.trim() && !file) {
+    return toast("الصق النص أو اختر ملف ترجمة أولًا", "err");
+  }
+
+  let content = text;
+  let filename = "";
+  if (file) {
+    content = await file.text();
+    filename = file.name;
+    if (text.trim()) content = `${text}\n\n${content}`;
+  }
+
+  show("جارٍ التحليل والفهرسة…");
+  $("importSave").disabled = true;
+  try {
+    const res = await fetch(API.import, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        ...(state.adminToken ? { "x-admin-token": state.adminToken } : {})
+      },
+      body: JSON.stringify({
+        videoId,
+        content,
+        filename,
+        replace: $("importReplace").checked
+      })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) throw new Error(data.error || `خطأ ${res.status}`);
+
+    const r = data.result;
+    show(`✓ تم حفظ النص: ${r.chunks} مقطع (${r.chars} حرف) — الصيغة: ${r.format}`, "ok");
+    (r.warnings || []).forEach((w) => show(`⚠ ${w}`));
+    toast("تم فهرسة النص بنجاح", "ok");
+    $("importText").value = "";
+    $("importFile").value = "";
+    $("importFileName").textContent = "لم يُختر ملف";
+    await refreshAfterImport(videoId);
+  } catch (err) {
+    show(`✗ ${err.message}`, "fail");
+    toast(err.message, "err");
+  } finally {
+    $("importSave").disabled = false;
+  }
+}
+
+async function refreshAfterImport(videoId) {
+  await Promise.all([loadStats(), loadVideos($("videoSearch").value), loadMissing()]);
+  if (videoId) await openVideoModal(videoId);
+}
+
+async function loadMissing() {
+  const list = $("missingList");
+  if (!list) return;
+  try {
+    const data = await getJson(`${API.missing}?limit=60`);
+    $("missingCount").textContent = `${data.missing} فيديو`;
+    list.innerHTML = "";
+    if (!data.videos.length) {
+      list.innerHTML = `<p class="muted small">🎉 كل الفيديوهات لها نص مفهرس.</p>`;
+      return;
+    }
+    for (const v of data.videos) {
+      const item = el("button", "video-item");
+      item.innerHTML = `
+        <span class="v-title">${escapeHtml(v.title || v.id)}</span>
+        <span class="v-meta"><span class="badge err">بلا نص</span><span>${escapeHtml(v.id)}</span></span>`;
+      item.addEventListener("click", () => {
+        $("adminModal").hidden = true;
+        openVideoModal(v.id);
+      });
+      list.appendChild(item);
+    }
+  } catch (_) {
+    list.innerHTML = `<p class="muted small">تعذّر تحميل القائمة.</p>`;
   }
 }
 
@@ -944,6 +1046,23 @@ function bindEvents() {
   });
 
   $("summarizeBtn").addEventListener("click", summarizeCurrentVideo);
+
+  // إدخال النص
+  $("addTranscriptBtn").addEventListener("click", () => {
+    const panel = $("importPanel");
+    panel.hidden = !panel.hidden;
+    if (!panel.hidden) $("importText").focus();
+  });
+  $("importSave").addEventListener("click", saveTranscript);
+  $("importFile").addEventListener("change", (e) => {
+    const f = e.target.files?.[0];
+    $("importFileName").textContent = f ? `${f.name} (${Math.round(f.size / 1024)}ك.ب)` : "لم يُختر ملف";
+    if (f) toast("تم اختيار الملف — اضغط «احفظ وفهرس النص»", "ok");
+  });
+  $("importText").addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) saveTranscript();
+  });
+  $("loadMissing").addEventListener("click", loadMissing);
   $("inVideoSearchBtn").addEventListener("click", () => {
     if (state.currentVideoId) openVideoModal(state.currentVideoId, 0, $("inVideoSearch").value.trim());
   });
@@ -957,6 +1076,7 @@ function bindEvents() {
   $("adminBtn").addEventListener("click", () => {
     $("adminModal").hidden = false;
     $("adminToken").value = state.adminToken;
+    loadMissing();
   });
   $("adminToken").addEventListener("change", (e) => {
     state.adminToken = e.target.value.trim();

@@ -211,3 +211,84 @@ test("الطلب بـ OPTIONS يرجّع 204 (CORS)", async () => {
   const res = await fetch(`${base}/api/ask`, { method: "OPTIONS" });
   assert.equal(res.status, 204);
 });
+
+/* ==============================================================
+ *  إدخال النصوص يدويًا عبر الواجهة
+ * ============================================================== */
+
+const SRT_FOR_API = `1
+00:00:05,000 --> 00:00:12,000
+أحكام الأضحية تبدأ ببيان وقت الذبح وهو بعد صلاة العيد إلى آخر أيام التشريق
+
+2
+00:01:40,000 --> 00:01:55,000
+ويشترط في الأضحية أن تكون من الأنعام وأن تبلغ السن المعتبرة شرعًا وسلامتها من العيوب`;
+
+test("POST /api/import يتطلب كلمة مرور المدير", async () => {
+  const res = await fetch(`${base}/api/import`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ videoId: "vidAdha00001", content: SRT_FOR_API })
+  });
+  assert.equal(res.status, 401);
+  const data = await res.json();
+  assert.equal(data.ok, false);
+});
+
+test("POST /api/import بمحتوى فارغ يُرفض برسالة واضحة", async () => {
+  const res = await fetch(`${base}/api/import`, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-admin-token": "test-secret" },
+    body: JSON.stringify({ videoId: "vidAdha00001", content: "   " })
+  });
+  assert.equal(res.status, 400);
+});
+
+test("POST /api/import يضيف النص ويصبح قابلًا للبحث بالوقت والرابط", async () => {
+  const res = await fetch(`${base}/api/import`, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-admin-token": "test-secret" },
+    body: JSON.stringify({
+      videoId: "https://www.youtube.com/watch?v=vidAdha00001",
+      content: SRT_FOR_API,
+      filename: "vidAdha00001.srt",
+      title: "أحكام الأضحية",
+      fetchMeta: false
+    })
+  });
+  const data = await res.json();
+  assert.equal(data.ok, true, JSON.stringify(data));
+  assert.equal(data.result.videoId, "vidAdha00001");
+  assert.equal(data.result.format, "srt");
+  assert.ok(data.result.chunks >= 1);
+  assert.equal(data.result.sourceKind, "manual");
+
+  // النص يُستشهد به في موضعه الزمني الصحيح
+  const search = await (
+    await fetch(`${base}/api/search`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ query: "ما شروط الأضحية وما وقت الذبح؟" })
+    })
+  ).json();
+  const hits = search.results.filter((r) => r.videoId === "vidAdha00001");
+  assert.ok(hits.length > 0, "يجب أن يعيد البحث النص المُدخل");
+  assert.match(hits[0].link, /^https:\/\/www\.youtube\.com\/watch\?v=vidAdha00001/);
+  assert.ok(hits.some((r) => r.text.includes("الأنعام") || r.text.includes("التشريق")));
+
+  // ويمكن قراءته كاملًا من مسار الفيديو
+  const video = await (await fetch(`${base}/api/video?id=vidAdha00001`)).json();
+  assert.equal(video.ok, true);
+  assert.ok(video.segments.length >= 1);
+  assert.ok(video.video.title.includes("الأضحية"));
+});
+
+test("GET /api/missing يسرد الفيديوهات التي تحتاج نصًا", async () => {
+  const data = await (await fetch(`${base}/api/missing`)).json();
+  assert.equal(data.ok, true);
+  assert.equal(typeof data.missing, "number");
+  assert.ok(Array.isArray(data.videos));
+  // الفيديو الذي أدخلنا نصه يجب ألا يظهر في القائمة
+  assert.ok(!data.videos.some((v) => v.id === "vidAdha00001"));
+  assert.ok(data.hint.includes("cli.js import"));
+});

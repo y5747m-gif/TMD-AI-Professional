@@ -147,6 +147,7 @@
           <p class="muted small" id="videoModalMeta"></p>
         </div>
         <div class="modal-head-actions">
+          <button class="ghost-btn" id="addTranscriptBtn" title="ألصق نص الدرس أو ارفع ملف ترجمة">＋ أضف نصًا</button>
           <button class="ghost-btn" id="summarizeBtn" title="لخّص الفيديو بالذكاء الاصطناعي">✨ تلخيص</button>
           <a class="ghost-btn" id="videoOpenLink" href="#" target="_blank" rel="noopener">فتح في يوتيوب ↗</a>
           <button class="icon-btn" data-close="videoModal" aria-label="إغلاق">✕</button>
@@ -158,6 +159,29 @@
           <button class="ghost-btn" id="inVideoSearchBtn">بحث</button>
         </div>
         <div id="videoSummaryBox" class="summary-box" hidden></div>
+
+        <div class="import-panel" id="importPanel" hidden>
+          <div class="import-head">
+            <strong>إدخال نص هذا الفيديو</strong>
+            <span class="muted small">يدعم: SRT • VTT • JSON • نص موقّت مثل <code>[02:15] …</code> • نص عادي</span>
+          </div>
+          <div class="import-actions">
+            <label class="ghost-btn file-btn">
+              📄 اختر ملف ترجمة
+              <input type="file" id="importFile" accept=".srt,.vtt,.txt,.json,.sbv,.tsv" hidden />
+            </label>
+            <span class="muted small" id="importFileName">لم يُختر ملف</span>
+          </div>
+          <textarea id="importText" rows="7" placeholder="…أو الصق نص الدرس هنا مباشرةً (بالتوقيتات إن توفّرت)"></textarea>
+          <div class="btn-row">
+            <button class="primary-btn" id="importSave">💾 احفظ وفهرس النص</button>
+            <label class="ghost-btn" style="display:flex;align-items:center;gap:6px">
+              <input type="checkbox" id="importReplace" checked /> استبدال النص الموجود
+            </label>
+          </div>
+          <div class="progress-log" id="importLog" hidden></div>
+        </div>
+
         <div class="transcript" id="transcript"></div>
       </div>
     </div>
@@ -201,6 +225,20 @@
           <button class="ghost-btn" id="purgeDemo">🧹 احذف البيانات التجريبية</button>
         </div>
         <div class="progress-log" id="ingestLog" aria-live="polite"></div>
+
+        <div class="missing-box">
+          <div class="missing-head">
+            <strong>الفيديوهات التي لا يوجد لها نص</strong>
+            <span class="badge" id="missingCount">…</span>
+            <button class="ghost-btn" id="loadMissing">↻ تحديث القائمة</button>
+          </div>
+          <p class="muted small">
+            كثير من الفيديوهات لا تتضمن ترجمة على يوتيوب؛ أضف نصها يدويًا ليصبح المحرك قادرًا على الاستشهاد بها.
+            سمِّ ملفات الترجمة بمعرّف الفيديو ثم استخدم:
+            <code>npm run import -- --dir ./subtitles</code>
+          </p>
+          <div class="video-list" id="missingList"></div>
+        </div>
         <p class="muted small">
           ملاحظة: السحب يتم من خادمك المحلي، ويحتاج اتصالًا بالإنترنت. قرارات السحب تُحفظ في قاعدة SQLite داخل مجلد
           <code>mishkat/data</code>.
