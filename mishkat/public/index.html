@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="مشكاة — أداة ذكاء اصطناعي للإجابة على الأسئلة الدينية من نصوص قناة علمية على يوتيوب، مع عرض النص ووقته ورابط الفيديو." />
+  <title>مشكاة | مساعد الأسئلة الدينية من نصوص القناة</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🕌</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- ================= الشريط العلوي ================= -->
+  <header class="topbar">
+    <button class="icon-btn menu-btn" id="menuBtn" title="القائمة" aria-label="القائمة">☰</button>
+
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 48 48" width="26" height="26" aria-hidden="true">
+          <path d="M24 3c2.6 5 7.4 8 13.6 8.6-1.2 6.2-1.2 12.4 0 18.6C31.4 29.8 26.6 32.8 24 37.8c-2.6-5-7.4-8-13.6-8.6 1.2-6.2 1.2-12.4 0-18.6C16.6 11 21.4 8 24 3Z" fill="url(#g)"/>
+          <circle cx="24" cy="22" r="5" fill="#0b1020"/>
+          <defs>
+            <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#f3d489"/><stop offset="1" stop-color="#c9a227"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>مشكاة</h1>
+        <p id="brandTagline">مساعد ذكي للأسئلة الدينية من نصوص القناة</p>
+      </div>
+    </div>
+
+    <div class="topbar-chips">
+      <a class="chip chip-link" id="channelChip" href="#" target="_blank" rel="noopener" title="القناة المصدر">
+        <span class="dot"></span><span id="channelLabel">القناة المصدر</span>
+      </a>
+      <span class="chip" id="aiChip" title="محرك الذكاء الاصطناعي">
+        <span class="dot" id="aiDot"></span><span id="aiLabel">جارٍ الفحص…</span>
+      </span>
+      <span class="chip chip-quiet" id="dbChip" title="قاعدة البيانات">
+        <span id="dbLabel">…</span>
+      </span>
+      <button class="icon-btn" id="newChatBtn" title="محادثة جديدة">＋</button>
+      <button class="icon-btn" id="adminBtn" title="إدارة القاعدة والتغذية">⚙</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- ================= الشريط الجانبي ================= -->
+    <aside class="sidebar" id="sidebar">
+      <div class="side-block">
+        <h2 class="side-title">اتساع الإجابة</h2>
+        <div class="modes" id="modes">
+          <label class="mode-card" data-mode="balanced">
+            <input type="radio" name="mode" value="balanced" checked />
+            <div>
+              <strong>متوازن</strong>
+              <span>النصوص أساسًا + مسائل متصلة</span>
+            </div>
+          </label>
+          <label class="mode-card" data-mode="open">
+            <input type="radio" name="mode" value="open" />
+            <div>
+              <strong>واسع المجال</strong>
+              <span>استفاضة علمية وتوسّع موسوعي</span>
+            </div>
+          </label>
+          <label class="mode-card" data-mode="strict">
+            <input type="radio" name="mode" value="strict" />
+            <div>
+              <strong>صارم</strong>
+              <span>نصوص القناة فقط بلا إضافة</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="side-block">
+        <h2 class="side-title">بدايات سريعة</h2>
+        <div class="suggestions" id="suggestions"></div>
+      </div>
+
+      <div class="side-block">
+        <h2 class="side-title">مكتبة النصوص</h2>
+        <div class="search-row">
+          <input id="videoSearch" type="search" placeholder="ابحث في عناوين الفيديوهات…" />
+        </div>
+        <div class="video-list" id="videoList">
+          <p class="muted small">جارٍ التحميل…</p>
+        </div>
+      </div>
+
+      <div class="side-block side-stats">
+        <h2 class="side-title">حالة القاعدة</h2>
+        <div id="statsBox" class="stats-box">جارٍ التحميل…</div>
+      </div>
+    </aside>
+    <div class="overlay" id="overlay"></div>
+
+    <!-- ================= المحادثة ================= -->
+    <main class="main">
+      <div class="notice" id="dbNotice" hidden></div>
+      <div class="chat" id="chat">
+        <section class="welcome" id="welcome">
+          <div class="welcome-mark">﷽</div>
+          <h2>اسأل في أي باب من أبواب العلم الشرعي</h2>
+          <p>
+            يجيبك «مشكاة» من نصوص القناة العلمية المفرَّغة، ويعرض لك <strong>النص</strong> و<strong>توقيته</strong>
+            و<strong>رابط الفيديو</strong> مباشرة، ويوسّع المجال بمسائل متصلة عند الحاجة.
+          </p>
+          <div class="welcome-cards" id="welcomeCards"></div>
+          <p class="welcome-note">
+            تنبيه: الأداة للاستفادة العلمية وليست جهة إفتاء رسمية، والمسائل الشخصية تُرجع إلى أهل العلم.
+          </p>
+        </section>
+      </div>
+
+      <!-- ================= صندوق الكتابة ================= -->
+      <div class="composer-wrap">
+        <form class="composer" id="composer" autocomplete="off">
+          <textarea id="input" rows="1" placeholder="اكتب سؤالك الديني… مثال: ما حكم صلاة الجماعة وما أدلتها؟" maxlength="2000"></textarea>
+          <div class="composer-actions">
+            <button type="button" class="ghost-btn" id="stopBtn" hidden>■ إيقاف</button>
+            <button type="submit" class="send-btn" id="send" title="أرسل (Enter)">
+              <span>إرسال</span>
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12 2-12 2z" fill="currentColor"/></svg>
+            </button>
+          </div>
+        </form>
+        <div class="composer-hint" id="composerHint">
+          الإجابة تُبنى على نصوص القناة المفرَّغة، وكل استشهاد مرفق بالتوقيت والرابط.
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ================= نافذة نص الفيديو ================= -->
+  <div class="modal" id="videoModal" hidden>
+    <div class="modal-box wide">
+      <header class="modal-head">
+        <div>
+          <h3 id="videoModalTitle">نص الفيديو</h3>
+          <p class="muted small" id="videoModalMeta"></p>
+        </div>
+        <div class="modal-head-actions">
+          <button class="ghost-btn" id="addTranscriptBtn" title="ألصق نص الدرس أو ارفع ملف ترجمة">＋ أضف نصًا</button>
+          <button class="ghost-btn" id="summarizeBtn" title="لخّص الفيديو بالذكاء الاصطناعي">✨ تلخيص</button>
+          <a class="ghost-btn" id="videoOpenLink" href="#" target="_blank" rel="noopener">فتح في يوتيوب ↗</a>
+          <button class="icon-btn" data-close="videoModal" aria-label="إغلاق">✕</button>
+        </div>
+      </header>
+      <div class="modal-body">
+        <div class="search-row sticky">
+          <input id="inVideoSearch" type="search" placeholder="ابحث داخل نص هذا الفيديو…" />
+          <button class="ghost-btn" id="inVideoSearchBtn">بحث</button>
+        </div>
+        <div id="videoSummaryBox" class="summary-box" hidden></div>
+
+        <div class="import-panel" id="importPanel" hidden>
+          <div class="import-head">
+            <strong>إدخال نص هذا الفيديو</strong>
+            <span class="muted small">يدعم: SRT • VTT • JSON • نص موقّت مثل <code>[02:15] …</code> • نص عادي</span>
+          </div>
+          <div class="import-actions">
+            <label class="ghost-btn file-btn">
+              📄 اختر ملف ترجمة
+              <input type="file" id="importFile" accept=".srt,.vtt,.txt,.json,.sbv,.tsv" hidden />
+            </label>
+            <span class="muted small" id="importFileName">لم يُختر ملف</span>
+          </div>
+          <textarea id="importText" rows="7" placeholder="…أو الصق نص الدرس هنا مباشرةً (بالتوقيتات إن توفّرت)"></textarea>
+          <div class="btn-row">
+            <button class="primary-btn" id="importSave">💾 احفظ وفهرس النص</button>
+            <label class="ghost-btn" style="display:flex;align-items:center;gap:6px">
+              <input type="checkbox" id="importReplace" checked /> استبدال النص الموجود
+            </label>
+          </div>
+          <div class="progress-log" id="importLog" hidden></div>
+        </div>
+
+        <div class="transcript" id="transcript"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= نافذة الإدارة ================= -->
+  <div class="modal" id="adminModal" hidden>
+    <div class="modal-box">
+      <header class="modal-head">
+        <div>
+          <h3>إدارة القاعدة والتغذية</h3>
+          <p class="muted small">سحب نصوص القناة إلى قاعدة البيانات المحلية</p>
+        </div>
+        <button class="icon-btn" data-close="adminModal" aria-label="إغلاق">✕</button>
+      </header>
+      <div class="modal-body">
+        <div class="field">
+          <label for="adminToken">كلمة مرور المدير (MISHKAT_ADMIN_TOKEN)</label>
+          <input id="adminToken" type="password" placeholder="اتركها فارغة إن لم تُضبط في الخادم" />
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="ingestLimit">حد الفيديوهات (0 = الكل)</label>
+            <input id="ingestLimit" type="number" min="0" value="0" />
+          </div>
+          <div class="field">
+            <label for="ingestForce">إعادة السحب</label>
+            <select id="ingestForce">
+              <option value="no">الجديد فقط (أسرع)</option>
+              <option value="yes">إعادة سحب الكل</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="singleVideoUrl">أو أضف فيديو واحدًا بالرابط/المعرّف</label>
+          <input id="singleVideoUrl" type="text" placeholder="https://www.youtube.com/watch?v=... أو معرّف الفيديو" />
+        </div>
+        <div class="btn-row">
+          <button class="primary-btn" id="startIngest">▶ ابدأ سحب القناة</button>
+          <button class="ghost-btn" id="runDiagnose">🩺 فحص تشغيل الأداة</button>
+          <button class="ghost-btn" id="startSingle">＋ أضف الفيديو</button>
+          <button class="ghost-btn" id="purgeDemo">🧹 احذف البيانات التجريبية</button>
+        </div>
+        <div class="progress-log" id="ingestLog" aria-live="polite"></div>
+        <div class="diagnose-box" id="diagnoseBox" hidden></div>
+
+        <div class="missing-box">
+          <div class="missing-head">
+            <strong>الفيديوهات التي لا يوجد لها نص</strong>
+            <span class="badge" id="missingCount">…</span>
+            <button class="ghost-btn" id="loadMissing">↻ تحديث القائمة</button>
+          </div>
+          <p class="muted small">
+            كثير من الفيديوهات لا تتضمن ترجمة على يوتيوب؛ أضف نصها يدويًا ليصبح المحرك قادرًا على الاستشهاد بها.
+            سمِّ ملفات الترجمة بمعرّف الفيديو ثم استخدم:
+            <code>npm run import -- --dir ./subtitles</code>
+          </p>
+          <div class="video-list" id="missingList"></div>
+        </div>
+        <p class="muted small">
+          ملاحظة: السحب يتم من خادمك المحلي، ويحتاج اتصالًا بالإنترنت. قرارات السحب تُحفظ في قاعدة SQLite داخل مجلد
+          <code>mishkat/data</code>.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>

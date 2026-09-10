@@ -1,12 +1,37 @@
 {
-  "name": "tmd-ai-professional",
-  "version": "2.0.0",
+  "name": "mishkat-ai",
+  "version": "1.0.0",
   "private": true,
-  "description": "T.M.D AI - Professional ChatGPT Style Interface on Groq & Vercel",
+  "description": "مشكاة — أداة ذكاء اصطناعي للإجابة على الأسئلة الدينية من نصوص قناة يوتيوب، مع قاعدة بيانات محلية وتوثيق كل نص برابط الفيديو وتوقيته.",
+  "keywords": [
+    "mishkat",
+    "مشكاة",
+    "islamic-ai",
+    "youtube-transcript",
+    "sqlite",
+    "fts5",
+    "rag"
+  ],
+  "license": "MIT",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "dev": "vercel dev"
+    "start": "node mishkat/server.js",
+    "dev": "node mishkat/server.js",
+    "ingest": "node mishkat/cli.js ingest",
+    "ingest:10": "node mishkat/cli.js ingest --limit 10",
+    "ingest:force": "node mishkat/cli.js ingest --force",
+    "ask": "node mishkat/cli.js ask",
+    "search": "node mishkat/cli.js search",
+    "stats": "node mishkat/cli.js stats",
+    "videos": "node mishkat/cli.js videos",
+    "seed-demo": "node mishkat/cli.js seed-demo",
+    "purge-demo": "node mishkat/cli.js purge-demo",
+    "export": "node mishkat/cli.js export",
+    "doctor": "node mishkat/cli.js doctor",
+    "test": "node mishkat/scripts/test.js",
+    "import": "node mishkat/cli.js import",
+    "missing": "node mishkat/cli.js missing"
   }
 }
