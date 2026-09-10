@@ -176,7 +176,7 @@ function search(store, question, opts = {}) {
     list.sort((a, b) => a.startMs - b.startMs);
     let current = null;
     for (const r of list) {
-      if (current && r.startMs - current.endMs <= 2500 && current.text.length < 1400) {
+      if (current && r.startMs - current.endMs <= 8000 && current.text.length < 2000) {
         current.endMs = Math.max(current.endMs, r.endMs);
         current.text = `${current.text} ${r.text}`.replace(/\s+/g, " ").trim();
         current.finalScore = Math.max(current.finalScore, r.finalScore);

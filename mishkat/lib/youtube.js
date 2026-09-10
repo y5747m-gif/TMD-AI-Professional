@@ -424,7 +424,9 @@ async function listViaScrape({ max = 0, onProgress } = {}) {
   let channelThumb = "";
   try {
     const header = firstByKey(initial, "pageHeaderViewModel");
-    channelTitle = cleanText(firstByKey(header, "content")?.content || "");
+    const contentVal = firstByKey(header, "content");
+    // قد يكون العنوان نصًا مباشرًا أو كائنًا يحمل خاصية content
+    channelTitle = cleanText(typeof contentVal === "string" ? contentVal : contentVal?.content || "");
     const avatars = collectByKey(initial?.header || {}, "avatarViewModel");
     if (avatars[0]) {
       const s = firstByKey(avatars[0], "sources");

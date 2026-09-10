@@ -665,10 +665,44 @@ async function loadVideos(q = "") {
   }
 }
 
+/** شريط تنبيه حالة القاعدة (فارغة / بيانات تجريبية / جاهزة) */
+function renderDbNotice(s) {
+  const box = $("dbNotice");
+  if (!box) return;
+  if (!s.segments) {
+    box.hidden = false;
+    box.className = "notice empty";
+    box.innerHTML = `
+      <span>🗄️ <b>قاعدة البيانات فارغة.</b> لم تُسحب نصوص القناة بعد، ولن تعمل الإجابات حتى تسحبها.</span>
+      <span class="notice-actions">
+        <button class="ghost-btn" id="noticeIngest">▶ اسحب نصوص القناة الآن</button>
+        <code class="muted">npm run ingest</code>
+      </span>`;
+  } else if (s.demoVideos) {
+    box.hidden = false;
+    box.className = "notice";
+    box.innerHTML = `
+      <span>⚠️ تعمل الأداة الآن بـ <b>${s.demoVideos} فيديو تجريبي</b> (للتوضيح فقط) — اسحب نصوص القناة الحقيقية لتُستبدل تلقائيًا.</span>
+      <span class="notice-actions">
+        <button class="ghost-btn" id="noticeIngest">▶ اسحب نصوص القناة</button>
+        <button class="ghost-btn" id="noticePurge">🧹 احذف التجريبية</button>
+      </span>`;
+  } else {
+    box.hidden = true;
+    box.innerHTML = "";
+    return;
+  }
+  const openBtn = $("noticeIngest");
+  if (openBtn) openBtn.addEventListener("click", () => ($("adminModal").hidden = false));
+  const purgeBtn = $("noticePurge");
+  if (purgeBtn) purgeBtn.addEventListener("click", () => $("purgeDemo").click());
+}
+
 async function loadStats() {
   try {
     const data = await getJson(API.stats);
     const s = data.stats || {};
+    renderDbNotice(s);
     $("statsBox").innerHTML = `
       <div class="stat"><b>${s.videos || 0}</b><span>فيديو في القاعدة</span></div>
       <div class="stat"><b>${s.segments || 0}</b><span>مقطع نصي مفهرس</span></div>

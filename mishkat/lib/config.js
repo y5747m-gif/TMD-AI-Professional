@@ -180,7 +180,7 @@ const AI = {
 
 const RETRIEVAL = {
   topK: num("MISHKAT_TOP_K", 8),
-  candidates: num("MISHKAT_CANDIDATES", 60),
+  candidates: num("MISHKAT_CANDIDATES", 90),
   maxPerVideo: num("MISHKAT_MAX_PER_VIDEO", 3),
   minScore: num("MISHKAT_MIN_SCORE", 0.02)
 };
@@ -194,7 +194,7 @@ const SERVER = {
 
 const INGEST = {
   maxVideos: num("MISHKAT_MAX_VIDEOS", 0), // 0 = كل الفيديوهات
-  chunkChars: num("MISHKAT_CHUNK_CHARS", 700),
+  chunkChars: num("MISHKAT_CHUNK_CHARS", 300),
   delayMs: num("MISHKAT_INGEST_DELAY_MS", 350),
   retries: num("MISHKAT_INGEST_RETRIES", 3),
   preferYtDlp: bool("MISHKAT_USE_YTDLP", false)

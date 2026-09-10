@@ -71,9 +71,9 @@ function dedupeRepeats(text) {
  * @param {{chunkChars?:number, maxMs?:number, overlapChars?:number}} opts
  */
 function buildChunks(segments, opts = {}) {
-  const chunkChars = Number(opts.chunkChars || 700);
-  const maxMs = Number(opts.maxMs || 75000);
-  const overlapChars = Number(opts.overlapChars || 90);
+  const chunkChars = Number(opts.chunkChars || 300);
+  const maxMs = Number(opts.maxMs || 45000);
+  const overlapChars = Number(opts.overlapChars || 0);
 
   const cleaned = [];
   for (const seg of segments || []) {
