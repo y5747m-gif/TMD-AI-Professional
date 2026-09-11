@@ -21,6 +21,7 @@
     "dev": "node mishkat/server.js",
     "ingest": "node mishkat/cli.js ingest",
     "ingest:10": "node mishkat/cli.js ingest --limit 10",
+    "restore": "node mishkat/scripts/restore-real-data.js",
     "ingest:force": "node mishkat/cli.js ingest --force",
     "ask": "node mishkat/cli.js ask",
     "search": "node mishkat/cli.js search",
