@@ -1,0 +1,11 @@
+{
+  "format": "mishkat-videos/v1",
+  "updatedAt": "2026-09-21T13:51:14.162Z",
+  "channel": {
+    "id": "UCv0g_v1C6JcZALvrkDu98AQ",
+    "url": "https://www.youtube.com/channel/UCv0g_v1C6JcZALvrkDu98AQ",
+    "title": "تعلم دينك لتنجو وتسعد"
+  },
+  "note": "لائحة روابط الفيديوهات فقط: لا تُخزَّن نصوص الفيديوهات ولا تفريغاتها داخل الأداة. أضِف الروابط من لوحة الإدارة (⚙) أو بالأمر: npm run video:add -- --url \"رابط الفيديو\" --title \"العنوان\" --tags \"فقه، صلاة\". ويمكن استيراد لائحة كاملة من ملف: npm run video:import -- --file videos.txt",
+  "videos": []
+}

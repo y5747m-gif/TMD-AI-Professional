@@ -1,16 +1,15 @@
 {
   "name": "mishkat-ai",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
-  "description": "مشكاة — أداة ذكاء اصطناعي للإجابة على الأسئلة الدينية من نصوص قناة يوتيوب، مع قاعدة بيانات محلية وتوثيق كل نص برابط الفيديو وتوقيته.",
+  "description": "مشكاة — أداة تجيب على الأسئلة الدينية بردود من موقع إسلام ويب (فتاوى/استشارات/مقالات) مع توثيق الرقم والرابط، وتعرض روابط الفيديوهات المتعلقة بالسؤال بلا أي نسخ كامل لنصوص الفيديوهات.",
   "keywords": [
     "mishkat",
     "مشكاة",
     "islamic-ai",
-    "youtube-transcript",
-    "sqlite",
-    "fts5",
-    "rag"
+    "islamweb",
+    "fatwa",
+    "youtube-links"
   ],
   "license": "MIT",
   "engines": {
@@ -19,20 +18,15 @@
   "scripts": {
     "start": "node mishkat/server.js",
     "dev": "node mishkat/server.js",
-    "ingest": "node mishkat/cli.js ingest",
-    "ingest:10": "node mishkat/cli.js ingest --limit 10",
-    "restore": "node mishkat/scripts/restore-real-data.js",
-    "ingest:force": "node mishkat/cli.js ingest --force",
     "ask": "node mishkat/cli.js ask",
     "search": "node mishkat/cli.js search",
-    "stats": "node mishkat/cli.js stats",
     "videos": "node mishkat/cli.js videos",
-    "seed-demo": "node mishkat/cli.js seed-demo",
-    "purge-demo": "node mishkat/cli.js purge-demo",
-    "export": "node mishkat/cli.js export",
+    "video:add": "node mishkat/cli.js video:add",
+    "video:rm": "node mishkat/cli.js video:rm",
+    "video:import": "node mishkat/cli.js video:import",
+    "stats": "node mishkat/cli.js stats",
     "doctor": "node mishkat/cli.js doctor",
-    "test": "node mishkat/scripts/test.js",
-    "import": "node mishkat/cli.js import",
-    "missing": "node mishkat/cli.js missing"
+    "cache:clear": "node mishkat/cli.js cache:clear",
+    "test": "node mishkat/scripts/test.js"
   }
 }

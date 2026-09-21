@@ -12,14 +12,8 @@ mishkat/scripts/
 node_modules/
 .npm/
 
-# قاعدة البيانات المحلية (الثقيلة والمتغيّرة) — يُنشر ملف index.json فقط
-mishkat/data/*.db
-mishkat/data/*.db-wal
-mishkat/data/*.db-shm
-mishkat/data/*.sqlite
-mishkat/data/*.sqlite3
-mishkat/data/tmp/
-mishkat/data/logs/
+# ذاكرة مؤقتة لصفحات إسلام ويب (تُبنى لحظيًا ولا تُنشر)
+mishkat/data/cache/
 
 # ملفات بيئة ووثائق لا حاجة لها في النشر
 .env

@@ -1,117 +1,91 @@
-/* =============================================================
-   مشكاة — منطق الواجهة
-   ============================================================= */
 "use strict";
 
+/* =========================================================================
+   مشكاة — واجهة الويب
+   • الردود تُجلب من موقع إسلام ويب عبر الخادم (فتاوى/استشارات/مقالات).
+   • الفيديوهات تُعرَض كروابط فقط — بلا أي نصوص أو تفريغات.
+   ========================================================================= */
+
 const API = {
+  health: "/api/health",
   config: "/api/config",
   stats: "/api/stats",
   ask: "/api/ask",
   search: "/api/search",
   videos: "/api/videos",
-  video: (id) => `/api/video?id=${encodeURIComponent(id)}`,
-  ingest: "/api/ingest",
-  purgeDemo: "/api/purge-demo",
-  summarize: "/api/summarize",
-  import: "/api/import",
-  missing: "/api/missing",
-  diagnose: "/api/diagnose"
+  video: "/api/video",
+  diagnose: "/api/diagnose",
+  suggest: "/api/suggest"
 };
 
 const state = {
-  mode: "balanced",
-  messages: [],
   config: null,
-  busy: false,
-  controller: null,
-  adminToken: sessionStorage.getItem("mishkat_admin_token") || "",
-  currentVideoId: null
+  stats: null,
+  videos: [],
+  history: [],
+  mode: "composed",
+  adminToken: localStorage.getItem("mishkat.adminToken") || "",
+  abort: null,
+  streaming: false
 };
 
-const $ = (id) => document.getElementById(id);
-const el = (tag, cls, html) => {
-  const node = document.createElement(tag);
-  if (cls) node.className = cls;
-  if (html != null) node.innerHTML = html;
-  return node;
-};
-
-/* =============================================================
+/* =========================================================================
    1) أدوات عامة
-   ============================================================= */
+   ========================================================================= */
 
-function escapeHtml(s) {
-  return String(s == null ? "" : s)
+function escapeHtml(text) {
+  return String(text == null ? "" : text)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function safeUrl(url) {
-  const u = String(url || "").trim();
-  return /^https?:\/\//i.test(u) ? u : "";
+  const value = String(url || "").trim();
+  return /^https?:\/\//i.test(value) ? value : "";
 }
 
 function toast(message, kind = "") {
-  const node = el("div", `toast ${kind}`, escapeHtml(message));
-  $("toasts").appendChild(node);
-  setTimeout(() => {
-    node.style.opacity = "0";
-    node.style.transform = "translateY(8px)";
-    node.style.transition = ".35s";
-    setTimeout(() => node.remove(), 380);
-  }, kind === "err" ? 6500 : 3800);
+  const box = document.getElementById("toasts");
+  if (!box) return;
+  const el = document.createElement("div");
+  el.className = `toast ${kind}`;
+  el.textContent = message;
+  box.appendChild(el);
+  setTimeout(() => el.remove(), 5200);
 }
 
-function timeText(ms) {
-  const total = Math.max(0, Math.floor(Number(ms || 0) / 1000));
-  const h = Math.floor(total / 3600);
-  const m = Math.floor((total % 3600) / 60);
-  const s = total % 60;
-  const pad = (n) => String(n).padStart(2, "0");
-  return h ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+function $(id) {
+  return document.getElementById(id);
 }
 
-/* =============================================================
-   2) عرض Markdown مبسّط وآمن
-   ============================================================= */
+/* =========================================================================
+   2) عرض Markdown
+   ========================================================================= */
 
 function inlineFormat(text) {
   let t = escapeHtml(text);
 
-  // روابط Markdown
   t = t.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (m, label, url) => {
     const href = safeUrl(url.replace(/&amp;/g, "&"));
     return href ? `<a href="${escapeHtml(href)}" target="_blank" rel="noopener">${label}</a>` : label;
   });
 
-  // روابط يوتيوب عارية
-  t = t.replace(
-    /(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)[\w-]{6,}[^\s<)]*)/g,
-    (m) => {
-      const href = safeUrl(m);
-      if (!href) return m;
-      const tMatch = href.match(/[?&]t=(\d+)s?/);
-      const label = tMatch ? `▶ مشاهدة عند ${timeText(Number(tMatch[1]) * 1000)}` : "▶ مشاهدة";
-      return `<a href="${escapeHtml(href)}" target="_blank" rel="noopener" class="cite">${label}</a>`;
-    }
-  );
-
-  // **عريض**
-  t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-  // *مائل*
-  t = t.replace(/(^|[\s(])\*([^*\n]+)\*/g, "$1<em>$2</em>");
-  // `كود`
-  t = t.replace(/`([^`]+)`/g, "<code>$1</code>");
-  // [المصدر 1] / [مرجع 2] => شارة
-  t = t.replace(/\[(المصدر|مرجع|المصادر|المرجع)\s*([0-9٠-٩]+)\]/g, (m, word, n) => {
-    const num = String(n).replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660));
-    return `<span class="cite">${word} ${num}</span>`;
+  t = t.replace(/(https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)[\w-]{6,}[^\s<)]*)/g, (m) => {
+    const href = safeUrl(m);
+    if (!href) return m;
+    return `<a href="${escapeHtml(href)}" target="_blank" rel="noopener" class="cite">▶ مشاهدة الفيديو</a>`;
   });
-  // التوقيت بين قوسين
-  t = t.replace(/\(\s*(?:التوقيت\s*)?(\d{1,2}:\d{2}(?::\d{2})?)\s*\)/g, (m, tm) => `<span class="cite">⏱ ${tm}</span>`);
 
+  t = t.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  t = t.replace(/(^|[\s(])\*([^*\n]+)\*/g, "$1<em>$2</em>");
+  t = t.replace(/`([^`]+)`/g, "<code>$1</code>");
+  t = t.replace(
+    /\((?:فتوى|استشارة|مقال)\s*رقم\s*([0-9٠-٩]+)[^)]*\)/g,
+    (m, n) => `<span class="cite">${escapeHtml(m.slice(1, -1))}</span>`
+  );
   return t;
 }
 
@@ -153,7 +127,11 @@ function markdownToHtml(md) {
           .map((c) => c.trim());
       const head = cells(rows[0]);
       const body = rows.slice(1).map((r) => cells(r));
-      out.push("<table><thead><tr>" + head.map((h) => `<th>${inlineFormat(h)}</th>`).join("") + "</tr></thead><tbody>");
+      out.push(
+        "<table><thead><tr>" +
+          head.map((h) => `<th>${inlineFormat(h)}</th>`).join("") +
+          "</tr></thead><tbody>"
+      );
       for (const r of body) out.push("<tr>" + r.map((c) => `<td>${inlineFormat(c)}</td>`).join("") + "</tr>");
       out.push("</tbody></table>");
     }
@@ -181,18 +159,23 @@ function markdownToHtml(md) {
 
     let m;
     if ((m = line.match(/^\s*(#{1,6})\s+(.*)$/))) {
-      closeParagraph(); closeList(); closeQuote();
+      closeParagraph();
+      closeList();
+      closeQuote();
       const level = Math.min(6, m[1].length + 1);
       out.push(`<h${level}>${inlineFormat(m[2])}</h${level}>`);
       continue;
     }
     if (/^\s*(?:---|\*\*\*|___)\s*$/.test(line)) {
-      closeParagraph(); closeList(); closeQuote();
+      closeParagraph();
+      closeList();
+      closeQuote();
       out.push("<hr/>");
       continue;
     }
     if ((m = line.match(/^\s*>\s?(.*)$/))) {
-      closeParagraph(); closeList();
+      closeParagraph();
+      closeList();
       if (!inQuote) {
         out.push("<blockquote>");
         inQuote = true;
@@ -234,973 +217,597 @@ function markdownToHtml(md) {
   return out.join("\n");
 }
 
-/* =============================================================
-   3) طلبات الشبكة و SSE
-   ============================================================= */
-
-/**
- * يترجم أخطاء HTTP إلى رسالة عربية قابلة للتنفيذ
- * (بدل «HTTP 500» الغامضة).
- */
-function explainHttpError(status, serverMessage = "") {
-  if (serverMessage) return serverMessage;
-  if (status === 500 || status === 502 || status === 503) {
-    return (
-      "تعذّر على الخادم تنفيذ الطلب (خطأ 500). الأسباب الشائعة: " +
-      "النسخة المنشورة قديمة أو غير مكتملة • ملف mishkat/data/index.json غير موجود • مفتاح API غير صحيح. " +
-      "افتح ⚙ ثم «🩺 فحص تشغيل الأداة» لمعرفة السبب بدقة."
-    );
-  }
-  if (status === 404) {
-    return (
-      "المسار المطلوب غير موجود على هذا النشر (خطأ 404). " +
-      "إن كان الموقع منشورًا على Vercel فالنسخة الجديدة «مشكاة» لم تُنشر بعد — فعّل النشر من فرع العمل أو أنشئ طلب دمج."
-    );
-  }
-  if (status === 401 || status === 403) return "هذه العملية تتطلب كلمة مرور المدير (MISHKAT_ADMIN_TOKEN).";
-  if (status === 429) return "عدد الطلبات كبير — انتظر قليلًا ثم أعد المحاولة.";
-  return `تعذّر تنفيذ الطلب (خطأ ${status}).`;
-}
+/* =========================================================================
+   3) الشبكة
+   ========================================================================= */
 
 async function getJson(url) {
   const res = await fetch(url, { headers: { accept: "application/json" } });
-  if (!res.ok) throw new Error(`خطأ ${res.status}`);
-  return res.json();
-}
-
-async function postJson(url, body, extraHeaders = {}) {
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "content-type": "application/json", ...extraHeaders },
-    body: JSON.stringify(body || {})
-  });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || `خطأ ${res.status}`);
+  if (!res.ok || data.ok === false) throw new Error(data.error || `تعذّر الاتصال (${res.status})`);
   return data;
 }
 
-/** يقرأ بثّ SSE ويمرّر الأحداث إلى onEvent */
-async function readSse(response, onEvent) {
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder("utf-8");
-  let buffer = "";
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const chunks = buffer.split("\n\n");
-    buffer = chunks.pop() || "";
-    for (const chunk of chunks) {
-      let event = "message";
-      let data = "";
-      for (const line of chunk.split("\n")) {
-        if (line.startsWith("event:")) event = line.slice(6).trim();
-        else if (line.startsWith("data:")) data += line.slice(5).trim();
-      }
-      if (!data) continue;
-      try {
-        onEvent(event, JSON.parse(data));
-      } catch (_) {
-        /* تجاهل */
-      }
-    }
-  }
+async function adminHeaders(extra = {}) {
+  const headers = { "content-type": "application/json", ...extra };
+  if (state.adminToken) headers["x-admin-token"] = state.adminToken;
+  return headers;
 }
 
-/* =============================================================
-   4) الرسائل والعرض
-   ============================================================= */
+/* =========================================================================
+   4) المحادثة
+   ========================================================================= */
 
 function hideWelcome() {
-  const w = $("welcome");
-  if (w) w.style.display = "none";
+  const welcome = $("welcome");
+  if (welcome) welcome.hidden = true;
 }
 
-function scrollChat(force = false) {
+function scrollChat() {
   const chat = $("chat");
-  const nearBottom = chat.scrollHeight - chat.scrollTop - chat.clientHeight < 220;
-  if (force || nearBottom) chat.scrollTop = chat.scrollHeight;
+  if (chat) chat.scrollTop = chat.scrollHeight;
 }
 
 function renderUserMessage(text) {
-  hideWelcome();
-  const wrap = el("article", "msg user");
+  const chat = $("chat");
+  const wrap = document.createElement("article");
+  wrap.className = "msg user";
   wrap.innerHTML = `
-    <div class="msg-head"><span class="avatar">أنا</span><span>أنت</span></div>
-    <div class="bubble">${escapeHtml(text).replace(/\n/g, "<br/>")}</div>`;
-  $("chat").appendChild(wrap);
-  scrollChat(true);
-  return wrap;
+    <div class="msg-head"><div class="avatar">أنت</div></div>
+    <div class="bubble">${markdownToHtml(text)}</div>`;
+  chat.appendChild(wrap);
+  scrollChat();
 }
 
-function renderAssistantShell(meta = {}) {
-  hideWelcome();
-  const wrap = el("article", "msg assistant");
-  const engine = meta.engineLabel ? `<span class="chip chip-quiet">${escapeHtml(meta.engineLabel)}</span>` : "";
+function renderAssistantShell() {
+  const chat = $("chat");
+  const wrap = document.createElement("article");
+  wrap.className = "msg assistant";
   wrap.innerHTML = `
     <div class="msg-head">
-      <span class="avatar">✦</span>
-      <span>مشكاة</span>
-      ${engine}
-      <span class="mode-tag muted">${escapeHtml(modeLabel(state.mode))}</span>
+      <div class="avatar">مشكاة</div>
+      <div class="meta" id="pendingMeta">أبحث في موقع إسلام ويب…</div>
     </div>
-    <div class="bubble"><span class="thinking"><span class="spinner"></span> جارٍ البحث في نصوص القناة…</span></div>
-    <div class="sources" hidden></div>
-    <div class="msg-actions" hidden></div>`;
-  $("chat").appendChild(wrap);
-  scrollChat(true);
-  return wrap;
+    <div class="bubble">
+      <div class="typing"><span></span><span></span><span></span></div>
+      <div class="answer-body"></div>
+      <div class="answer-extras"></div>
+    </div>`;
+  chat.appendChild(wrap);
+  scrollChat();
+  return {
+    root: wrap,
+    meta: wrap.querySelector(".meta"),
+    body: wrap.querySelector(".answer-body"),
+    extras: wrap.querySelector(".answer-extras"),
+    typing: wrap.querySelector(".typing")
+  };
 }
 
-function modeLabel(mode) {
-  return { strict: "وضع صارم", balanced: "وضع متوازن", open: "وضع واسع المجال" }[mode] || mode;
+function sourceCard(source) {
+  const kindClass = source.kind === "fatwa" ? "fatwa" : source.kind === "consult" ? "consult" : "article";
+  const link = safeUrl(source.url) || "#";
+  return `
+    <a class="source-card ${kindClass}" href="${escapeHtml(link)}" target="_blank" rel="noopener">
+      <div class="source-head">
+        <span class="source-kind">${escapeHtml(source.kindLabel || "مصدر")}</span>
+        <span class="source-num">رقم ${escapeHtml(String(source.number || source.id || ""))}</span>
+        ${source.date ? `<span class="source-date">${escapeHtml(source.date)}</span>` : ""}
+      </div>
+      <div class="source-title">${escapeHtml(source.title || "")}</div>
+      ${source.snippet ? `<div class="source-snippet">${escapeHtml(source.snippet)}</div>` : ""}
+      <div class="source-foot">
+        ${source.fetched ? '<span class="badge ok">نصّ الجواب مُستخرَج</span>' : '<span class="badge">مقتطف</span>'}
+        <span class="muted small">إسلام ويب ↗</span>
+      </div>
+    </a>`;
 }
 
-function renderSources(container, sources, docs) {
-  if (!container) return;
-  container.innerHTML = "";
-  if (!sources.length && !docs.length) {
-    container.hidden = true;
-    return;
-  }
-  container.hidden = false;
+function renderExtras(container, { sources = [], videos = [], notes = [], provider = "" }) {
+  const parts = [];
 
   if (sources.length) {
-    container.appendChild(el("div", "sources-title", `النصوص من القناة (${sources.length})`));
-    sources.forEach((s, i) => {
-      const card = el("div", "source-card");
-      const badge =
-        s.sourceKind === "demo"
-          ? '<span class="badge">بيانات تجريبية</span>'
-          : s.sourceKind === "manual" || s.sourceKind === "manual-external"
-          ? '<span class="badge manual">نص مُدخل يدويًا</span>'
-          : "";
-      card.innerHTML = `
-        <div class="source-head">
-          <span class="source-num">${i + 1}</span>
-          <span class="source-title">${escapeHtml(s.title || "")}</span>
-          ${badge}
-          <span class="time-badge">${escapeHtml(s.time || "")}</span>
-        </div>
-        <div class="source-text">${escapeHtml(s.text || s.excerpt || "")}</div>
-        <div class="source-foot">
-          <button class="action-btn" data-open-video="${escapeHtml(s.videoId)}" data-start="${s.startMs || 0}">📖 اقرأ النص في سياقه</button>
-          <a class="action-btn" href="${escapeHtml(safeUrl(s.link) || "#")}" target="_blank" rel="noopener">↗ فتح الفيديو عند التوقيت</a>
-          <span class="meta">صلة النص بالسؤال: ${Math.round((s.score || 0) * 100)}%</span>
-        </div>`;
-      container.appendChild(card);
-    });
+    parts.push(`<section class="extras-block">
+      <h4 class="extras-title">مصادر الرد من موقع إسلام ويب (${sources.length})</h4>
+      <div class="source-grid">${sources.map(sourceCard).join("")}</div>
+    </section>`);
   }
 
-  if (docs && docs.length) {
-    container.appendChild(el("div", "sources-title", `مراجع إضافية (${docs.length})`));
-    docs.forEach((d) => {
-      const card = el("div", "source-card");
-      card.innerHTML = `
-        <div class="source-head">
-          <span class="source-num">◈</span>
-          <span class="source-title">${escapeHtml(d.title || "")}</span>
-          ${d.ref ? `<span class="badge">${escapeHtml(d.ref)}</span>` : ""}
-        </div>
-        <div class="source-text expanded">${escapeHtml(d.text || "")}</div>`;
-      container.appendChild(card);
-    });
+  if (videos.length) {
+    parts.push(`<section class="extras-block">
+      <h4 class="extras-title">روابط فيديوهات مرتبطة بالسؤال (${videos.length})</h4>
+      <ul class="video-links">
+        ${videos
+          .map(
+            (v) =>
+              `<li><a href="${escapeHtml(safeUrl(v.url) || "#")}" target="_blank" rel="noopener">▶ ${escapeHtml(
+                v.title
+              )}</a></li>`
+          )
+          .join("")}
+      </ul>
+      <p class="muted small">روابط فقط — لا تُخزَّن نصوص الفيديوهات ولا تُعرض داخل الأداة.</p>
+    </section>`);
   }
+
+  if (notes.length || provider) {
+    const items = notes.map((n) => `<li>${escapeHtml(n)}</li>`).join("");
+    parts.push(`<section class="extras-block notes">
+      <h4 class="extras-title">ملاحظات</h4>
+      <ul>${items}${provider ? `<li>المحرك المستخدم: ${escapeHtml(provider)}</li>` : ""}</ul>
+    </section>`);
+  }
+
+  container.innerHTML = parts.join("");
 }
 
-function renderActions(wrap, text) {
-  const box = wrap.querySelector(".msg-actions");
-  box.hidden = false;
-  box.innerHTML = "";
-  const copy = el("button", "action-btn", "⧉ نسخ الإجابة");
-  copy.onclick = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast("تم نسخ الإجابة", "ok");
-    } catch (_) {
-      toast("تعذّر النسخ", "err");
-    }
-  };
-  const again = el("button", "action-btn", "↻ إعادة الصياغة");
-  again.onclick = () => {
-    const lastUser = [...state.messages].reverse().find((m) => m.role === "user");
-    if (lastUser) ask(lastUser.content, { regenerate: true });
-  };
-  box.appendChild(copy);
-  box.appendChild(again);
-}
+async function ask(question) {
+  if (state.streaming) return;
+  hideWelcome();
+  renderUserMessage(question);
 
-function renderHistory() {
-  $("chat").innerHTML = "";
-  if (!state.messages.length) {
-    $("chat").innerHTML = welcomeMarkup();
-    bindWelcome();
-    return;
-  }
-  for (const m of state.messages) {
-    if (m.role === "user") {
-      renderUserMessage(m.content);
-    } else {
-      const wrap = renderAssistantShell({ engineLabel: m.engineLabel });
-      wrap.querySelector(".bubble").innerHTML = markdownToHtml(m.content);
-      renderSources(wrap.querySelector(".sources"), m.sources || [], m.docs || []);
-      if (m.content) renderActions(wrap, m.content);
-    }
-  }
-  scrollChat(true);
-}
-
-/* =============================================================
-   5) السؤال والجواب
-   ============================================================= */
-
-async function ask(question, opts = {}) {
-  if (state.busy) return;
-  const q = String(question || "").trim();
-  if (!q) return;
-
-  state.busy = true;
-  $("send").disabled = true;
+  const shell = renderAssistantShell();
+  const controller = new AbortController();
+  state.abort = controller;
+  state.streaming = true;
   $("stopBtn").hidden = false;
 
-  const history = state.messages.slice(-6).map((m) => ({ role: m.role, content: m.content }));
-  if (!opts.regenerate) {
-    state.messages.push({ role: "user", content: q });
-    renderUserMessage(q);
-  }
-
-  const engine = state.config?.ai || {};
-  const wrap = renderAssistantShell({
-    engineLabel: engine.enabled ? `${engine.label}` : "محرك استخراجي"
-  });
-  const bubble = wrap.querySelector(".bubble");
-  const sourcesBox = wrap.querySelector(".sources");
-
-  state.controller = new AbortController();
-  let answerText = "";
-  let sources = [];
-  let docs = [];
-  let doneMeta = null;
-  let painted = 0;
+  let answer = "";
+  let meta = null;
 
   const paint = () => {
-    bubble.innerHTML = `${markdownToHtml(answerText)}<span class="typing-cursor"></span>`;
+    shell.body.innerHTML = markdownToHtml(answer);
     scrollChat();
+  };
+
+  const applyMeta = (info) => {
+    meta = { ...(meta || {}), ...info };
+    const bits = [];
+    if (meta.sources && meta.sources.length) bits.push(`${meta.sources.length} مصدر من إسلام ويب`);
+    if (meta.videos && meta.videos.length) bits.push(`${meta.videos.length} فيديو مرتبط`);
+    if (!bits.length) bits.push("جارٍ البحث في إسلام ويب…");
+    shell.meta.textContent = bits.join(" • ");
+    if (meta.sources || meta.videos || meta.notes) {
+      renderExtras(shell.extras, {
+        sources: meta.sources || [],
+        videos: meta.videos || [],
+        notes: meta.notes || [],
+        provider: meta.providerLabel || ""
+      });
+    }
   };
 
   try {
     const res = await fetch(API.ask, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", accept: "text/event-stream" },
       body: JSON.stringify({
-        message: q,
+        question,
         mode: state.mode,
-        history,
-        stream: true,
-        useAi: true
+        history: state.history.slice(-6),
+        stream: true
       }),
-      signal: state.controller.signal
+      signal: controller.signal
     });
 
-    if (!res.ok || !res.body) {
-      // ليس بثًّا: نحاول قراءة سبب الخطأ من الخادم
-      let serverMsg = "";
-      try {
-        const data = await res.json();
-        serverMsg = data.error || data.message || "";
-      } catch (_) {
+    if (!res.ok || !(res.headers.get("content-type") || "").includes("text/event-stream")) {
+      // لا بثّ (أو خطأ): نقرأ الرد كـJSON
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.ok === false) throw new Error(data.error || `تعذّر الطلب (${res.status})`);
+      answer = data.answer || "";
+      applyMeta({
+        sources: data.sources,
+        videos: data.videos,
+        notes: data.notes,
+        providerLabel: data.providerInfo ? data.providerInfo.label : data.provider
+      });
+      shell.typing.remove();
+      paint();
+      state.history.push({ role: "user", content: question });
+      state.history.push({ role: "assistant", content: answer.slice(0, 1200) });
+      return;
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let buffer = "";
+    let currentEvent = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const blocks = buffer.split("\n\n");
+      buffer = blocks.pop() || "";
+
+      for (const block of blocks) {
+        let event = currentEvent;
+        let dataLine = "";
+        for (const line of block.split("\n")) {
+          if (line.startsWith("event:")) event = line.slice(6).trim();
+          else if (line.startsWith("data:")) dataLine += line.slice(5).trim();
+        }
+        currentEvent = "";
+        if (!dataLine) continue;
+
+        let payload;
         try {
-          const raw = await res.text();
-          if (raw && raw.length < 500 && !raw.trim().startsWith("<")) serverMsg = raw.trim();
-        } catch (_e) {
-          /* تجاهل */
+          payload = JSON.parse(dataLine);
+        } catch (_) {
+          continue;
         }
-      }
-      const err = new Error(explainHttpError(res.status, serverMsg));
-      err.isFatal = true;
-      throw err;
-    }
 
-    await readSse(res, (event, data) => {
-      if (event === "sources") {
-        sources = data.sources || [];
-        docs = data.docs || [];
-        renderSources(sourcesBox, sources, docs);
-        scrollChat();
-      } else if (event === "token") {
-        answerText += data.t || "";
-        const now = performance.now();
-        if (now - painted > 60) {
-          painted = now;
+        if (event === "meta") {
+          applyMeta({
+            sources: payload.sources,
+            videos: payload.videos,
+            notes: payload.notes,
+            providerLabel: payload.provider ? payload.provider.label : ""
+          });
+          if (shell.typing.parentNode) shell.typing.remove();
+        } else if (event === "token") {
+          if (shell.typing.parentNode) shell.typing.remove();
+          answer += payload.text || "";
           paint();
+        } else if (event === "done") {
+          applyMeta({
+            sources: payload.sources,
+            videos: payload.videos,
+            notes: payload.notes,
+            providerLabel: payload.provider
+          });
+          if (payload.error) toast(`تنبيه: ${payload.error}`, "warn");
+        } else if (event === "error") {
+          throw new Error(payload.error || "خطأ في البث");
         }
-      } else if (event === "done") {
-        doneMeta = data;
-      } else if (event === "error") {
-        throw new Error(data.error || "خطأ في البث");
       }
-    });
+    }
 
-    if (!answerText) throw new Error("لم تُعد الإجابة أي نص");
+    if (!answer) answer = "لم يصل ردّ من المصدر. أعد المحاولة أو جرّب صياغة أخرى للسؤال.";
+    if (shell.typing.parentNode) shell.typing.remove();
     paint();
-
-    if (doneMeta?.usedFallback && doneMeta?.error) {
-      toast(`تعذّر المحرك الذكي (${doneMeta.error}) — تمت الإجابة بالمحرك الاستخراجي.`, "err");
-    }
+    state.history.push({ role: "user", content: question });
+    state.history.push({ role: "assistant", content: answer.slice(0, 1200) });
   } catch (err) {
+    if (shell.typing.parentNode) shell.typing.remove();
     if (err.name === "AbortError") {
-      bubble.innerHTML = markdownToHtml(answerText || "_تم إيقاف الإجابة._");
-    } else if (err.isFatal) {
-      bubble.innerHTML = `<p>${escapeHtml(err.message)}</p>
-        <div class="btn-row" style="margin-top:10px">
-          <button class="ghost-btn" onclick="document.getElementById('adminModal').hidden=false;document.getElementById('runDiagnose').click()">🩺 فحص تشغيل الأداة</button>
-        </div>`;
-      toast("تعذّر تنفيذ السؤال — راجع نتيجة الفحص", "err");
+      answer += "\n\n> ⏹ أُوقف الطلب.";
+      paint();
     } else {
-      // محاولة غير متدفقة
-      try {
-        const data = await postJson(API.ask, { message: q, mode: state.mode, history, stream: false });
-        answerText = data.answer || "";
-        sources = data.sources || [];
-        docs = data.docs || [];
-        renderSources(sourcesBox, sources, docs);
-        bubble.innerHTML = markdownToHtml(answerText);
-      } catch (err2) {
-        const message = explainHttpError(0, err2.message || err.message);
-        bubble.innerHTML = `<p class="muted">تعذّر تنفيذ السؤال: ${escapeHtml(message)}</p>`;
-        toast("تعذّر تنفيذ السؤال", "err");
-      }
+      shell.body.innerHTML = `<p class="error">${escapeHtml(String(err.message || err))}</p>`;
+      toast(String(err.message || err), "err");
     }
   } finally {
-    bubble.classList.remove("typing-cursor");
-    const cursor = bubble.querySelector(".typing-cursor");
-    if (cursor) cursor.remove();
-    state.busy = false;
-    state.controller = null;
-    $("send").disabled = false;
+    state.streaming = false;
+    state.abort = null;
     $("stopBtn").hidden = true;
-
-    if (answerText) {
-      state.messages.push({
-        role: "assistant",
-        content: answerText,
-        sources,
-        docs,
-        engineLabel: doneMeta?.provider === "extractive" ? "محرك استخراجي" : state.config?.ai?.label
-      });
-      renderActions(wrap, answerText);
-      saveChat();
-    }
     scrollChat();
-    loadStats();
   }
 }
 
-/* =============================================================
-   6) نافذة الفيديو (التفريغ والبحث داخل النص)
-   ============================================================= */
+/* =========================================================================
+   5) الشريط الجانبي
+   ========================================================================= */
 
-async function openVideoModal(videoId, startMs = 0, query = "") {
-  state.currentVideoId = videoId;
-  const modal = $("videoModal");
-  modal.hidden = false;
-  $("transcript").innerHTML = `<p class="muted">جارٍ التحميل…</p>`;
-  $("videoSummaryBox").hidden = true;
-  $("inVideoSearch").value = query || "";
-
-  try {
-    const url = `${API.video(videoId)}${query ? `?q=${encodeURIComponent(query)}` : ""}`;
-    const data = await getJson(url);
-    const v = data.video;
-    $("videoModalTitle").textContent = v.title || videoId;
-    const badge = v.sourceKind === "demo" ? ' • <span class="badge">بيانات تجريبية</span>' : "";
-    $("videoModalMeta").innerHTML = `${data.segments.length} مقطع نصي${v.transcriptLang ? ` • اللغة: ${escapeHtml(v.transcriptLang)}` : ""}${badge}`;
-    $("videoOpenLink").href = v.url || `https://www.youtube.com/watch?v=${videoId}`;
-
-    const box = $("transcript");
-    box.innerHTML = "";
-    if (!data.segments.length) {
-      box.innerHTML = `<p class="muted">لا يوجد نص مفهرس لهذا الفيديو${query ? " مطابق للبحث" : ""} — أضف نصه من زر «＋ أضف نصًا» بالأعلى.</p>`;
-      $("importPanel").hidden = false;
-      $("importLog").hidden = true;
-      return;
-    }
-    $("importPanel").hidden = true;
-    const frag = document.createDocumentFragment();
-    let target = null;
-    for (const s of data.segments) {
-      const row = el("div", "t-row", `
-        <span class="t-time" data-link="${escapeHtml(s.link)}">${escapeHtml(s.time)}</span>
-        <span class="t-text">${escapeHtml(s.text)}</span>`);
-      if (query) {
-        const norm = (txt) => txt.replace(/[أإآ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه");
-        const idx = norm(s.text).indexOf(norm(query.split(/\s+/)[0] || ""));
-        if (idx >= 0) {
-          row.classList.add("hit");
-          const t = row.querySelector(".t-text");
-          t.innerHTML = escapeHtml(s.text.slice(0, idx)) + "<mark>" + escapeHtml(s.text.slice(idx, idx + query.length)) + "</mark>" + escapeHtml(s.text.slice(idx + query.length));
-        }
-      }
-      if (!target && startMs && Math.abs(s.startMs - startMs) < 12000) target = row;
-      frag.appendChild(row);
-    }
-    box.appendChild(frag);
-    box.querySelectorAll(".t-time").forEach((node) => {
-      node.addEventListener("click", () => window.open(node.dataset.link, "_blank", "noopener"));
+function renderSuggestions(list) {
+  const box = $("suggestions");
+  box.innerHTML = "";
+  for (const item of list) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "suggestion";
+    btn.textContent = item;
+    btn.addEventListener("click", () => {
+      $("input").value = item;
+      submitQuestion();
     });
-    if (target) {
-      target.scrollIntoView({ block: "center" });
-      target.classList.add("hit");
-    }
-  } catch (err) {
-    $("transcript").innerHTML = `<p class="muted">تعذّر تحميل النص: ${escapeHtml(err.message)}</p>`;
+    box.appendChild(btn);
   }
 }
-
-/* ---------- إدخال النص يدويًا ---------- */
-
-async function saveTranscript() {
-  const videoId = state.currentVideoId;
-  if (!videoId) return;
-  const text = $("importText").value;
-  const file = $("importFile").files?.[0] || null;
-  const logBox = $("importLog");
-  const show = (msg, cls = "") => {
-    logBox.hidden = false;
-    logBox.innerHTML = `<div class="${cls}">${escapeHtml(msg)}</div>`;
-  };
-
-  if (!text.trim() && !file) {
-    return toast("الصق النص أو اختر ملف ترجمة أولًا", "err");
-  }
-
-  let content = text;
-  let filename = "";
-  if (file) {
-    content = await file.text();
-    filename = file.name;
-    if (text.trim()) content = `${text}\n\n${content}`;
-  }
-
-  show("جارٍ التحليل والفهرسة…");
-  $("importSave").disabled = true;
-  try {
-    const res = await fetch(API.import, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        ...(state.adminToken ? { "x-admin-token": state.adminToken } : {})
-      },
-      body: JSON.stringify({
-        videoId,
-        content,
-        filename,
-        replace: $("importReplace").checked
-      })
-    });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.ok) throw new Error(data.error || `خطأ ${res.status}`);
-
-    const r = data.result;
-    show(`✓ تم حفظ النص: ${r.chunks} مقطع (${r.chars} حرف) — الصيغة: ${r.format}`, "ok");
-    (r.warnings || []).forEach((w) => show(`⚠ ${w}`));
-    toast("تم فهرسة النص بنجاح", "ok");
-    $("importText").value = "";
-    $("importFile").value = "";
-    $("importFileName").textContent = "لم يُختر ملف";
-    await refreshAfterImport(videoId);
-  } catch (err) {
-    show(`✗ ${err.message}`, "fail");
-    toast(err.message, "err");
-  } finally {
-    $("importSave").disabled = false;
-  }
-}
-
-async function refreshAfterImport(videoId) {
-  await Promise.all([loadStats(), loadVideos($("videoSearch").value), loadMissing()]);
-  if (videoId) await openVideoModal(videoId);
-}
-
-/** فحص تشغيل الأداة وعرض النتيجة بشكل مقروء */
-async function runDiagnose() {
-  const box = $("diagnoseBox");
-  box.hidden = false;
-  box.innerHTML = `<span class="spinner"></span> جارٍ الفحص…`;
-  try {
-    const data = await getJson(API.diagnose);
-    const marks = { ok: "✅", warn: "⚠️", fail: "❌" };
-    box.innerHTML =
-      `<div class="diag-summary ${data.ok ? "ok" : "fail"}">${escapeHtml(data.summary || "")}</div>` +
-      (data.checks || [])
-        .map(
-          (c) => `<div class="diag-row">
-            <span class="mark">${marks[c.level] || "•"}</span>
-            <span>
-              <span class="diag-name">${escapeHtml(c.name)}</span>
-              ${c.detail ? ` — <span class="diag-detail">${escapeHtml(c.detail)}</span>` : ""}
-            </span>
-          </div>`
-        )
-        .join("");
-  } catch (err) {
-    const status = Number((err.message || "").match(/خطأ (\d+)/)?.[1] || 0);
-    box.innerHTML = `<div class="diag-summary fail">${escapeHtml(explainHttpError(status, err.message))}</div>`;
-  }
-}
-
-async function loadMissing() {
-  const list = $("missingList");
-  if (!list) return;
-  try {
-    const data = await getJson(`${API.missing}?limit=60`);
-    $("missingCount").textContent = `${data.missing} فيديو`;
-    list.innerHTML = "";
-    if (!data.videos.length) {
-      list.innerHTML = `<p class="muted small">🎉 كل الفيديوهات لها نص مفهرس.</p>`;
-      return;
-    }
-    for (const v of data.videos) {
-      const item = el("button", "video-item");
-      item.innerHTML = `
-        <span class="v-title">${escapeHtml(v.title || v.id)}</span>
-        <span class="v-meta"><span class="badge err">بلا نص</span><span>${escapeHtml(v.id)}</span></span>`;
-      item.addEventListener("click", () => {
-        $("adminModal").hidden = true;
-        openVideoModal(v.id);
-      });
-      list.appendChild(item);
-    }
-  } catch (_) {
-    list.innerHTML = `<p class="muted small">تعذّر تحميل القائمة.</p>`;
-  }
-}
-
-async function summarizeCurrentVideo() {
-  const videoId = state.currentVideoId;
-  if (!videoId) return;
-  const box = $("videoSummaryBox");
-  box.hidden = false;
-  box.innerHTML = `<span class="spinner"></span> جارٍ التلخيص…`;
-  try {
-    const res = await fetch(API.summarize, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        ...(state.adminToken ? { "x-admin-token": state.adminToken } : {})
-      },
-      body: JSON.stringify({ videoId, stream: true })
-    });
-    if (!res.ok || !res.body) throw new Error("تعذّر التلخيص");
-    let text = "";
-    await readSse(res, (event, data) => {
-      if (event === "token") {
-        text += data.t || "";
-        box.innerHTML = markdownToHtml(text);
-      } else if (event === "error") {
-        throw new Error(data.error);
-      }
-    });
-    if (!text) box.innerHTML = `<span class="muted">لا يوجد نص كافٍ للتلخيص.</span>`;
-  } catch (err) {
-    box.innerHTML = `<span class="muted">تعذّر التلخيص: ${escapeHtml(err.message)}</span>`;
-  }
-}
-
-/* =============================================================
-   7) المكتبة والإحصاءات والتغذية
-   ============================================================= */
 
 async function loadVideos(q = "") {
   const box = $("videoList");
   try {
-    const data = await getJson(`${API.videos}?limit=60${q ? `&q=${encodeURIComponent(q)}` : ""}`);
+    const data = await getJson(`${API.videos}${q ? `?q=${encodeURIComponent(q)}` : ""}`);
+    state.videos = data.videos || [];
     box.innerHTML = "";
     if (!data.videos.length) {
-      box.innerHTML = `<p class="muted small">لا توجد فيديوهات بعد. افتح ⚙ ثم «ابدأ سحب القناة».</p>`;
+      box.innerHTML = `
+        <p class="muted small">${q ? "لا نتائج مطابقة." : "اللائحة فارغة — أضِف روابط الفيديوهات بزر ＋ ."}</p>
+        <a class="ghost-btn" style="text-align:center" href="https://www.youtube.com/channel/UCv0g_v1C6JcZALvrkDu98AQ" target="_blank" rel="noopener">فتح قناة الفيديوهات ↗</a>`;
       return;
     }
-    for (const v of data.videos) {
-      const item = el("button", "video-item");
-      const badges = [];
-      if (v.sourceKind === "demo") badges.push('<span class="badge">تجريبي</span>');
-      if (v.error) badges.push('<span class="badge err">لا يوجد نص</span>');
-      item.innerHTML = `
-        <span class="v-title">${escapeHtml(v.title || v.id)}</span>
-        <span class="v-meta">
-          ${v.segmentsCount ? `<span>📄 ${v.segmentsCount} مقطع</span>` : ""}
-          ${v.durationS ? `<span>⏱ ${timeText(v.durationS * 1000)}</span>` : ""}
-          ${badges.join(" ")}
-        </span>`;
-      item.addEventListener("click", () => openVideoModal(v.id));
-      box.appendChild(item);
+    for (const video of data.videos) {
+      const link = document.createElement("a");
+      link.className = "video-item";
+      link.href = safeUrl(video.url) || "#";
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.innerHTML = `
+        <div class="v-title">${escapeHtml(video.title || video.id)}</div>
+        <div class="v-meta">
+          <span class="muted small">▶ فتح في يوتيوب</span>
+          ${(video.tags || []).slice(0, 3).map((t) => `<span class="tag">${escapeHtml(t)}</span>`).join("")}
+        </div>`;
+      box.appendChild(link);
     }
   } catch (err) {
-    box.innerHTML = `<p class="muted small">تعذّر تحميل القائمة.</p>`;
+    box.innerHTML = `<p class="muted small">تعذّر تحميل اللائحة: ${escapeHtml(String(err.message || err))}</p>`;
   }
 }
 
-/** شريط تنبيه حالة القاعدة (فارغة / بيانات تجريبية / جاهزة) */
-function renderDbNotice(s) {
-  const box = $("dbNotice");
-  if (!box) return;
-  if (!s.segments) {
-    box.hidden = false;
-    box.className = "notice empty";
-    box.innerHTML = `
-      <span>🗄️ <b>قاعدة البيانات فارغة.</b> لم تُسحب نصوص القناة بعد، ولن تعمل الإجابات حتى تسحبها.</span>
-      <span class="notice-actions">
-        <button class="ghost-btn" id="noticeIngest">▶ اسحب نصوص القناة الآن</button>
-        <code class="muted">npm run ingest</code>
-      </span>`;
-  } else if (s.demoVideos) {
-    box.hidden = false;
-    box.className = "notice";
-    box.innerHTML = `
-      <span>⚠️ تعمل الأداة الآن بـ <b>${s.demoVideos} فيديو تجريبي</b> (للتوضيح فقط) — اسحب نصوص القناة الحقيقية لتُستبدل تلقائيًا.</span>
-      <span class="notice-actions">
-        <button class="ghost-btn" id="noticeIngest">▶ اسحب نصوص القناة</button>
-        <button class="ghost-btn" id="noticePurge">🧹 احذف التجريبية</button>
-      </span>`;
-  } else {
-    box.hidden = true;
-    box.innerHTML = "";
-    return;
-  }
-  const openBtn = $("noticeIngest");
-  if (openBtn) openBtn.addEventListener("click", () => ($("adminModal").hidden = false));
-  const purgeBtn = $("noticePurge");
-  if (purgeBtn) purgeBtn.addEventListener("click", () => $("purgeDemo").click());
+function renderStats(data) {
+  const box = $("statsBox");
+  const videos = data.videos || {};
+  box.innerHTML = `
+    <div class="stat"><b>${videos.total || 0}</b><span>رابط فيديو</span></div>
+    <div class="stat"><b>${data.islamwebCache ? data.islamwebCache.entries : 0}</b><span>صفحة في الذاكرة المؤقتة</span></div>
+    <div class="stat"><b>${escapeHtml((data.ai && data.ai.label) || "—")}</b><span>محرك الصياغة</span></div>
+    <div class="stat"><b>إسلام ويب</b><span>مصدر الردود</span></div>`;
 }
 
 async function loadStats() {
   try {
     const data = await getJson(API.stats);
-    const s = data.stats || {};
-    renderDbNotice(s);
-    $("statsBox").innerHTML = `
-      <div class="stat"><b>${s.videos || 0}</b><span>فيديو في القاعدة</span></div>
-      <div class="stat"><b>${s.segments || 0}</b><span>مقطع نصي مفهرس</span></div>
-      <div class="stat"><b>${(s.chars || 0).toLocaleString("ar-EG")}</b><span>حرف مفرَّغ</span></div>
-      <div class="stat"><b>${s.hours || 0}</b><span>ساعة مصدر</span></div>
-      ${s.demoVideos ? `<div class="stat" style="grid-column:1/-1"><b>${s.demoVideos}</b><span>فيديو بيانات تجريبية — احذفها من ⚙</span></div>` : ""}`;
-    $("dbChip").hidden = !s.segments;
-    $("dbLabel").textContent = `${s.videosWithTranscript || 0} فيديو • ${s.segments || 0} مقطع`;
+    state.stats = data;
+    renderStats(data);
   } catch (_) {
-    /* تجاهل */
+    $("statsBox").innerHTML = '<span class="muted small">تعذّر قراءة الحالة.</span>';
+  }
+}
+
+function renderHealth(health) {
+  const dot = $("islamwebDot");
+  const label = $("islamwebLabel");
+  if (health.islamweb && health.islamweb.enabled) {
+    dot.className = "dot on";
+    label.textContent = `إسلام ويب: ${health.islamweb.mode}`;
+  } else {
+    dot.className = "dot off";
+    label.textContent = "إسلام ويب: معطّل";
+  }
+
+  const aiDot = $("aiDot");
+  const aiLabel = $("aiLabel");
+  if (health.ai && health.ai.enabled) {
+    aiDot.className = "dot on";
+    aiLabel.textContent = health.ai.label;
+  } else {
+    aiDot.className = "dot off";
+    aiLabel.textContent = "نقل حرفي (بلا مفتاح)";
+  }
+
+  $("videosLabel").textContent = `${health.videos ? health.videos.total : 0} فيديو`;
+
+  if (health.videos && health.videos.total === 0) {
+    const notice = $("notice");
+    notice.hidden = false;
+    notice.innerHTML =
+      'لائحة الفيديوهات فارغة الآن: أضِف روابط الفيديوهات (عنوان + رابط) من زر ⚙ ثم «إضافة فيديو»، ' +
+      'أو بالأمر <code>npm run video:add -- --url "الرابط" --title "العنوان"</code> — وستظهر تلقائيًا كروابط مرتبطة بالسؤال.';
   }
 }
 
 async function loadConfig() {
+  const data = await getJson(API.config);
+  state.config = data;
+
+  $("channelChip").href = (data.channel && data.channel.url) || "#";
+  $("channelLabel").textContent = (data.channel && data.channel.title) || "القناة";
+  if (data.app && data.app.tagline) $("brandTagline").textContent = data.app.tagline;
+
+  state.mode = data.app && data.app.defaultMode ? data.app.defaultMode : "composed";
+  const radio = document.querySelector(`input[name="mode"][value="${state.mode}"]`);
+  if (radio) radio.checked = true;
+
+  renderSuggestions(data.suggestions || []);
+
+  const cards = $("welcomeCards");
+  cards.innerHTML = `
+    <div class="wcard"><strong>من إسلام ويب مباشرةً</strong><span>فتاوى ومركز الفتوى و${escapeHtml(
+      "الاستشارات والمقالات"
+    )} — مع رقم كل مصدر ورابطه.</span></div>
+    <div class="wcard"><strong>روابط الفيديوهات</strong><span>يُقترح أقرب الفيديوهات للسؤال كروابط فقط، بلا نسخ كامل للنصوص.</span></div>
+    <div class="wcard"><strong>صياغة اختيارية</strong><span>عند إضافة مفتاح ذكاء اصطناعي يُنظَّم الرد المنقول بلا زيادة معنى.</span></div>`;
+}
+
+/* =========================================================================
+   6) الإدارة
+   ========================================================================= */
+
+function openModal(id) {
+  $(id).hidden = false;
+}
+
+function closeModal(id) {
+  $(id).hidden = true;
+}
+
+async function saveVideo() {
+  const url = $("videoUrl").value.trim();
+  const title = $("videoTitle").value.trim();
+  const tags = $("videoTags").value.trim();
+  if (!url) return toast("ألصق رابط الفيديو أولًا.", "err");
   try {
-    const cfg = await getJson(API.config);
-    state.config = cfg;
-    document.title = `${cfg.app.name} | ${cfg.app.tagline}`;
-    $("brandTagline").textContent = cfg.app.tagline;
-    $("channelChip").href = cfg.channel.url;
-    $("channelLabel").textContent = cfg.channel.title ? `قناة: ${cfg.channel.title}` : "القناة المصدر";
-    const ai = cfg.ai || {};
-    $("aiLabel").textContent = ai.enabled ? `${ai.label}` : "محفّز استخراجي (بدون مفتاح)";
-    $("aiDot").className = `dot ${ai.enabled ? "on" : "off"}`;
-    $("aiChip").title = ai.enabled
-      ? `محرك الذكاء: ${ai.label} — الموديل ${ai.model}`
-      : "لا يوجد مفتاح API؛ ستعمل الأداة بالمحرك الاستخراجي (نصوص القناة مباشرة).";
-
-    const suggestions = [
-      "ما حكم صلاة الجماعة وما أدلتها من القناة؟",
-      "اشرح لي مسألة زكاة الفطر: مقدارها ووقتها",
-      "ما الفرق بين الحديث الصحيح والحسن والضعيف؟",
-      "ما ضوابط المعاملات المصرفية والربا؟",
-      "ما معنى الآية الكريمة في هذه المسألة؟",
-      "ما مسائل الطهارة التي يكثر السؤال عنها؟"
-    ];
-    const box = $("suggestions");
-    box.innerHTML = "";
-    for (const s of suggestions) {
-      const b = el("button", "suggestion", escapeHtml(s));
-      b.addEventListener("click", () => ask(s));
-      box.appendChild(b);
-    }
-
-    const cards = [
-      { t: "فقه العبادات", d: "الطهارة • الصلاة • الصيام • الزكاة • الحج" },
-      { t: "المعاملات المالية", d: "الربا • البيع • البنوك • العملات • العقود" },
-      { t: "الأسرة والأحكام", d: "الزواج • الطلاق • النفقة • الميراث • الآداب" },
-      { t: "الحديث والعقيدة", d: "التخريج والدرجة • التوحيد • الأسماء والصفات" }
-    ];
-    const wc = $("welcomeCards");
-    if (wc) {
-      wc.innerHTML = cards
-        .map((c) => `<div class="wcard"><strong>${escapeHtml(c.t)}</strong><span>${escapeHtml(c.d)}</span></div>`)
-        .join("");
-    }
-  } catch (err) {
-    toast("تعذّر تحميل إعدادات الخادم", "err");
-  }
-}
-
-function welcomeMarkup() {
-  return `
-    <section class="welcome" id="welcome">
-      <div class="welcome-mark">﷽</div>
-      <h2>اسأل في أي باب من أبواب العلم الشرعي</h2>
-      <p>يجيبك «مشكاة» من نصوص القناة العلمية المفرَّغة، ويعرض لك <strong>النص</strong> و<strong>توقيته</strong>
-      و<strong>رابط الفيديو</strong> مباشرة، ويوسّع المجال بمسائل متصلة عند الحاجة.</p>
-      <div class="welcome-cards" id="welcomeCards"></div>
-      <p class="welcome-note">تنبيه: الأداة للاستفادة العلمية وليست جهة إفتاء رسمية، والمسائل الشخصية تُرجع إلى أهل العلم.</p>
-    </section>`;
-}
-
-function bindWelcome() {
-  loadConfig();
-}
-
-/* ---------- التغذية (Ingest) ---------- */
-
-async function runIngest({ videoId = null, limit = 0, force = false } = {}) {
-  const logBox = $("ingestLog");
-  logBox.innerHTML = "";
-  const append = (text, cls = "") => {
-    const line = el("div", cls, escapeHtml(text));
-    logBox.appendChild(line);
-    logBox.scrollTop = logBox.scrollHeight;
-  };
-
-  append(videoId ? `بدء سحب الفيديو ${videoId}…` : "بدء سحب نصوص القناة…");
-
-  try {
-    const res = await fetch(API.ingest, {
+    const res = await fetch(API.videos, {
       method: "POST",
-      headers: {
-        "content-type": "application/json",
-        ...(state.adminToken ? { "x-admin-token": state.adminToken } : {})
-      },
-      body: JSON.stringify({ videoId, limit, force, stream: true })
+      headers: await adminHeaders(),
+      body: JSON.stringify({ url, title, tags: tags ? tags.split(/[,،|]/).map((t) => t.trim()) : [] })
     });
-
-    if (!res.ok || !res.body) {
-      const data = await res.json().catch(() => ({}));
-      throw new Error(data.error || `خطأ ${res.status}`);
-    }
-
-    await readSse(res, (event, data) => {
-      if (event === "progress") {
-        if (data.message) {
-          const cls = data.status === "ok" ? "ok" : data.status === "failed" ? "fail" : data.status === "skipped" ? "skip" : "";
-          append(data.message, cls);
-        } else if (data.phase === "listing" && data.count) {
-          append(`… تم سرد ${data.count} فيديو`);
-        }
-      } else if (event === "done") {
-        const s = data.summary || {};
-        append("");
-        append(`انتهى: ${s.ok || 0} نجح • ${s.skipped || 0} متخطى • ${s.failed || 0} فشل • ${s.chunks || 0} مقطع جديد`, "ok");
-      } else if (event === "error") {
-        append(`خطأ: ${data.error}`, "fail");
-      }
-    });
-
-    toast("تمت عملية السحب", "ok");
-    await Promise.all([loadStats(), loadVideos($("videoSearch").value)]);
+    const data = await res.json();
+    if (!res.ok || data.ok === false) throw new Error(data.error || "تعذّرت الإضافة");
+    toast(`✓ ${data.updated ? "حُدِّث" : "أُضيف"}: ${data.video.title}`, "ok");
+    $("videoUrl").value = "";
+    $("videoTitle").value = "";
+    $("videoTags").value = "";
+    await loadVideos();
+    await loadStats();
   } catch (err) {
-    append(`تعذّر السحب: ${err.message}`, "fail");
-    toast(err.message, "err");
+    toast(String(err.message || err), "err");
   }
 }
 
-/* =============================================================
-   8) التخزين المحلي والربط
-   ============================================================= */
+async function importVideos() {
+  const raw = $("importText").value.trim();
+  if (!raw) return toast("ألصق اللائحة أولًا.", "err");
+  const replace = $("importReplace").checked;
+  const log = $("importLog");
+  log.hidden = false;
+  log.innerHTML = "<div>⏳ جارٍ الاستيراد…</div>";
 
-function saveChat() {
   try {
-    const slim = state.messages.slice(-24).map((m) => ({
-      role: m.role,
-      content: m.content,
-      sources: (m.sources || []).slice(0, 8),
-      docs: m.docs || [],
-      engineLabel: m.engineLabel
-    }));
-    localStorage.setItem("mishkat_chat", JSON.stringify(slim));
-  } catch (_) {
-    /* تجاهل */
+    const res = await fetch(API.videos, {
+      method: "POST",
+      headers: await adminHeaders(),
+      body: JSON.stringify({ text: raw, replace })
+    });
+    const data = await res.json();
+    if (!res.ok || data.ok === false) throw new Error(data.error || "فشل الاستيراد");
+    log.innerHTML =
+      `<div class="ok">✓ أُضيف: ${data.added || 0} — حُدِّث: ${data.updated || 0} — الإجمالي: ${data.total || 0}</div>` +
+      (replace ? '<div class="skip">تم استبدال اللائحة بالكامل.</div>' : "");
+    toast(`استيراد: ${data.added || 0} جديد، ${data.updated || 0} محدَّث`, "ok");
+  } catch (err) {
+    log.innerHTML = `<div class="fail">✗ ${escapeHtml(String(err.message || err))}</div>`;
+    toast(String(err.message || err), "err");
   }
+
+  await loadVideos();
+  await loadStats();
 }
 
-function loadChat() {
+async function runDiagnose(probe = false) {
+  const box = $("diagnoseBox");
+  box.hidden = false;
+  box.innerHTML = '<p class="muted small">جارٍ الفحص…</p>';
   try {
-    const raw = localStorage.getItem("mishkat_chat");
-    if (!raw) return;
-    const data = JSON.parse(raw);
-    if (Array.isArray(data)) state.messages = data;
-  } catch (_) {
-    state.messages = [];
+    const data = await getJson(`${API.diagnose}${probe ? "?probe=1" : ""}`);
+    box.innerHTML = `
+      <p><strong>${escapeHtml(data.summary || "")}</strong></p>
+      <ul class="diag-list">
+        ${(data.checks || [])
+          .map(
+            (c) =>
+              `<li class="${c.level}"><b>${escapeHtml(c.name)}:</b> ${escapeHtml(c.detail || "")}</li>`
+          )
+          .join("")}
+      </ul>`;
+  } catch (err) {
+    box.innerHTML = `<p class="error">${escapeHtml(String(err.message || err))}</p>`;
   }
 }
 
-function bindEvents() {
-  // إرسال
-  $("composer").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const value = $("input").value.trim();
-    if (!value) return;
-    $("input").value = "";
-    autoGrow();
-    ask(value);
-  });
+async function clearCache() {
+  try {
+    const res = await fetch("/api/cache/clear", { method: "POST", headers: await adminHeaders() });
+    const data = await res.json();
+    if (!res.ok || data.ok === false) throw new Error(data.error || "تعذّر التفريغ");
+    toast(data.message || "تم تفريغ الذاكرة المؤقتة.", "ok");
+    await loadStats();
+  } catch (err) {
+    toast(String(err.message || err), "err");
+  }
+}
 
-  $("input").addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      $("composer").dispatchEvent(new Event("submit", { cancelable: true }));
-    }
-  });
-  $("input").addEventListener("input", autoGrow);
+/* =========================================================================
+   7) الأحداث
+   ========================================================================= */
 
-  $("stopBtn").addEventListener("click", () => {
-    state.controller?.abort();
-    toast("تم إيقاف الإجابة");
-  });
-
-  // محادثة جديدة
-  $("newChatBtn").addEventListener("click", () => {
-    if (state.busy) state.controller?.abort();
-    state.messages = [];
-    saveChat();
-    renderHistory();
-    toast("بدأت محادثة جديدة", "ok");
-  });
-
-  // الأوضاع
-  document.querySelectorAll('input[name="mode"]').forEach((radio) => {
-    radio.addEventListener("change", () => {
-      state.mode = radio.value;
-      toast(`تم التبديل إلى ${modeLabel(state.mode)}`, "ok");
-      $("composerHint").textContent =
-        state.mode === "open"
-          ? "وضع واسع المجال: الإجابة تستفيض في المسائل المتصلة والمذاهب والنوازل مع تمييز ما ليس من نصوص القناة."
-          : state.mode === "strict"
-          ? "وضع صارم: لا يُجاب إلا بنصوص القناة، ويُصرَّح عند عدم وجود نص."
-          : "الإجابة تُبنى على نصوص القناة، مع توسيع بمسائل متصلة عند الحاجة.";
-    });
-  });
-
-  // الشريط الجانبي
-  $("menuBtn").addEventListener("click", () => document.body.classList.toggle("side-open"));
-  $("overlay").addEventListener("click", () => document.body.classList.remove("side-open"));
-
-  // البحث في المكتبة
-  let timer = null;
-  $("videoSearch").addEventListener("input", (e) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => loadVideos(e.target.value.trim()), 300);
-  });
-
-  // النوافذ
-  document.querySelectorAll("[data-close]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const modal = $(btn.dataset.close);
-      if (modal) modal.hidden = true;
-    });
-  });
-  document.querySelectorAll(".modal").forEach((modal) => {
-    modal.addEventListener("click", (e) => {
-      if (e.target === modal) modal.hidden = true;
-    });
-  });
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") document.querySelectorAll(".modal").forEach((m) => (m.hidden = true));
-  });
-
-  // فتح نص الفيديو من بطاقة مصدر
-  $("chat").addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-open-video]");
-    if (btn) openVideoModal(btn.dataset.openVideo, Number(btn.dataset.start || 0));
-  });
-
-  $("summarizeBtn").addEventListener("click", summarizeCurrentVideo);
-
-  // إدخال النص
-  $("addTranscriptBtn").addEventListener("click", () => {
-    const panel = $("importPanel");
-    panel.hidden = !panel.hidden;
-    if (!panel.hidden) $("importText").focus();
-  });
-  $("importSave").addEventListener("click", saveTranscript);
-  $("importFile").addEventListener("change", (e) => {
-    const f = e.target.files?.[0];
-    $("importFileName").textContent = f ? `${f.name} (${Math.round(f.size / 1024)}ك.ب)` : "لم يُختر ملف";
-    if (f) toast("تم اختيار الملف — اضغط «احفظ وفهرس النص»", "ok");
-  });
-  $("importText").addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) saveTranscript();
-  });
-  $("loadMissing").addEventListener("click", loadMissing);
-  $("runDiagnose").addEventListener("click", runDiagnose);
-  $("inVideoSearchBtn").addEventListener("click", () => {
-    if (state.currentVideoId) openVideoModal(state.currentVideoId, 0, $("inVideoSearch").value.trim());
-  });
-  $("inVideoSearch").addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && state.currentVideoId) {
-      openVideoModal(state.currentVideoId, 0, $("inVideoSearch").value.trim());
-    }
-  });
-
-  // الإدارة
-  $("adminBtn").addEventListener("click", () => {
-    $("adminModal").hidden = false;
-    $("adminToken").value = state.adminToken;
-    loadMissing();
-  });
-  $("adminToken").addEventListener("change", (e) => {
-    state.adminToken = e.target.value.trim();
-    sessionStorage.setItem("mishkat_admin_token", state.adminToken);
-  });
-  $("startIngest").addEventListener("click", () =>
-    runIngest({
-      limit: Number($("ingestLimit").value || 0),
-      force: $("ingestForce").value === "yes"
-    })
-  );
-  $("startSingle").addEventListener("click", () => {
-    const raw = $("singleVideoUrl").value.trim();
-    if (!raw) return toast("ألصق رابط الفيديو أو معرّفه", "err");
-    const match = raw.match(/(?:v=|youtu\.be\/|\/shorts\/|\/embed\/)([\w-]{6,})/) || raw.match(/^([\w-]{6,})$/);
-    const id = match ? match[1] : raw;
-    runIngest({ videoId: id });
-  });
-  $("purgeDemo").addEventListener("click", async () => {
-    if (!confirm("حذف كل البيانات التجريبية من القاعدة؟")) return;
-    try {
-      const data = await postJson(API.purgeDemo, { token: state.adminToken });
-      toast(`تم حذف ${data.removed || 0} فيديو تجريبي`, "ok");
-      await Promise.all([loadStats(), loadVideos()]);
-    } catch (err) {
-      toast(err.message, "err");
-    }
-  });
+function submitQuestion() {
+  const input = $("input");
+  const question = input.value.trim();
+  if (!question) return;
+  input.value = "";
+  input.style.height = "auto";
+  ask(question);
 }
 
 function autoGrow() {
-  const ta = $("input");
-  ta.style.height = "auto";
-  ta.style.height = `${Math.min(190, ta.scrollHeight)}px`;
+  const el = $("input");
+  el.style.height = "auto";
+  el.style.height = `${Math.min(el.scrollHeight, 220)}px`;
 }
 
-/* =============================================================
-   9) الإقلاع
-   ============================================================= */
+function bind() {
+  $("composer").addEventListener("submit", (e) => {
+    e.preventDefault();
+    submitQuestion();
+  });
+
+  $("input").addEventListener("input", autoGrow);
+  $("input").addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      submitQuestion();
+    }
+  });
+
+  $("stopBtn").addEventListener("click", () => {
+    if (state.abort) state.abort.abort();
+  });
+
+  $("newChatBtn").addEventListener("click", () => {
+    $("chat").innerHTML = "";
+    $("chat").appendChild($("welcome"));
+    $("welcome").hidden = false;
+    state.history = [];
+  });
+
+  document.querySelectorAll('input[name="mode"]').forEach((radio) => {
+    radio.addEventListener("change", () => {
+      state.mode = radio.value;
+      toast(radio.value === "sources" ? "الرد سيُعرض منقولًا كما هو." : "الرد سيُصاغ ومنظَّمًا.");
+    });
+  });
+
+  $("videoSearch").addEventListener("input", (e) => loadVideos(e.target.value.trim()));
+  $("addVideoBtn").addEventListener("click", () => openModal("adminModal"));
+  $("adminBtn").addEventListener("click", () => openModal("adminModal"));
+  $("menuBtn").addEventListener("click", () => $("sidebar").classList.toggle("open"));
+  $("overlay").addEventListener("click", () => $("sidebar").classList.remove("open"));
+
+  document.querySelectorAll("[data-close]").forEach((btn) =>
+    btn.addEventListener("click", () => closeModal(btn.dataset.close))
+  );
+  document.querySelectorAll(".modal").forEach((modal) =>
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) modal.hidden = true;
+    })
+  );
+
+  $("saveVideo").addEventListener("click", saveVideo);
+  $("importVideos").addEventListener("click", importVideos);
+  $("runDiagnose").addEventListener("click", () => runDiagnose(false));
+  $("runProbe").addEventListener("click", () => runDiagnose(true));
+  $("clearCache").addEventListener("click", clearCache);
+  $("adminToken").addEventListener("input", (e) => {
+    state.adminToken = e.target.value.trim();
+    localStorage.setItem("mishkat.adminToken", state.adminToken);
+  });
+
+  const tokenField = $("adminToken");
+  if (tokenField) tokenField.value = state.adminToken;
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") document.querySelectorAll(".modal").forEach((m) => (m.hidden = true));
+  });
+}
 
 async function init() {
-  loadChat();
-  bindEvents();
-  renderHistory();
-  await loadConfig();
-  await Promise.all([loadStats(), loadVideos()]);
-  // إعادة ربط البطاقات بعد استعادة المحادثة
-  if (state.config?.ai) {
-    $("aiLabel").textContent = state.config.ai.enabled ? state.config.ai.label : "محرك استخراجي";
+  bind();
+  autoGrow();
+  try {
+    const health = await getJson(API.health);
+    renderHealth(health);
+  } catch (err) {
+    toast(`تعذّر الاتصال بالخادم: ${String(err.message || err)}`, "err");
   }
+  try {
+    await loadConfig();
+  } catch (err) {
+    toast(String(err.message || err), "err");
+  }
+  await Promise.all([loadVideos(), loadStats()]);
 }
 
 init();
