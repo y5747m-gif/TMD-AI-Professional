@@ -1,328 +1,280 @@
 "use strict";
 
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
+
+const DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), "mishkat-server-"));
+process.env.MISHKAT_DATA_DIR = DATA_DIR;
+process.env.MISHKAT_AI_MODE = "off";
+process.env.ISLAMWEB_MODE = "direct";
+process.env.ISLAMWEB_READER_FALLBACK = "false";
+process.env.ISLAMWEB_CACHE_TTL_MINUTES = "0";
+process.env.MISHKAT_VIDEO_OEMBED = "false";
+process.env.PORT = "0";
+
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const fs = require("node:fs");
-const os = require("node:os");
-const path = require("node:path");
 
-const TMP = fs.mkdtempSync(path.join(os.tmpdir(), "mishkat-server-"));
-process.env.MISHKAT_DATA_DIR = TMP;
-process.env.MISHKAT_DB_PATH = path.join(TMP, "server.db");
-process.env.MISHKAT_JSON_INDEX = path.join(TMP, "index.json");
-delete process.env.GEMINI_API_KEY;
-delete process.env.GROQ_API_KEY;
-delete process.env.OPENAI_API_KEY;
-delete process.env.OPENROUTER_API_KEY;
-delete process.env.MISHKAT_LLM_API_KEY;
-process.env.MISHKAT_ADMIN_TOKEN = "test-secret";
+const config = require("../lib/config");
+const { server } = require("../server");
+const { fixture, stubFetch, request } = require("./helpers");
 
-const { server, store } = require("../server");
-const { seedDemo } = require("../lib/demo");
+let port = 0;
 
-let base = "";
+function catalogSeed() {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.writeFileSync(
+    config.VIDEOS_PATH,
+    JSON.stringify(
+      {
+        format: "mishkat-videos/v1",
+        channel: { id: config.CHANNEL_ID, url: config.CHANNEL_URL, title: "قناة تجريبية" },
+        videos: [
+          {
+            id: "aaaaaaaaaaa",
+            title: "الطهارة والمياه",
+            url: "https://www.youtube.com/watch?v=aaaaaaaaaaa",
+            tags: ["طهارة", "وضوء"]
+          }
+        ]
+      },
+      null,
+      2
+    ),
+    "utf8"
+  );
+}
 
 test.before(async () => {
-  seedDemo(store);
-  // فيديو حقيقي (غير تجريبي) للتحقق من بناء روابط التوقيت
-  store.upsertVideo({
-    id: "realVid01",
-    title: "درس حقيقي للاختبار — أحكام الصيام",
-    publishedAt: "2025-05-01T00:00:00.000Z",
-    durationS: 600,
-    url: "https://www.youtube.com/watch?v=realVid01",
-    sourceKind: "channel",
-    hasTranscript: true,
-    transcriptLang: "ar",
-    segmentsCount: 2,
-    chars: 200
+  catalogSeed();
+  await new Promise((resolve) => {
+    server.listen(0, "127.0.0.1", () => {
+      port = server.address().port;
+      resolve();
+    });
   });
-  store.addSegments("realVid01", [
-    { idx: 0, startMs: 12000, endMs: 30000, text: "الصيام يجب على المسلم البالغ العاقل القادر" },
-    { idx: 1, startMs: 40000, endMs: 60000, text: "ويبطل الصيام بالأكل والشرب عمدًا مع العلم والاختيار" }
-  ]);
-  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
-  base = `http://127.0.0.1:${server.address().port}`;
 });
 
-test.after(async () => {
-  await new Promise((resolve) => server.close(resolve));
-  try {
-    store.close();
-  } catch (_) {}
+test.after(() => {
+  server.close();
 });
 
-test("GET /api/health يرجّع حالة سليمة", async () => {
-  const res = await fetch(`${base}/api/health`);
+test("GET /api/health يبيّن مصدر الردود وأنه لا تُخزَّن نصوص للفيديوهات", async () => {
+  const res = await request(port, { path: "/api/health" });
   assert.equal(res.status, 200);
-  const data = await res.json();
+  const data = res.json();
   assert.equal(data.ok, true);
-  assert.ok(data.segments > 0);
+  assert.equal(data.answersFrom, "islamweb.net");
+  assert.equal(data.storesTranscripts, false);
+  assert.equal(data.islamweb.enabled, true);
 });
 
-test("GET /api/config يعرض اسم الأداة والقناة", async () => {
-  const data = await (await fetch(`${base}/api/config`)).json();
+test("GET /api/config يعرض الأوضاع والاقتراحات ولائحة الفيديوهات", async () => {
+  const data = (await request(port, { path: "/api/config" })).json();
   assert.equal(data.ok, true);
-  assert.equal(data.app.name, "مشكاة");
-  assert.equal(data.channel.id, "UCv0g_v1C6JcZALvrkDu98AQ");
-  assert.ok(Array.isArray(data.categories));
-  assert.equal(typeof data.ai.enabled, "boolean");
+  assert.equal(data.videos.linkOnly, true);
+  assert.ok(data.modes.some((m) => m.id === "sources"));
+  assert.ok(data.modes.some((m) => m.id === "composed"));
+  assert.ok(data.suggestions.length > 3);
 });
 
-test("GET / يعرض واجهة «مشكاة»", async () => {
-  const res = await fetch(`${base}/`);
-  const html = await res.text();
-  assert.equal(res.status, 200);
-  assert.ok(html.includes("مشكاة"));
-  assert.ok(html.includes("app.js"));
-});
+test("GET /api/videos يسرد الروابط، وPOST يضيف فيديو", async () => {
+  const list = (await request(port, { path: "/api/videos" })).json();
+  assert.equal(list.ok, true);
+  assert.equal(list.total, 1);
+  assert.equal(list.linkOnly, true);
 
-test("GET /style.css و/app.js يُخدمان بنوع صحيح", async () => {
-  const css = await fetch(`${base}/style.css`);
-  assert.ok(String(css.headers.get("content-type")).includes("text/css"));
-  const js = await fetch(`${base}/app.js`);
-  assert.ok(String(js.headers.get("content-type")).includes("javascript"));
-});
-
-test("حماية المسارات: منع الخروج من مجلد الواجهة", async () => {
-  const res = await fetch(`${base}/%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd`);
-  assert.equal(res.status, 403);
-  const data = await res.json();
-  assert.equal(data.ok, false);
-});
-
-test("POST /api/search يرجّع نصوصًا مع روابط", async () => {
-  const res = await fetch(`${base}/api/search`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ query: "زكاة الفطر" })
-  });
-  const data = await res.json();
-  assert.equal(data.ok, true);
-  assert.ok(data.results.length > 0);
-  assert.ok(data.results[0].link.startsWith("https://www.youtube.com/"));
-  assert.ok(typeof data.results[0].time === "string" && data.results[0].time.length >= 4);
-});
-
-test("POST /api/ask بدون بث يرجّع إجابة وهيكلًا ومصادر", async () => {
-  const res = await fetch(`${base}/api/ask`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ message: "ما حكم صلاة الجماعة؟", stream: false, mode: "balanced" })
-  });
-  const data = await res.json();
-  assert.equal(data.ok, true);
-  assert.ok(data.answer.includes("## الخلاصة"));
-  assert.ok(data.sources.length > 0);
-  assert.ok(data.sources[0].link.startsWith("https://www.youtube.com/"));
-
-  // البحث عن نص الفيديو الحقيقي يعطي رابطًا بتوقيت
-  const real = await (
-    await fetch(`${base}/api/search`, {
+  const added = (
+    await request(port, {
       method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ query: "ما الذي يبطل الصيام؟" })
+      path: "/api/videos",
+      body: { url: "https://youtu.be/bbbbbbbbbbb", title: "درس ثانٍ", tags: ["صلاة"] }
     })
   ).json();
-  const realHit = real.results.find((r) => r.videoId === "realVid01");
-  assert.ok(realHit, "يجب أن يظهر الفيديو الحقيقي في النتائج");
-  assert.ok(realHit.link.includes("&t="), `الرابط يجب أن يحمل توقيتًا: ${realHit.link}`);
-  assert.equal(realHit.time, "00:40");
-  assert.equal(data.meta.provider.enabled, false);
-});
+  assert.equal(added.ok, true);
+  assert.equal(added.video.id, "bbbbbbbbbbb");
+  assert.equal(added.total, 2);
 
-test("POST /api/ask ببث يرسل أحداث SSE كاملة", async () => {
-  const res = await fetch(`${base}/api/ask`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ message: "ما الفرق بين الصحيح والحسن من الحديث؟", stream: true })
-  });
-  assert.ok(String(res.headers.get("content-type")).includes("text/event-stream"));
-  const text = await res.text();
-  assert.ok(text.includes("event: sources"));
-  assert.ok(text.includes("event: token"));
-  assert.ok(text.includes("event: done"));
-});
-
-test("POST /api/ask يرفض سؤالًا فارغًا", async () => {
-  const res = await fetch(`${base}/api/ask`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ message: "   " })
-  });
-  assert.equal(res.status, 400);
-});
-
-test("GET /api/videos و/api/video/:id يعملان", async () => {
-  const list = await (await fetch(`${base}/api/videos?limit=10`)).json();
-  assert.ok(list.videos.length > 0);
-  const id = list.videos[0].id;
-  const one = await (await fetch(`${base}/api/video/${id}`)).json();
+  const one = (await request(port, { path: "/api/video?id=bbbbbbbbbbb" })).json();
   assert.equal(one.ok, true);
-  assert.ok(one.segments.length > 0);
-  const missing = await fetch(`${base}/api/video/does-not-exist`);
-  assert.equal(missing.status, 404);
+  assert.equal(one.video.title, "درس ثانٍ");
+
+  const removed = (await request(port, { method: "DELETE", path: "/api/videos?id=bbbbbbbbbbb" })).json();
+  assert.equal(removed.ok, true);
+  assert.equal(removed.total, 1);
 });
 
-test("POST /api/summarize يلخّص فيديو (محرك استخراجي)", async () => {
-  const list = await (await fetch(`${base}/api/videos?limit=1`)).json();
-  const id = list.videos[0].id;
-  const data = await (
-    await fetch(`${base}/api/summarize`, {
+test("POST /api/ask (JSON) يجيب من إسلام ويب ويُرفق روابط الفيديوهات", async () => {
+  const restore = stubFetch((url) => {
+    if (url.includes("page=websearch")) return { body: fixture("search.html") };
+    if (url.includes("/ar/fatwa/999001/")) return { body: fixture("fatwa.html") };
+    if (url.includes("/ar/fatwa/999010/")) return { body: fixture("fatwa.html") };
+    return { status: 404, ok: false, body: "no" };
+  });
+  try {
+    const res = await request(port, {
       method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ videoId: id, stream: false })
-    })
-  ).json();
-  assert.equal(data.ok, true);
-  assert.ok(data.summary.length > 50);
-});
-
-test("التغذية تتطلب كلمة مرور المدير", async () => {
-  const res = await fetch(`${base}/api/ingest`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ limit: 1, stream: false })
-  });
-  assert.equal(res.status, 401);
-});
-
-test("حذف البيانات التجريبية يعمل مع كلمة المرور", async () => {
-  const res = await fetch(`${base}/api/purge-demo`, {
-    method: "POST",
-    headers: { "content-type": "application/json", "x-admin-token": "test-secret" },
-    body: JSON.stringify({})
-  });
-  const data = await res.json();
-  assert.equal(data.ok, true);
-  assert.ok(data.removed >= 4);
-  const after = await (await fetch(`${base}/api/stats`)).json();
-  assert.equal(after.stats.demoVideos, 0);
-});
-
-test("مسار API غير معروف يرجّع 404 بصيغة JSON", async () => {
-  const res = await fetch(`${base}/api/unknown-endpoint`);
-  assert.equal(res.status, 404);
-  const data = await res.json();
-  assert.equal(data.ok, false);
-});
-
-test("الطلب بـ OPTIONS يرجّع 204 (CORS)", async () => {
-  const res = await fetch(`${base}/api/ask`, { method: "OPTIONS" });
-  assert.equal(res.status, 204);
-});
-
-/* ==============================================================
- *  إدخال النصوص يدويًا عبر الواجهة
- * ============================================================== */
-
-const SRT_FOR_API = `1
-00:00:05,000 --> 00:00:12,000
-أحكام الأضحية تبدأ ببيان وقت الذبح وهو بعد صلاة العيد إلى آخر أيام التشريق
-
-2
-00:01:40,000 --> 00:01:55,000
-ويشترط في الأضحية أن تكون من الأنعام وأن تبلغ السن المعتبرة شرعًا وسلامتها من العيوب`;
-
-test("POST /api/import يتطلب كلمة مرور المدير", async () => {
-  const res = await fetch(`${base}/api/import`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ videoId: "vidAdha00001", content: SRT_FOR_API })
-  });
-  assert.equal(res.status, 401);
-  const data = await res.json();
-  assert.equal(data.ok, false);
-});
-
-test("POST /api/import بمحتوى فارغ يُرفض برسالة واضحة", async () => {
-  const res = await fetch(`${base}/api/import`, {
-    method: "POST",
-    headers: { "content-type": "application/json", "x-admin-token": "test-secret" },
-    body: JSON.stringify({ videoId: "vidAdha00001", content: "   " })
-  });
-  assert.equal(res.status, 400);
-});
-
-test("POST /api/import يضيف النص ويصبح قابلًا للبحث بالوقت والرابط", async () => {
-  const res = await fetch(`${base}/api/import`, {
-    method: "POST",
-    headers: { "content-type": "application/json", "x-admin-token": "test-secret" },
-    body: JSON.stringify({
-      videoId: "https://www.youtube.com/watch?v=vidAdha00001",
-      content: SRT_FOR_API,
-      filename: "vidAdha00001.srt",
-      title: "أحكام الأضحية",
-      fetchMeta: false
-    })
-  });
-  const data = await res.json();
-  assert.equal(data.ok, true, JSON.stringify(data));
-  assert.equal(data.result.videoId, "vidAdha00001");
-  assert.equal(data.result.format, "srt");
-  assert.ok(data.result.chunks >= 1);
-  assert.equal(data.result.sourceKind, "manual");
-
-  // النص يُستشهد به في موضعه الزمني الصحيح
-  const search = await (
-    await fetch(`${base}/api/search`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ query: "ما شروط الأضحية وما وقت الذبح؟" })
-    })
-  ).json();
-  const hits = search.results.filter((r) => r.videoId === "vidAdha00001");
-  assert.ok(hits.length > 0, "يجب أن يعيد البحث النص المُدخل");
-  assert.match(hits[0].link, /^https:\/\/www\.youtube\.com\/watch\?v=vidAdha00001/);
-  assert.ok(hits.some((r) => r.text.includes("الأنعام") || r.text.includes("التشريق")));
-
-  // ويمكن قراءته كاملًا من مسار الفيديو
-  const video = await (await fetch(`${base}/api/video?id=vidAdha00001`)).json();
-  assert.equal(video.ok, true);
-  assert.ok(video.segments.length >= 1);
-  assert.ok(video.video.title.includes("الأضحية"));
-});
-
-test("GET /api/missing يسرد الفيديوهات التي تحتاج نصًا", async () => {
-  const data = await (await fetch(`${base}/api/missing`)).json();
-  assert.equal(data.ok, true);
-  assert.equal(typeof data.missing, "number");
-  assert.ok(Array.isArray(data.videos));
-  // الفيديو الذي أدخلنا نصه يجب ألا يظهر في القائمة
-  assert.ok(!data.videos.some((v) => v.id === "vidAdha00001"));
-  assert.ok(data.hint.includes("cli.js import"));
-});
-
-/* ==============================================================
- *  رسائل واضحة بدل الأخطاء الغامضة (خبرة تشخيص 500)
- * ============================================================== */
-
-test("GET /api/diagnose يعمل محليًا ويشخّص الحالة", async () => {
-  const data = await (await fetch(`${base}/api/diagnose`)).json();
-  assert.equal(typeof data.ok, "boolean");
-  assert.ok(data.checks.length >= 6);
-  assert.ok(data.checks.some((c) => c.name.includes("قاعدة البيانات")));
-  assert.ok(data.checks.some((c) => c.name.includes("ملفات الواجهة")));
-  assert.ok(data.stats);
-});
-
-test("المسار القديم /api/chat يعطي رسالة تحديث لا انهيارًا", async () => {
-  const data = await (
-    await fetch(`${base}/api/chat`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ messages: [] })
-    })
-  ).json();
-  assert.equal(data.ok, true);
-  assert.ok(data.message.includes("مشكاة"));
-  assert.equal(data.upgraded, true);
-});
-
-test("المسارات القديمة الأخرى تُرجع رسالة إزالة واضحة", async () => {
-  for (const retired of ["/api/image", "/api/upload", "/api/owner-login", "/api/references-search"]) {
-    const data = await (await fetch(`${base}${retired}`)).json();
-    assert.equal(data.upgraded, true, retired);
-    assert.ok(data.error.includes(retired));
+      path: "/api/ask",
+      body: { question: "ما حكم الوضوء من ماء البحر؟", stream: false, mode: "sources" }
+    });
+    assert.equal(res.status, 200);
+    const data = res.json();
+    assert.equal(data.ok, true);
+    assert.ok(data.answer.includes("نصّ تجريبي"));
+    assert.ok(data.sources.length >= 1);
+    assert.ok(data.sources[0].url.includes("islamweb.net"));
+    assert.equal(data.videos[0].id, "aaaaaaaaaaa");
+  } finally {
+    restore();
   }
+});
+
+test("POST /api/ask ببثّ SSE يُرسل meta ثم token ثم done", async () => {
+  const restore = stubFetch((url) => {
+    if (url.includes("page=websearch")) return { body: fixture("search.html") };
+    if (url.includes("/ar/fatwa/999001/")) return { body: fixture("fatwa.html") };
+    return { status: 404, ok: false, body: "no" };
+  });
+  try {
+    const res = await request(port, {
+      method: "POST",
+      path: "/api/ask",
+      headers: { accept: "text/event-stream" },
+      body: { question: "الوضوء بماء البحر", mode: "sources", stream: true }
+    });
+    assert.equal(res.status, 200);
+    assert.ok(res.headers["content-type"].includes("text/event-stream"));
+    assert.ok(res.text.includes("event: meta"));
+    assert.ok(res.text.includes("event: token"));
+    assert.ok(res.text.includes("event: done"));
+    assert.ok(res.text.includes("نصّ تجريبي"));
+  } finally {
+    restore();
+  }
+});
+
+test("POST /api/ask بلا سؤال يعيد خطأً عربيًا واضحًا", async () => {
+  const res = await request(port, { method: "POST", path: "/api/ask", body: {} });
+  assert.equal(res.status, 400);
+  assert.ok(res.json().error.includes("السؤال"));
+});
+
+test("POST /api/search يعيد مصادر وفيديوهات بلا صياغة", async () => {
+  const restore = stubFetch((url) => {
+    if (url.includes("page=websearch")) return { body: fixture("search.html") };
+    return { status: 404, ok: false, body: "no" };
+  });
+  try {
+    const data = (
+      await request(port, { method: "POST", path: "/api/search", body: { query: "الوضوء بماء البحر" } })
+    ).json();
+    assert.equal(data.ok, true);
+    assert.ok(data.sources.length >= 2);
+    assert.ok(data.videos.length >= 1);
+  } finally {
+    restore();
+  }
+});
+
+test("GET /api/diagnose يُرجع فحوصًا كاملة وحكمًا واضحًا (بلا فحص شبكة افتراضيًا)", async () => {
+  const data = (await request(port, { path: "/api/diagnose" })).json();
+  assert.equal(typeof data.ok, "boolean");
+  assert.ok(data.summary.length > 5);
+  assert.ok(Array.isArray(data.checks) && data.checks.length >= 5);
+  for (const check of data.checks) {
+    assert.ok(["ok", "warn", "fail"].includes(check.level), `مستوى غير معروف: ${check.level}`);
+    assert.ok(check.name && check.name.length > 0);
+  }
+  const storage = data.checks.find((c) => c.name.includes("حفظ النصوص"));
+  assert.ok(storage.detail.includes("لا تُخزَّن"));
+});
+
+test("POST /api/cache/clear يفرّغ الذاكرة المؤقتة (ويُحمى عند ضبط رمز الإدارة)", async () => {
+  const openInDev = await request(port, { method: "POST", path: "/api/cache/clear" });
+  assert.equal(openInDev.status, 200, "بلا رمز إدارة (تطوير محلي) يكون المسار مفتوحًا");
+
+  const oldToken = config.SERVER.adminToken;
+  config.SERVER.adminToken = "test-secret-token";
+  try {
+    const denied = await request(port, { method: "POST", path: "/api/cache/clear" });
+    assert.equal(denied.status, 401, "مع ضبط الرمز يجب رفض الطلب بلا رمز");
+
+    const ok = await request(port, {
+      method: "POST",
+      path: "/api/cache/clear",
+      headers: { "x-admin-token": "test-secret-token" }
+    });
+    assert.equal(ok.status, 200);
+    const data = ok.json();
+    assert.equal(data.ok, true);
+    assert.ok(data.message.includes("الذاكرة المؤقتة"));
+  } finally {
+    config.SERVER.adminToken = oldToken;
+  }
+});
+
+test("POST /api/videos باستيراد جماعي (text) يضيف اللائحة مرة واحدة", async () => {
+  const res = await request(port, {
+    method: "POST",
+    path: "/api/videos",
+    body: {
+      text: "عنوان مستورد | https://youtu.be/ccccccccccc\nhttps://www.youtube.com/watch?v=ddddddddddd",
+      tags: ["فقه"]
+    }
+  });
+  assert.equal(res.status, 200);
+  const data = res.json();
+  assert.equal(data.ok, true);
+  assert.equal(data.imported, true);
+  assert.equal(data.added, 2);
+
+  const list = (await request(port, { path: "/api/videos" })).json();
+  assert.equal(list.total, 3, "لم تُمسح العناصر السابقة بلا replace");
+
+  const replace = await request(port, {
+    method: "POST",
+    path: "/api/videos",
+    body: { items: ["https://youtu.be/eeeeeeeeeee"], replace: true }
+  });
+  assert.equal(replace.json().total, 1, "الاستبدال يمسح اللائحة ثم يضيف");
+
+  // نُعيد لائحة الاختبار الأصلية
+  await request(port, { method: "DELETE", path: "/api/videos?id=eeeeeeeeeee" });
+  await request(port, {
+    method: "POST",
+    path: "/api/videos",
+    body: { text: "الطهارة والمياه | https://www.youtube.com/watch?v=aaaaaaaaaaa" }
+  });
+});
+
+test("المسارات القديمة تُعاد إليها رسالة تحديث بدل 500", async () => {
+  const res = await request(port, { path: "/api/ingest" });
+  assert.equal(res.status, 200);
+  const data = res.json();
+  assert.equal(data.upgraded, true);
+  assert.ok(data.error.includes("ingest"));
+
+  const chat = (await request(port, { path: "/api/chat" })).json();
+  assert.equal(chat.upgraded, true);
+  assert.ok(chat.message.includes("إسلام ويب"));
+});
+
+test("الواجهة الرسومية تُخدَم من الجذر", async () => {
+  const page = await request(port, { path: "/" });
+  assert.equal(page.status, 200);
+  assert.ok(page.headers["content-type"].includes("text/html"));
+  assert.ok(page.text.includes("مشكاة"));
+  assert.ok(!page.text.includes("نص الفيديو"), "لا يوجد عرض لنصوص الفيديوهات");
+
+  const app = await request(port, { path: "/app.js" });
+  assert.equal(app.status, 200);
+  assert.ok(app.text.includes("/api/ask"));
+});
+
+test("المسار /videos.json يعرض لائحة الروابط فقط", async () => {
+  const data = (await request(port, { path: "/videos.json" })).json();
+  assert.equal(data.videos.length, 1);
+  assert.ok(data.note.includes("روابط"));
+  assert.ok(!JSON.stringify(data).includes("transcript"));
 });

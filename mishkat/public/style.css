@@ -781,3 +781,86 @@ mark { background: rgba(217,180,92,.35); color: #fff; border-radius: 4px; paddin
 .diag-row .mark { flex: 0 0 auto; }
 .diag-row .diag-name { color: var(--text-2); font-weight: 600; }
 .diag-row .diag-detail { color: var(--muted); }
+
+/* =========================================================================
+   طبقة جديدة: مصادر إسلام ويب وروابط الفيديوهات (النسخة ٢)
+   ========================================================================= */
+
+.bubble .error { color: #f0a49c; background: rgba(226,105,95,.08); border: 1px solid rgba(226,105,95,.35); border-radius: var(--radius-sm); padding: 10px 12px; }
+
+.answer-extras { display: flex; flex-direction: column; gap: 16px; margin-top: 8px; }
+.extras-block {
+  border-top: 1px dashed rgba(255,255,255,.09);
+  padding-top: 14px;
+}
+.extras-title { font-size: 13px; color: var(--gold-soft); margin: 0 0 10px; font-weight: 700; }
+.extras-block.notes ul { margin: 0; padding-inline-start: 20px; }
+.extras-block.notes li { font-size: 12.5px; color: var(--muted); line-height: 1.8; }
+
+.source-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.source-card {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 11px 13px;
+  background: rgba(255,255,255,.03);
+  text-decoration: none;
+  color: inherit;
+  transition: .2s ease;
+}
+.source-card:hover { border-color: rgba(217,180,92,.45); background: rgba(217,180,92,.07); transform: translateY(-2px); }
+.source-head { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.source-kind {
+  font-size: 11px; padding: 2px 8px; border-radius: 999px;
+  border: 1px solid rgba(217,180,92,.4); color: var(--gold-soft); background: var(--gold-dim);
+}
+.source-card.consult .source-kind { border-color: rgba(70,184,168,.45); color: #9fe3d8; background: rgba(70,184,168,.12); }
+.source-card.article .source-kind { border-color: rgba(120,150,220,.45); color: #bcd0f5; background: rgba(120,150,220,.12); }
+.source-num, .source-date { font-size: 11px; color: var(--muted); }
+.source-title { font-size: 13.5px; font-weight: 700; line-height: 1.6; color: var(--text); }
+.source-snippet { font-size: 12.5px; color: var(--muted); line-height: 1.75; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.source-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 2px; }
+.source-card .badge.ok { border-color: rgba(70,184,168,.45); color: #9fe3d8; background: rgba(70,184,168,.12); }
+
+.video-links { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+.video-links a {
+  display: block; font-size: 13px; line-height: 1.6;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 9px 12px; background: rgba(255,255,255,.02); color: var(--text-2); text-decoration: none;
+  transition: .18s ease;
+}
+.video-links a:hover { border-color: rgba(217,180,92,.45); background: rgba(217,180,92,.08); color: var(--text); }
+
+.tag {
+  font-size: 10.5px; padding: 1px 7px; border-radius: 999px;
+  border: 1px solid var(--border); color: var(--muted);
+}
+
+.panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  background: rgba(255,255,255,.02);
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+.panel-title { margin: 0; font-size: 13.5px; color: var(--gold-soft); font-weight: 700; }
+.panel textarea {
+  width: 100%; background: rgba(0,0,0,.28); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); color: var(--text); padding: 10px 12px;
+  font-family: inherit; font-size: 13px; line-height: 1.7; resize: vertical;
+}
+.panel textarea:focus { outline: none; border-color: rgba(217,180,92,.55); }
+
+.diag-list { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+.diag-list li { font-size: 12.5px; line-height: 1.7; color: var(--muted); padding-inline-start: 16px; position: relative; }
+.diag-list li::before { content: "•"; position: absolute; inset-inline-start: 2px; color: var(--muted); }
+.diag-list li.ok::before { content: "✓"; color: #86e0a5; }
+.diag-list li.warn::before { content: "!"; color: var(--gold-soft); }
+.diag-list li.fail::before { content: "✗"; color: #f0a49c; }
+.diag-list li b { color: var(--text-2); }
+
+.notice { display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; }

@@ -18,11 +18,12 @@
 
 const config = require("./config");
 
-const RELOAD_HINT = "أعد تحميل الصفحة لتظهر واجهة «مشكاة» الجديدة (Ctrl + F5 أو Cmd + Shift + R).";
+const RELOAD_HINT = "أعد تحميل الصفحة لتظهر الواجهة الجديدة (Ctrl + F5 أو Cmd + Shift + R).";
 const UPGRADE_MESSAGE =
-  `تم تحديث الأداة إلى «مشكاة» ✨ — أداة جديدة تجيب من نصوص قناة يوتيوب المعتمدة مع التوثيق بالتوقيت والرابط.\n\n` +
+  `تم تحديث الأداة ✨ — النسخة الجديدة تجيب بـ«ردود موقع إسلام ويب» مع توثيق رقم الفتوى ورابطها، ` +
+  `وتعرض روابط الفيديوهات المتعلقة بالسؤال — بلا أي نسخ كامل لنصوص الفيديوهات.\n\n` +
   `${RELOAD_HINT}\n\n` +
-  `القناة المصدر: ${config.CHANNEL_URL}`;
+  `مصدر الردود: ${config.APP.islamwebHome}`;
 
 function sendJson(res, status, data) {
   const body = JSON.stringify(data);
@@ -48,7 +49,6 @@ function settingsShim(req, res) {
   return sendJson(res, 200, {
     ok: true,
     upgraded: true,
-    // تُتجاهل آليًا بعد إعادة تحميل الصفحة؛ وجودها يمنع شاشة الخطأ فقط
     settings: {
       siteName: config.APP.name,
       siteDescription: config.APP.tagline,
@@ -57,9 +57,9 @@ function settingsShim(req, res) {
       showSuggestions: true,
       enableImageTools: false,
       suggestions: [
-        { title: "سؤال فقهي", icon: "⚖️", prompt: "ما حكم صلاة الجماعة وما أدلتها؟" },
-        { title: "سؤال عن الحديث", icon: "📜", prompt: "ما الفرق بين الصحيح والحسن؟" },
-        { title: "سؤال عن الزكاة", icon: "🪙", prompt: "ما مقدار زكاة الفطر ووقتها؟" }
+        { title: "سؤال فقهي", icon: "⚖️", prompt: "ما حكم صلاة الجماعة؟" },
+        { title: "سؤال عن الزكاة", icon: "🪙", prompt: "ما مقدار زكاة الفطر ووقتها؟" },
+        { title: "آداب وأخلاق", icon: "🌿", prompt: "ما حكم الغيبة والتوبة منها؟" }
       ]
     }
   });
@@ -71,7 +71,7 @@ function retiredShim(name) {
     return sendJson(res, 200, {
       ok: false,
       upgraded: true,
-      error: `المسار /api/${name} أُزيل في النسخة الجديدة «مشكاة». ${RELOAD_HINT}`
+      error: `المسار /api/${name} أُزيل في النسخة الجديدة. ${RELOAD_HINT}`
     });
   };
 }

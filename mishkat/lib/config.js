@@ -3,7 +3,9 @@
 /**
  * mishkat/lib/config.js
  * ---------------------------------------------------------------
- * الإعدادات المركزية لأداة «مشكاة».
+ * الإعدادات المركزية لأداة «مشكاة» (النسخة الجديدة):
+ *   • لا نصوص فيديوهات ولا سحب من يوتيوب — لائحة فيديوهات (عنوان + رابط).
+ *   • مصدر الردود: موقع إسلام ويب (islamweb.net) مع توثيق رقم الفتوى ورابطها.
  * لا يحتوي هذا الملف على أي مكتبات خارجية، ويعمل على Node.js 18+.
  * ---------------------------------------------------------------
  */
@@ -36,14 +38,12 @@ function parseEnvFile(file) {
     const key = trimmed.slice(0, eq).trim().replace(/^export\s+/, "");
     let value = trimmed.slice(eq + 1).trim();
 
-    // إزالة علامات التنصيص إن وُجدت
     if (
       (value.startsWith('"') && value.endsWith('"')) ||
       (value.startsWith("'") && value.endsWith("'"))
     ) {
       value = value.slice(1, -1);
     }
-    // دعم تعليقات نهاية السطر البسيطة
     if (!value.startsWith("http") && value.includes(" #")) {
       value = value.slice(0, value.indexOf(" #")).trim();
     }
@@ -85,36 +85,53 @@ const bool = (key, fallback = false) => {
 };
 
 /* ==============================================================
- *  3) القناة المعتمدة (ثابتة) + قاعدة البيانات
+ *  3) القناة (روابط فقط) + مسارات البيانات
  * ============================================================== */
 
 const CHANNEL_ID = str("YOUTUBE_CHANNEL_ID", "UCv0g_v1C6JcZALvrkDu98AQ");
-const CHANNEL_HANDLE = str("YOUTUBE_CHANNEL_HANDLE", "");
 const CHANNEL_URL = str(
   "YOUTUBE_CHANNEL_URL",
   `https://www.youtube.com/channel/${CHANNEL_ID}`
 );
 
 const DATA_DIR = str("MISHKAT_DATA_DIR", path.join(MISHKAT_DIR, "data"));
-const DB_PATH = str("MISHKAT_DB_PATH", path.join(DATA_DIR, "mishkat.db"));
-const JSON_INDEX_PATH = str(
-  "MISHKAT_JSON_INDEX",
-  path.join(DATA_DIR, "index.json")
-);
+const VIDEOS_PATH = str("MISHKAT_VIDEOS_PATH", path.join(DATA_DIR, "videos.json"));
+const CACHE_DIR = str("MISHKAT_CACHE_DIR", path.join(DATA_DIR, "cache"));
 
 /* ==============================================================
- *  4) الشبكة (قابلة للتحويل إلى سيرفر وهمي في الاختبارات)
+ *  4) مصدر الردود: إسلام ويب
  * ============================================================== */
 
-const YT_BASE = str("MISHKAT_YT_BASE", "https://www.youtube.com").replace(/\/+$/, "");
-const YT_API_BASE = str(
-  "MISHKAT_YTAPI_BASE",
-  "https://www.googleapis.com/youtube/v3"
-).replace(/\/+$/, "");
-const YOUTUBE_API_KEY = str("YOUTUBE_API_KEY");
+const ISLAMWEB_MODE = str("ISLAMWEB_MODE", "auto").toLowerCase(); // auto | direct | reader | off
+const ISLAMWEB_READER_BASE = str("ISLAMWEB_READER_BASE", "https://r.jina.ai/");
+
+const ISLAMWEB = {
+  enabled: bool("ISLAMWEB_ENABLED", true) && ISLAMWEB_MODE !== "off",
+  mode: ISLAMWEB_MODE,
+  base: str("ISLAMWEB_BASE", "https://www.islamweb.net").replace(/\/+$/, ""),
+  readerBase: ISLAMWEB_READER_BASE.endsWith("/")
+    ? ISLAMWEB_READER_BASE
+    : `${ISLAMWEB_READER_BASE}/`,
+  useReaderFallback: bool("ISLAMWEB_READER_FALLBACK", true),
+  timeoutMs: num("ISLAMWEB_TIMEOUT_MS", 12000),
+  readerTimeoutMs: num("ISLAMWEB_READER_TIMEOUT_MS", 30000),
+  topK: num("ISLAMWEB_TOP_K", 6),
+  fullDocs: num("ISLAMWEB_FULL_DOCS", 2), // كم فتوى نجلب نصها الكامل
+  maxAnswerChars: num("ISLAMWEB_MAX_ANSWER_CHARS", 6000),
+  cacheTtlMinutes: num("ISLAMWEB_CACHE_TTL_MINUTES", 720),
+  userAgent: str(
+    "ISLAMWEB_USER_AGENT",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+  ),
+  sections: {
+    fatwa: bool("ISLAMWEB_SECTION_FATWA", true),
+    consult: bool("ISLAMWEB_SECTION_CONSULT", true),
+    article: bool("ISLAMWEB_SECTION_ARTICLE", true)
+  }
+};
 
 /* ==============================================================
- *  5) مزوّدو الذكاء الاصطناعي (محرك منفصل قابل للتبديل)
+ *  5) مزوّدو الذكاء الاصطناعي (اختياري — لصياغة الرد وترتيبه)
  * ============================================================== */
 
 const PROVIDERS = [
@@ -157,7 +174,6 @@ const PROVIDERS = [
 
 const AI_MODE = str("MISHKAT_AI_MODE", "auto").toLowerCase();
 
-// اختيار المزوّد: يدويًا عبر MISHKAT_AI_MODE أو تلقائيًا حسب أول مفتاح متاح
 function resolveProvider() {
   if (AI_MODE === "off" || AI_MODE === "none") return null;
   if (AI_MODE !== "auto") {
@@ -168,21 +184,24 @@ function resolveProvider() {
 }
 
 const AI = {
-  temperature: num("MISHKAT_TEMPERATURE", num("TEMPERATURE", 0.2)),
+  temperature: num("MISHKAT_TEMPERATURE", num("TEMPERATURE", 0.15)),
   maxTokens: num("MISHKAT_MAX_TOKENS", num("MAX_TOKENS", 2048)),
   timeoutMs: num("MISHKAT_AI_TIMEOUT_MS", 60000),
-  contextChars: num("MISHKAT_CONTEXT_CHARS", 14000)
+  contextChars: num("MISHKAT_CONTEXT_CHARS", 16000),
+  useRerank: bool("MISHKAT_AI_RERANK", true),
+  useCompose: bool("MISHKAT_AI_COMPOSE", true),
+  answerChars: num("MISHKAT_ANSWER_CHARS", 2200)
 };
 
 /* ==============================================================
- *  6) إعدادات المحرك والاسترجاع
+ *  6) الفيديوهات والاسترجاع
  * ============================================================== */
 
-const RETRIEVAL = {
-  topK: num("MISHKAT_TOP_K", 8),
-  candidates: num("MISHKAT_CANDIDATES", 90),
-  maxPerVideo: num("MISHKAT_MAX_PER_VIDEO", 3),
-  minScore: num("MISHKAT_MIN_SCORE", 0.02)
+const VIDEOS = {
+  topK: num("MISHKAT_VIDEOS_TOP_K", 5),
+  minScore: num("MISHKAT_VIDEOS_MIN_SCORE", 0.28),
+  linkOnly: true, // لا تُعرض نصوص الفيديوهات إطلاقًا
+  oembed: bool("MISHKAT_VIDEO_OEMBED", true) // جلب العنوان تلقائيًا عند الإضافة
 };
 
 const SERVER = {
@@ -192,43 +211,32 @@ const SERVER = {
   publicDir: path.join(MISHKAT_DIR, "public")
 };
 
-const INGEST = {
-  maxVideos: num("MISHKAT_MAX_VIDEOS", 0), // 0 = كل الفيديوهات
-  chunkChars: num("MISHKAT_CHUNK_CHARS", 300),
-  delayMs: num("MISHKAT_INGEST_DELAY_MS", 350),
-  retries: num("MISHKAT_INGEST_RETRIES", 3),
-  preferYtDlp: bool("MISHKAT_USE_YTDLP", false)
-};
-
 const APP = {
   name: str("MISHKAT_NAME", "مشكاة"),
   tagline: str(
     "MISHKAT_TAGLINE",
-    "منصة ذكية للإجابة على الأسئلة الدينية من نصوص القناة العلمية"
+    "مساعد للأسئلة الدينية: ردود من موقع إسلام ويب، وروابط الفيديوهات المتعلقة بالسؤال"
   ),
-  defaultMode: str("MISHKAT_DEFAULT_MODE", "balanced"), // strict | balanced | open
-  developer: str("MISHKAT_DEVELOPER", "")
+  defaultMode: str("MISHKAT_DEFAULT_MODE", "sources"), // sources | composed
+  developer: str("MISHKAT_DEVELOPER", ""),
+  islamwebHome: "https://www.islamweb.net/ar/"
 };
 
 module.exports = {
   ROOT,
   MISHKAT_DIR,
   CHANNEL_ID,
-  CHANNEL_HANDLE,
   CHANNEL_URL,
   DATA_DIR,
-  DB_PATH,
-  JSON_INDEX_PATH,
-  YT_BASE,
-  YT_API_BASE,
-  YOUTUBE_API_KEY,
+  VIDEOS_PATH,
+  CACHE_DIR,
+  ISLAMWEB,
   PROVIDERS,
   resolveProvider,
   AI_MODE,
   AI,
-  RETRIEVAL,
+  VIDEOS,
   SERVER,
-  INGEST,
   APP,
   str,
   num,
